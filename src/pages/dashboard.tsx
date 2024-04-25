@@ -1,4 +1,4 @@
-import { Header } from "@/components/Header";
+import { Header } from "@/components/Header/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { Avatar, Box, Button, ButtonGroup, Card, CardBody, CardFooter, CardHeader, Flex, Grid, Heading, IconButton, Image, SimpleGrid, Stack, Text, VStack, Wrap, WrapItem,} from "@chakra-ui/react";
 import { GrUserAdd, GrFormView } from "react-icons/gr";
