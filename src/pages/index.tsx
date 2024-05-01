@@ -21,9 +21,6 @@ const signInFormSchema = yup.object().shape({
     password: yup.string().required("Senha obrigatória")
 });
 
-function teste(){
-    console.log("teste");
-};
 export default function Login(): JSX.Element {
     const { signIn } = useContext(AuthContext);
     const toast  = useToast();
@@ -72,7 +69,7 @@ export default function Login(): JSX.Element {
                         <Text fontSize="3xl" fontWeight="bold" letterSpacing="tigth">
                             <u>Novo</u> Login
                         </Text>
-                        <Link href="">
+                        <Link href="users/create">
                             <Button boxShadow="dark-lg" borderRadius="full" mt="6" colorScheme="green" w='44'>Criar conta</Button>
                         </Link>                     
                         
