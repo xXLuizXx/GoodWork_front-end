@@ -10,7 +10,6 @@ import {
   InputGroup,
   InputLeftElement,
 } from "@chakra-ui/react";
-import { CiUser } from "react-icons/ci";
 
 interface IInputProps extends ChakraInputProps {
   name: string;

@@ -10,7 +10,7 @@ function setupAPIClient(ctx = undefined){
     const api = axios.create({
         baseURL: "http://localhost:3333",
         headers: {
-            Authorization: `Bearer ${cookies["baseApp.token"]}`
+            Authorization: `Bearer ${cookies["token.token"]}`
         }
     });
 
@@ -21,7 +21,7 @@ function setupAPIClient(ctx = undefined){
                 if(error.response.data === "Token inválido"){
                     cookies = parseCookies(ctx);
 
-                    const { "baseApp.refreshToken": refreshToken } = cookies;
+                    const { "token.refreshToken": refreshToken } = cookies;
                     const originalConfig = error.config;
 
                     if(!isRefreshing){
@@ -32,12 +32,12 @@ function setupAPIClient(ctx = undefined){
                             .then(response => {
                                 const { token, refreshToken} = response.data;
 
-                                setCookie(ctx, "baseApp.token", token, {
+                                setCookie(ctx, "token.token", token, {
                                     maxAge: 60 * 60 * 24 * 1,
                                     path: "/"
                                 });
 
-                                setCookie(ctx, "baseApp.refreshToken", refreshToken, {
+                                setCookie(ctx, "token.refreshToken", refreshToken, {
                                     maxAge: 60 * 60 * 24 * 1,
                                     path: "/",
                                 });
