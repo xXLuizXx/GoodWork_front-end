@@ -29,12 +29,12 @@ const InputBase: ForwardRefRenderFunction<HTMLInputElement, IInputProps> = (
         <ChakraInput
           name={name}
           id={name}
-          focusBorderColor="pink.500"
-          bg="gray.900"
-          variant="filled"
-          _hover={{
-            bg: "gray.900",
-          }}
+          boxShadow="2xl"
+          borderRadius="full"
+          focusBorderColor="blue.400" 
+          bgColor="gray.100" 
+          variant="filled" 
+          _hover={{ bgColor: 'gray.200' }} 
           size="lg"
           ref={ref}
           {...rest}

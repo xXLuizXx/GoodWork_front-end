@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Input } from "@/components/Form/Input";
-import { Button, Flex, Grid, GridItem, Image, Select, SimpleGrid, Stack, VStack, useToast } from "@chakra-ui/react";
+import { InputMask } from "@/components/Form/InputMask";
+import { Button, Flex, Grid, GridItem, Image, SimpleGrid, Stack, VStack, useToast } from "@chakra-ui/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { api } from "@/services/apiClient";
@@ -9,10 +10,9 @@ import Router from "next/router";
 import { queryClient } from "@/services/queryClient";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { withSSRGuest } from "@/shared/withSSRGuest";
-import { createContext } from "react";
-
+import { Select } from "@/components/Form/Select";
 interface ICreateUser{
-    nome: string;
+    name: string;
     road: string;
     number: string;
     identifier: string;
@@ -20,14 +20,14 @@ interface ICreateUser{
     sex: string;
     telephone: string;
     is_employee: boolean;
-    function: string;
+    functionn: string;
     email: string;
     password: string;
     confirmPassword: string;
 }
 
 const validMandatoryFields = yup.object().shape({
-    nome: yup.string().required("Campo obrigatório"),
+    name: yup.string().required("Campo obrigatório"),
     road: yup.string().required("Campo obrigatório"),
     number: yup.string().required("Campo obrigatório"),
     identifier: yup.string().required("Campo obrigatório").min(11, "CPF/CNPJ incompleto"),
@@ -35,7 +35,7 @@ const validMandatoryFields = yup.object().shape({
     sex: yup.string().required("Campo obrigatório"),
     telephone: yup.string().required("Campo obrigatório"),
     is_employee: yup.boolean().required("Campo obrigatório"),
-    function: yup.string().required("Campo obrigatório"),
+    functionn: yup.string().required("Campo obrigatório"),
     email: yup.string().required("Campo obrigatório"),
     password: yup.string().required("Campo obrigatório").min(6, "No mínimo 6 caracteres"),
     confirmPassword: yup.string().oneOf([yup.ref("password")], "Senha diferente da informada no campo senha"),
@@ -134,31 +134,16 @@ export default function CreateUser(): JSX.Element {
                             <GridItem pl="2" area={'row1'}>
                                 <Input
                                     name="Nome"
-                                    type="nome"
-                                    error={errors.nome}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400"
-                                    bgColor="gray.100"
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
+                                    type="name"
+                                    error={errors.name}
                                     placeholder="Nome Completo"
-                                    {...register("nome")}
+                                    {...register("name")}
                                 />
                             </GridItem>
                             <GridItem pl="2" area={'row2'}>
                                 <Input
                                     name="email"
                                     type="email"
-                                    error={errors.email}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
                                     placeholder="E-mail"
                                     {...register("email")}
                                 />
@@ -168,13 +153,6 @@ export default function CreateUser(): JSX.Element {
                                     name="password"
                                     type="password"
                                     error={errors.password}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
                                     placeholder="Senha"
                                     {...register("password")}
                                 />
@@ -184,66 +162,42 @@ export default function CreateUser(): JSX.Element {
                                     name="confirmPassword"
                                     type="password"
                                     error={errors.confirmPassword}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
                                     placeholder="Confirmar senha"
                                     {...register("confirmPassword")}
                                 />
                             </GridItem>
                             <GridItem pl="2" area={'row5'}>
                                 <Select 
-                                    borderRadius="full"
                                     name="sex"
-                                    size='lg'
                                     error={errors.sex}
-                                    focusBorderColor="blue.400"
-                                    variant="filled"
-                                    bgColor="gray.100" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    placeholder='Sexo?'
+                                    placeholder='Sexo'
+                                    options={[
+                                        { value: "masculino", label: "Masculino" },
+                                        { value: "feminino", label: "Feminino" },
+                                    ]}
                                     {...register("sex")}
-                                >
-                                    <option value='masculino'>Masculino</option>
-                                    <option value='feminino'>Feminino</option>
-                                </Select>
+                                />
                             </GridItem>
                             <GridItem pl="2" area={'row6'}>
-                                <Select 
-                                    boxShadow="2xl"
-                                    name="isEmployee"
-                                    borderRadius="full"
+                                <Select
+                                    name="is_employee"
                                     error={errors.is_employee}
-                                    size='lg'
-                                    focusBorderColor="blue.400"
-                                    variant="filled"
-                                    bgColor="gray.100" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    placeholder='É empregado?'
-                                    {...register("isEmployee")}
-                                >
-                                    <option value='sim'>Sim</option>
-                                    <option value='nao'>Não</option>
-                                </Select>
+                                    placeholder="Está empregado?"
+                                    options={[
+                                    { value: "true", label: "Sim" },
+                                    { value: "false", label: "Não" },
+                                    ]}
+                                    
+                                    {...register("is_employee")}
+                                />
                             </GridItem>
                             <GridItem pl="2" area={'row7'}>
                                 <Input
-                                    name="function"
-                                    type="function"
-                                    error={errors.function}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
+                                    name="functionn"
+                                    type="functionn"
+                                    error={errors.functionn}
                                     placeholder="Função"
-                                    {...register("function")}
+                                    {...register("functionn")}
                                 />
                             </GridItem>
                             <GridItem pl="2" area={'row8'}>
@@ -251,13 +205,6 @@ export default function CreateUser(): JSX.Element {
                                     name="identifier"
                                     type="identifier"
                                     error={errors.identifier}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
                                     placeholder="CPF/CNPJ"
                                     {...register("identifier")}
                                 />
@@ -267,13 +214,6 @@ export default function CreateUser(): JSX.Element {
                                     name="road"
                                     type="road"
                                     error={errors.road}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
                                     placeholder="Rua"
                                     {...register("road")}
                                 />
@@ -283,13 +223,6 @@ export default function CreateUser(): JSX.Element {
                                     name="number"
                                     type="number"
                                     error={errors.number}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
                                     placeholder="Número"
                                     {...register("number")}
                                 />
@@ -299,29 +232,17 @@ export default function CreateUser(): JSX.Element {
                                     name="neighborhood"
                                     type="neighborhood"
                                     error={errors.neighborhood}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
                                     placeholder="Bairro"
                                     {...register("neighborhood")}
                                 />
                             </GridItem>
                             <GridItem pl="2" area={'row12'}>
-                                <Input
+                                <InputMask
                                     name="telephone"
                                     type="telephone"
+                                    mask="(**) *****-****"
+                                    maskChar="_"
                                     error={errors.telephone}
-                                    boxShadow="2xl"
-                                    borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
                                     placeholder="Telefone"
                                     {...register("telephone")}
                                 />
