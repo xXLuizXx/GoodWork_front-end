@@ -10,9 +10,11 @@ function MyApp({ Component, pageProps }: AppProps){
     return (
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
-                <ChakraProvider theme={theme}>
-                    <Component {...pageProps}/>
-                </ChakraProvider>
+
+                    <ChakraProvider theme={theme}>
+                        <Component {...pageProps}/>
+                    </ChakraProvider>
+
             </AuthProvider>
         </QueryClientProvider>
     )

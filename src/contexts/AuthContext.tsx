@@ -1,7 +1,7 @@
 import { ReactNode, createContext, useEffect, useState } from "react";
 import { IShowToast } from "@/utils/IShowToast";
 import { api } from "@/services/apiClient";
-import { setCookie } from "nookies";
+import { setCookie, destroyCookie, parseCookies } from "nookies";
 import Router from "next/router";
 
 interface ISignInCredentials {
@@ -12,11 +12,9 @@ interface ISignInCredentials {
 
 interface IUser {
     name: string;
-    identifier: string;
-    telephone: string;
-    is_employee: string
-    functionn: string;
     email: string;
+    avatar: string;
+    avatarUrl: string;
     isAdmin: boolean;
 }
 
@@ -31,18 +29,71 @@ interface IAuthProviderProps {
 }
 
 const AuthContext = createContext({} as IAuthContextData);
-
 let authChannel: BroadcastChannel;
+
+function signOut(): void {
+  destroyCookie(undefined, "baseApp.token");
+  destroyCookie(undefined, "baseApp.refreshToken");
+
+  authChannel.postMessage("signOut");
+
+  Router.push("/");
+}
 
 function AuthProvider({ children }: IAuthProviderProps){
     const [user, setUser] = useState<IUser>();
     const isAuthenticated = !!user;
 
+    useEffect(() => {
+        authChannel = new BroadcastChannel("auth");
+    
+        authChannel.onmessage = message => {
+          switch (message.data) {
+            case "signOut":
+              signOut();
+              break;
+            default:
+              break;
+          }
+        };
+      }, []);
+    
+      useEffect(() => {
+        const { "baseApp.token": token } = parseCookies();
+    
+        if (token) {
+          api
+            .get("users/profile")
+            .then(response => {
+              const {
+                name,
+                email,
+                avatar,
+                avatarUrl,
+                isAdmin
+              } = response.data as IUser;
+    
+              setUser({
+                name,
+                email,
+                avatar,
+                avatarUrl,
+                isAdmin
+              });
+            })
+            .catch(() => {
+              if (process.browser) {
+                signOut();
+              }
+            });
+        }
+      }, []);
+
     async function signIn({ email, password, showToast }: ISignInCredentials): Promise<void> {
         try{
             const  response = await api.post("sessions", { email, password });
 
-            const { name, identifier, telephone, is_employee, functionn, isAdmin } = response.data.user;
+            const { name, avatar, avatarUrl, isAdmin } = response.data.user;
 
             const { token, refreshToken } = response.data;
 
@@ -57,11 +108,9 @@ function AuthProvider({ children }: IAuthProviderProps){
 
             setUser({
                 name,
-                identifier,
-                telephone,
-                is_employee,
-                functionn,
                 email,
+                avatar,
+                avatarUrl,
                 isAdmin
             });
 

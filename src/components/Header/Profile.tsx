@@ -13,7 +13,7 @@ interface IProfileProps {
 function Profile({ showProfileData = true }: IProfileProps): JSX.Element {
   const { user } = useContext(AuthContext);
   const initialFocusRef = useRef();
-
+    console.log(user);
   return (
     <Popover
         id="propoverProfile"
@@ -47,18 +47,18 @@ function Profile({ showProfileData = true }: IProfileProps): JSX.Element {
             <PopoverHeader pt={4} fontWeight="bold" border="0">
                 <Stack direction={['column', 'row']}>
                     <Flex>
-                        <Avatar
+                        {/* <Avatar
                             border= "1px"
                             size="md"
                             name={user?.name}
-                        />    
+                        />     */}
                     </Flex>  
                     <Flex>
-                        <Text color="white">{user?.name}
+                        {/* <Text color="white">{user?.name}
                             <Text color="white" fontSize="small">
                                 {user?.email}
                             </Text>
-                        </Text>
+                        </Text> */}
                         
                     </Flex>
                 </Stack>
@@ -68,7 +68,7 @@ function Profile({ showProfileData = true }: IProfileProps): JSX.Element {
             <PopoverCloseButton />
 
             <PopoverBody>
-                <Link href="/users/profile">
+                {/* <Link href="/users/profile">
                     <Button
                     justifyContent="start"
                     leftIcon={<Icon as={RiProfileLine} />}
@@ -90,7 +90,7 @@ function Profile({ showProfileData = true }: IProfileProps): JSX.Element {
                     _hover={{ bg: "blue.300" }}
                 >
                     Sair
-                </Button>
+                </Button> */}
             </PopoverBody>
         </PopoverContent>
     </Popover>
