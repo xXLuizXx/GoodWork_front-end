@@ -7,7 +7,7 @@ import Router from "next/router";
 interface ISignInCredentials {
     email: string;
     password: string;
-    showToast: (infoToas: IShowToast) => void;
+    showToast: (infoToast: IShowToast) => void;
 }
 
 interface IUser {
@@ -20,7 +20,7 @@ interface IUser {
 
 interface IAuthContextData {
     signIn(credentials: ISignInCredentials): Promise<void>;
-    user: IUser;
+    user: IUser | undefined;
     isAuthenticated: boolean;
 }
 
@@ -32,77 +32,72 @@ const AuthContext = createContext({} as IAuthContextData);
 let authChannel: BroadcastChannel;
 
 function signOut(): void {
-  destroyCookie(undefined, "baseApp.token");
-  destroyCookie(undefined, "baseApp.refreshToken");
+    destroyCookie(undefined, "token.token");
+    destroyCookie(undefined, "token.refreshToken");
 
-  authChannel.postMessage("signOut");
+    authChannel.postMessage("signOut");
 
-  Router.push("/");
+    Router.push("/");
 }
 
 function AuthProvider({ children }: IAuthProviderProps){
-    const [user, setUser] = useState<IUser>();
+    const [user, setUser] = useState<IUser | undefined>(undefined);
     const isAuthenticated = !!user;
 
     useEffect(() => {
         authChannel = new BroadcastChannel("auth");
-    
-        authChannel.onmessage = message => {
-          switch (message.data) {
-            case "signOut":
-              signOut();
-              break;
-            default:
-              break;
-          }
+        authChannel.onmessage = (message) => {
+            switch (message.data) {
+                case "signOut":
+                    signOut();
+                    break;
+                default:
+                    break;
+            }
         };
-      }, []);
+    }, []);
     
       useEffect(() => {
-        const { "baseApp.token": token } = parseCookies();
+          const { "token.token": token } = parseCookies();
     
-        if (token) {
-          api
-            .get("users/profile")
-            .then(response => {
-              const {
-                name,
-                email,
-                avatar,
-                avatarUrl,
-                isAdmin
-              } = response.data as IUser;
-    
-              setUser({
-                name,
-                email,
-                avatar,
-                avatarUrl,
-                isAdmin
-              });
-            })
-            .catch(() => {
-              if (process.browser) {
-                signOut();
-              }
-            });
-        }
+          if(token){
+              api.get("users/profile").then(response => {
+                  const {
+                      name,
+                      email,
+                      avatar,
+                      avatarUrl,
+                      isAdmin,
+                  } = response.data as IUser;
+        
+                  setUser({
+                      name,
+                      email,
+                      avatar,
+                      avatarUrl,
+                      isAdmin,
+                  });
+                })
+                .catch(() => {
+                    if (process.browser) {
+                      signOut();
+                    }
+                });
+          }
       }, []);
 
     async function signIn({ email, password, showToast }: ISignInCredentials): Promise<void> {
         try{
             const  response = await api.post("sessions", { email, password });
-
             const { name, avatar, avatarUrl, isAdmin } = response.data.user;
-
             const { token, refreshToken } = response.data;
 
-            setCookie(undefined, "baseApp.token", token, {
-                maxAge: 60 * 60 * 1 * 1, // 30 days
+            setCookie(undefined, "token.token", token, {
+                maxAge: 60 * 60 * 1 * 1, // 1 hour
                 path: "/",
             });
-            setCookie(undefined, "baseApp.refreshToken", refreshToken, {
-                maxAge: 60 * 60 * 1 * 1, // 30 days
+            setCookie(undefined, "token.refreshToken", refreshToken, {
+                maxAge: 60 * 60 * 1 * 1, // 1 hour
                 path: "/",
             });
 
@@ -111,14 +106,14 @@ function AuthProvider({ children }: IAuthProviderProps){
                 email,
                 avatar,
                 avatarUrl,
-                isAdmin
+                isAdmin,
             });
 
             api.defaults.headers["Authorization"] = `Bearer ${token}`;
 
             Router.push("/dashboard");
 
-        }catch(error){
+        }catch(error: any){
             showToast({
                 description: error.response.data.message,
                 status: "error"
