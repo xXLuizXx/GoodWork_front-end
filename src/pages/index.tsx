@@ -10,7 +10,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { IShowToast } from "@/utils/IShowToast";
 import { withSSRGuest } from "@/shared/withSSRGuest";
 import { Input } from "@/components/Form/Input";
-
+import { Helmet } from "react-helmet";
 interface ISignInFormData {
     email: string;
     password: string;
@@ -50,7 +50,9 @@ export default function Login(): JSX.Element {
             align="center" 
             justify="center"
         >
-
+            <Helmet>
+                <title>GoodWork - Bem Vindo!</title>
+            </Helmet>
             <Flex 
                 as="form" 
                 width="100%" 
