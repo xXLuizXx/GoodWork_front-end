@@ -11,6 +11,8 @@ import { queryClient } from "@/services/queryClient";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { withSSRGuest } from "@/shared/withSSRGuest";
 import { Select } from "@/components/Form/Select";
+import { Helmet } from "react-helmet";
+
 interface ICreateUser{
     name: string;
     road: string;
@@ -94,6 +96,10 @@ export default function CreateUser(): JSX.Element {
             justify="center"
             onSubmit={handleSubmit(creteHandle)}
         >
+            <Helmet>
+                <title>Criar Conta</title>
+                <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>
+            </Helmet>
             <Stack
                 w="35%"
                 h="80%"
