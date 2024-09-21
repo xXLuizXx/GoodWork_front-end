@@ -1,5 +1,4 @@
 import { useQuery } from "react-query";
-
 import { api } from "@/services/apiClient";
 
 interface ICategorie {
@@ -16,13 +15,15 @@ async function getCategories(): Promise<IGetCategoriesResponse> {
     const { data } = await api.get("categories");
 
     const categories = data.map(category => {
+        console.log(category);
         return {
             id: category.id,
             name: category.name,
-            descripion: category.descripion,
+            descripion: category.description,
         };
     });
 
+    console.log(categories);
      return { categories };
 }
 

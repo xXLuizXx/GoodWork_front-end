@@ -25,8 +25,6 @@ interface IGetJobsResponse {
 async function getJobs(): Promise<IGetJobsResponse> {
     const { data } = await api.get("jobs/list");
 
-    console.log("Dados retornados da API:", data);
-
     const jobs = data.map(job => {
         return {
             id: job.id,
@@ -48,7 +46,7 @@ async function getJobs(): Promise<IGetJobsResponse> {
     return { jobs };
 }
 
-function useJobs() {
+function useAllJobs() {
     return useQuery(
         ["jobs/list"],
         () => getJobs(),
@@ -58,5 +56,5 @@ function useJobs() {
     );
 }
 
-export { useJobs, getJobs };
+export { useAllJobs, getJobs };
 export type { IJobs };

@@ -1,14 +1,14 @@
-import { Box, ChakraProvider, HStack, Icon, Link, Stack, StackDivider, Text } from "@chakra-ui/react";
+import { Box, ChakraProvider, Icon, Link, Stack, StackDivider, Text } from "@chakra-ui/react";
 import { RiDashboardLine } from "react-icons/ri";
-import { FcNext } from "react-icons/fc";
 import { Image } from '@chakra-ui/react';
 import { TbReportAnalytics } from "react-icons/tb";
 import { Categories } from "./Categories/Categories";
-import { useCategories } from "@/services/hooks/Categories/useCategories";
+import { Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon } from '@chakra-ui/react'
+
 export function Sidebar(){
     return(
         <Box borderBlockEnd="1" as="aside" w="64" mr="8">
-            <Stack spacing="12" align="flex-start" divider={<StackDivider borderColor='gray.200' />} fontSize="14">
+            <Stack spacing="12" align="flex-start" fontSize="14">
                 <Box>
                     <Text fontWeight="bold" color="gray.500" fontSize="small">GERAL</Text>
                     <Stack spacing="4" mt="8" align="stretch">
@@ -31,8 +31,19 @@ export function Sidebar(){
                     </Stack>
                 </Box>
                 <Box>
-                    <Text fontWeight="bold" color="gray.500" fontSize="small">CATEGORIAS</Text>
-                    <Categories/>
+
+                    <Accordion allowMultiple>
+                        <AccordionItem>
+                                <AccordionButton>
+                                    <Text textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">CATEGORIAS</Text>
+                                    <AccordionIcon />
+                                </AccordionButton>
+                            <AccordionPanel pb={4}>
+                                <Categories/>
+                            </AccordionPanel>
+                        </AccordionItem>
+                    </Accordion>
+
                 </Box>
                 <Box>
                     <Text fontWeight="bold" color="gray.500" fontSize="small">RELATORIOS</Text>

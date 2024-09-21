@@ -1,10 +1,16 @@
 import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, IconButton, Image, SimpleGrid, Text, VStack } from "@chakra-ui/react";
 import {BsThreeDotsVertical} from "react-icons/bs";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
-import {useAllJobs} from "@/services/hooks/Jobs/useAllJobs";
+import { useJobsCategories } from "@/services/hooks/Jobs/useJobsCategories";
+import React, { useEffect, useState } from 'react';
 
-export function Jobs() {
-    const {data} = useAllJobs();
+interface IJobsCategoriesProps{
+    category_id: string;
+}
+
+export function JobsCategory({category_id}: IJobsCategoriesProps) {
+    const { data } = useJobsCategories(category_id);
+
     return (
         <>
             {data?.jobs.map(job => (

@@ -1,5 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { parseCookies, setCookie } from "nookies";
+import { signOut } from "../contexts/AuthContext";
+import {AuthTokenError} from "@/services/errors/AuthTokenErros";
 
 let isRefreshing = false;
 let failedRequestsQueue = [];
@@ -49,6 +51,10 @@ function setupAPIClient(ctx = undefined){
                                 );
                                 failedRequestsQueue = [];
 
+                                if (process.browser) {
+                                    signOut();
+                                }
+
                             })
                             .catch(error => {
                                 failedRequestsQueue.forEach(request => 
@@ -72,6 +78,11 @@ function setupAPIClient(ctx = undefined){
                           },
                         });
                     });
+                }
+                if (process.browser) {
+                    signOut();
+                } else {
+                    return Promise.reject(new AuthTokenError());
                 }
             }
 

@@ -1,6 +1,4 @@
-import { AuthContext } from "@/contexts/AuthContext";
-import { Flex, Input, Text, Icon, HStack, Box, Avatar, VStack, Popover, PopoverTrigger, useBreakpointValue} from "@chakra-ui/react";
-import { useContext, useRef} from "react";
+import { Flex, Input, Text, Icon, HStack, VStack, useBreakpointValue} from "@chakra-ui/react";
 import { RiSearchLine } from "react-icons/ri";
 import { Profile } from "./Profile";
 

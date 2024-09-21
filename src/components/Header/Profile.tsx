@@ -1,7 +1,7 @@
 import { useContext, useRef } from "react";
 import { RiLogoutBoxLine, RiProfileLine } from "react-icons/ri";
 import { Flex, Text, Box, Avatar, Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverArrow, PopoverBody, PopoverCloseButton, Button, Link, Icon, Stack } from "@chakra-ui/react";
-import { AuthContext } from "@/contexts/AuthContext";
+import { AuthContext, signOut } from "@/contexts/AuthContext";
 
 interface IProfileProps {
     showProfileData: boolean;
@@ -58,6 +58,7 @@ function Profile({ showProfileData = true }: IProfileProps): JSX.Element {
                         colorScheme="white"
                         w="100%"
                         h="7"
+                        onClick={signOut}
                         _hover={{ bg: "blue.300" }}
                     >
                         Sair

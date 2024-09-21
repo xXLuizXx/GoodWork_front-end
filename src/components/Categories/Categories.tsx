@@ -17,6 +17,7 @@ export function Categories(){
                     mr="4" 
                     display="flex" 
                     alignItems="center"
+                    href={`/jobs-category?category_id=${category.id}`}
                     _hover={
                         { bgColor: 'gray.200' }
                     }

@@ -128,4 +128,4 @@ function AuthProvider({ children }: IAuthProviderProps){
 
 }
 
-export { AuthProvider , AuthContext };
+export { AuthProvider , AuthContext , signOut};
