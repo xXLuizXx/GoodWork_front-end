@@ -21,8 +21,8 @@ interface IGetJobsResponse {
     jobs: IJobs[];
 }
 
-async function getJobsCategory(category_id: string): Promise<IGetJobsResponse> {
-    const { data } = await api.get(`jobs/listCategories?category_id=${category_id}`);
+async function getJobsVacancy(vacancy: string): Promise<IGetJobsResponse> {
+    const { data } = await api.get(`jobs/listVacancy?vacancy=${vacancy}`);
 
     const jobs = data.map(job => {
         return {
@@ -45,15 +45,15 @@ async function getJobsCategory(category_id: string): Promise<IGetJobsResponse> {
     return { jobs };
 }
 
-function useJobsCategories(category_id: string) {
+function useJobsVacancy(vacancy: string) {
     return useQuery(
-        ["jobs/listCategories", category_id],
-        () => getJobsCategory(category_id),
+        ["jobs/listVacancy", vacancy],
+        () => getJobsVacancy(vacancy),
         {
             staleTime: 1000 * 60 * 10,
         }
     );
 }
 
-export { useJobsCategories, getJobsCategory };
+export { useJobsVacancy, getJobsVacancy };
 export type { IJobs };

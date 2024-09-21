@@ -1,15 +1,22 @@
-import { Flex, Input, Text, Icon, HStack, VStack, useBreakpointValue} from "@chakra-ui/react";
+import { Flex, Input, Text, Icon, HStack, VStack, useBreakpointValue, Link} from "@chakra-ui/react";
 import { RiSearchLine } from "react-icons/ri";
 import { Profile } from "./Profile";
+import { useState } from "react";
 
 interface IProfileProps {
     showProfileData: boolean;
 }
 function Header(): JSX.Element{
+    const [vacancy, setVacancy] = useState('');
+
     const isWideVersion = useBreakpointValue({
         base: false,
         lg: true,
       });
+
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setVacancy(event.target.value);
+    };
 
     return(
         <Flex
@@ -49,7 +56,7 @@ function Header(): JSX.Element{
                 borderRadius="full"
             >
                 <Input
-                    color="white"
+                    color="black"
                     variant="unstyled"
                     px="4"
                     mr="4"
@@ -57,8 +64,12 @@ function Header(): JSX.Element{
                     _placeholder={{
                         color: "gray.500"
                     }}
+                    value={vacancy}
+                    onChange={handleInputChange}
                 />
-                <Icon as={RiSearchLine} fontSize="20"/>
+                <Link href={`/jobs-vacancy?vacancy=${vacancy}`}>
+                    <Icon as={RiSearchLine} fontSize="20"/>
+                </Link>
             </Flex>
 
             <Flex

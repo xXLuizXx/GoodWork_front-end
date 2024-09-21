@@ -1,5 +1,4 @@
 import { useQuery } from "react-query";
-
 import  { api } from "@/services/apiClient";
 
 interface IJobs {
