@@ -7,6 +7,8 @@ import {
     FormControl,
     FormLabel,
     FormErrorMessage,
+    InputGroup,
+    InputLeftElement,
 } from "@chakra-ui/react";
 
 export interface ISelectOption {
@@ -34,29 +36,33 @@ const SelectBase: ForwardRefRenderFunction<HTMLSelectElement, ISelectProps> = (
             </FormLabel>
         )}
 
-        <ChakraSelect
-            name={name}
-            id={name}
-            placeholder={placeholder}
-            boxShadow="2xl"
-            borderRadius="full"
-            focusBorderColor="blue.400" 
-            bgColor="gray.100" 
-            variant="filled" 
-            _hover={{ bgColor: 'gray.200' }} 
-            size="lg"
-            ref={ref}
-            {...rest}
-        >
-            {options.map(option => {
-            return (
-                <option key={option.value} value={option.value}>
-                {option.label}
-                </option>
-            );
-            })}
-        </ChakraSelect>
-        {!!error && <FormErrorMessage>{error.message}</FormErrorMessage>}
+            <InputGroup>
+                <InputLeftElement pointerEvents='none' fontSize="medium">
+                </InputLeftElement>
+                <ChakraSelect
+                    name={name}
+                    id={name}
+                    placeholder={placeholder}
+                    boxShadow="2xl"
+                    borderRadius="full"
+                    focusBorderColor="blue.400" 
+                    bgColor="gray.100" 
+                    variant="filled" 
+                    _hover={{ bgColor: 'gray.200' }} 
+                    size="lg"
+                    ref={ref}
+                    {...rest}
+                >
+                    {options.map(option => {
+                    return (
+                        <option key={option.value} value={option.value}>
+                        {option.label}
+                        </option>
+                    );
+                    })}
+                </ChakraSelect>
+                {!!error && <FormErrorMessage>{error.message}</FormErrorMessage>}
+            </InputGroup>
         </FormControl>
   );
 };

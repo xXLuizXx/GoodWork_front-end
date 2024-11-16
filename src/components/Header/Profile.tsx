@@ -39,7 +39,7 @@ function Profile({ showProfileData = true }: IProfileProps): JSX.Element {
                 <PopoverArrow bg="white.800" />
                 <PopoverCloseButton />
                 <PopoverBody>
-                    <Link href="/users/profile">
+                    <Link href="/users/my-profile">
                         <Button
                             justifyContent="start"
                             leftIcon={<Icon as={RiProfileLine} />}

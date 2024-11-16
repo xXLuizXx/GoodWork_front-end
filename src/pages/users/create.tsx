@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Input } from "@/components/Form/Input";
 import { InputMask } from "@/components/Form/InputMask";
-import { Button, Flex, Grid, GridItem, Image, SimpleGrid, Stack, VStack, useToast } from "@chakra-ui/react";
+import { Button, Flex, Grid, GridItem, Image, SimpleGrid, Stack, Textarea, VStack, useToast } from "@chakra-ui/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { api } from "@/services/apiClient";
@@ -12,6 +12,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { withSSRGuest } from "@/shared/withSSRGuest";
 import { Select } from "@/components/Form/Select";
 import { Helmet } from "react-helmet";
+import { useState } from "react";
 
 interface ICreateUser{
     name: string;
@@ -23,6 +24,7 @@ interface ICreateUser{
     telephone: string;
     is_employee: boolean;
     functionn: string;
+    ability: string;
     email: string;
     password: string;
     confirmPassword: string;
@@ -32,7 +34,7 @@ const validMandatoryFields = yup.object().shape({
     name: yup.string().required("Campo obrigatório"),
     road: yup.string().required("Campo obrigatório"),
     number: yup.string().required("Campo obrigatório"),
-    identifier: yup.string().required("Campo obrigatório").min(11, "CPF/CNPJ incompleto"),
+    identifier: yup.string().required("Campo obrigatório").min(11, "CPF/CNPJ incompleto").max(18, "CPF/CNPJ não corresponde ao padrão"),
     neighborhood: yup.string().required("Campo obrigatório"),
     sex: yup.string().required("Campo obrigatório"),
     telephone: yup.string().required("Campo obrigatório"),
@@ -44,12 +46,35 @@ const validMandatoryFields = yup.object().shape({
 });
 
 export default function CreateUser(): JSX.Element {
-    const { register, formState, handleSubmit } = useForm({
+    const { register, formState, handleSubmit, setValue} = useForm({
         resolver: yupResolver(validMandatoryFields)
     });
     const { errors } = formState;
     const toast = useToast();
+    const formatCpfCnpj = (value: string) => {
+        if (value.length <= 14) {
+          return value
+            .replace(/\D/g, '')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+        } else {
+          return value
+            .replace(/\D/g, '')
+            .replace(/^(\d{2})(\d)/, '$1.$2')
+            .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+            .replace(/\.(\d{3})(\d)/, '.$1/$2')
+            .replace(/(\d{4})(\d)/, '$1-$2');
+        }
+    };
+    const handleIdentifierChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = event.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
 
+        if (rawValue.length <= 14) { // Restringe a quantidade de caracteres
+            const formattedValue = formatCpfCnpj(event.target.value);
+            setValue("identifier", formattedValue); // Atualiza o valor do campo
+        }
+    };
     const createUser = useMutation(
         async (user: ICreateUser) => {
             api.post("users", user)
@@ -66,7 +91,7 @@ export default function CreateUser(): JSX.Element {
                 return response.data.user;
             }).catch(error => {
                 toast({
-                    description: error.reponse.data.message,
+                    description: error.response.data.message,
                     status: "error",
                     position: "top",
                     duration: 8000,
@@ -132,6 +157,7 @@ export default function CreateUser(): JSX.Element {
                                             "row7 row8"
                                             "row9 row10"
                                             "row11 row12"
+                                            "row13 row13"
                                         `}
                             gridTemplateRows={'50px 1fr 90px'}
                             gridTemplateColumns={'310px 1fr'}
@@ -212,7 +238,8 @@ export default function CreateUser(): JSX.Element {
                                     type="identifier"
                                     error={errors.identifier}
                                     placeholder="CPF/CNPJ"
-                                    {...register("identifier")}
+                                    {...register("identifier")} // Usa o valor formatado
+                                    onChange={handleIdentifierChange}
                                 />
                             </GridItem>
                             <GridItem pl="2" area={'row9'}>
@@ -251,6 +278,22 @@ export default function CreateUser(): JSX.Element {
                                     error={errors.telephone}
                                     placeholder="Telefone"
                                     {...register("telephone")}
+                                />
+                            </GridItem>
+                            <GridItem pl="2" area={'row13'}>
+                                <Textarea
+                                    boxShadow="2xl"
+                                    borderRadius="md"
+                                    focusBorderColor="blue.400" 
+                                    bgColor="gray.100" 
+                                    variant="filled" 
+                                    _hover={{ bgColor: 'gray.200' }} 
+                                    size="lg"
+                                    name="ability"
+                                    type="ability"
+                                    error={errors.ability}
+                                    placeholder="Habilidades"
+                                    {...register("ability")}
                                 />
                             </GridItem>
                             

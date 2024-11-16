@@ -11,7 +11,17 @@ interface ISignInCredentials {
 }
 
 interface IUser {
+    id: string;
     name: string;
+    road: string;
+    number: string;
+    identifier: string;
+    neighborhood: string;
+    sex: string;
+    telephone: string;
+    is_employee: boolean;
+    functionn: string;
+    ability: string;
     email: string;
     avatar: string;
     avatarUrl: string;
@@ -63,19 +73,39 @@ function AuthProvider({ children }: IAuthProviderProps){
           if(token){
               api.get("users/profile").then(response => {
                   const {
-                      name,
-                      email,
-                      avatar,
-                      avatarUrl,
-                      isAdmin,
+                        id,                    
+                        name,
+                        road,
+                        number,
+                        identifier,
+                        neighborhood,
+                        sex,
+                        telephone,
+                        is_employee,
+                        functionn,
+                        ability,
+                        email,
+                        avatar,
+                        avatarUrl,
+                        isAdmin,
                   } = response.data as IUser;
         
                   setUser({
-                      name,
-                      email,
-                      avatar,
-                      avatarUrl,
-                      isAdmin,
+                        id,
+                        name,
+                        road,
+                        number,
+                        identifier,
+                        neighborhood,
+                        sex,
+                        telephone,
+                        is_employee,
+                        functionn,
+                        ability,
+                        email,
+                        avatar,
+                        avatarUrl,
+                        isAdmin,
                   });
                 })
                 .catch(() => {
@@ -89,7 +119,7 @@ function AuthProvider({ children }: IAuthProviderProps){
     async function signIn({ email, password, showToast }: ISignInCredentials): Promise<void> {
         try{
             const  response = await api.post("sessions", { email, password });
-            const { name, avatar, avatarUrl, isAdmin } = response.data.user;
+            const { id, name, road, number, identifier, neighborhood, sex, telephone, is_employee, functionn, ability, avatar, avatarUrl, isAdmin } = response.data.user;
             const { token, refreshToken } = response.data;
 
             setCookie(undefined, "token.token", token, {
@@ -102,7 +132,17 @@ function AuthProvider({ children }: IAuthProviderProps){
             });
 
             setUser({
+                id,
                 name,
+                road,
+                number,
+                identifier,
+                neighborhood,
+                sex,
+                telephone,
+                is_employee,
+                functionn,
+                ability,
                 email,
                 avatar,
                 avatarUrl,

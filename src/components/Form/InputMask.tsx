@@ -6,8 +6,10 @@ import {
     FormControl,
     FormLabel,
     FormErrorMessage,
-    Input,
+    Input as ChakraInput,
     InputProps,
+    InputGroup,
+    InputLeftElement,
 } from "@chakra-ui/react";
 
 interface IInputMaskProps extends InputProps {
@@ -29,24 +31,27 @@ const InputBase: ForwardRefRenderFunction<HTMLInputElement, IInputMaskProps> = (
             {label}
             </FormLabel>
         )}
-
-        <Input
-                as={ReactInputMask}
-                name={name}
-                id={name}
-                mask={mask}
-                maskChar={maskChar}
-                boxShadow="2xl"
-                borderRadius="full"
-                focusBorderColor="blue.400" 
-                bgColor="gray.100" 
-                variant="filled" 
-                _hover={{ bgColor: 'gray.200' }} 
-                size="lg"
-                ref={ref}
-                {...rest}
-        />
-        {!!error && <FormErrorMessage>{error.message}</FormErrorMessage>}
+            <InputGroup>
+                <InputLeftElement pointerEvents='none' fontSize="medium">
+                </InputLeftElement>
+                <ChakraInput
+                        as={ReactInputMask}
+                        name={name}
+                        id={name}
+                        mask={mask}
+                        maskChar={maskChar}
+                        boxShadow="2xl"
+                        borderRadius="full"
+                        focusBorderColor="blue.400" 
+                        bgColor="gray.100" 
+                        variant="filled" 
+                        _hover={{ bgColor: 'gray.200' }} 
+                        size="lg"
+                        ref={ref}
+                        {...rest}
+                />
+                {!!error && <FormErrorMessage>{error.message}</FormErrorMessage>}
+            </InputGroup>    
         </FormControl>
     );
 };
