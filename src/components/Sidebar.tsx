@@ -4,6 +4,7 @@ import { Image } from '@chakra-ui/react';
 import { TbReportAnalytics } from "react-icons/tb";
 import { Categories } from "./Categories/Categories";
 import { Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIcon } from '@chakra-ui/react'
+import { BsCardChecklist } from "react-icons/bs";
 
 export function Sidebar(){
     return(
@@ -22,7 +23,8 @@ export function Sidebar(){
                         <Stack borderRadius="full" h="10" w="100%" _hover={{ bgColor: 'gray.200' }} >
                             <Link mt="2" ml="4" borderLeft="2" mr="4" display="flex" alignItems="center">
                                 <ChakraProvider>
-                                    <Image className="object-cover" src='./Img/icons/empregos.png' w="6" h="6"/>
+                                    <BsCardChecklist fontSize="20" w="6" h="6"/>
+
                                 </ChakraProvider>
                                 
                                 <Text ml="4" fontWeight="mediun">Empregos</Text>

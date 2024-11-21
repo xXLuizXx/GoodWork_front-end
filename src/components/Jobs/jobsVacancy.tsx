@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, IconButton, Image, SimpleGrid, Text, VStack } from "@chakra-ui/react";
+import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, IconButton, Image, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, Spinner  } from "@chakra-ui/react";
 import {BsThreeDotsVertical} from "react-icons/bs";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
 import { useJobsVacancy } from "@/services/hooks/Jobs/useJobsVacancy";
@@ -10,6 +10,41 @@ interface IJobsVacancyProps{
 
 export function JobsVacancy({vacancy}: IJobsVacancyProps) {
     const { data } = useJobsVacancy(vacancy);
+    console.log("TESTE: " + (data?.jobs?.length || 0));
+    const { isOpen, onOpen, onClose } = useDisclosure()
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [isChecking, setIsChecking] = useState(true);
+    const [hasValidJobs, setHasValidJobs] = useState(false);
+
+    useEffect(() => {
+        if (data?.jobs) {
+            const validJobsExist = data.jobs.some((job) => job.valid_vacancy);
+            setHasValidJobs(validJobsExist);
+            setIsChecking(false);
+        } else if (data) {
+            setHasValidJobs(false);
+            setIsChecking(false);
+        }
+    }, [data]);
+
+    if (!data || isChecking) {
+        return (
+            <Flex justify="center" align="center" h="100vh">
+                <Spinner size="xl" color="blue.500" />
+            </Flex>
+        );
+    }
+    
+    if (!hasValidJobs) {
+        return (
+            <Stack>
+                <Alert status="info">
+                    <AlertIcon />
+                    Nenhuma vaga encontrada.
+                </Alert>
+            </Stack>
+        );
+    }
 
     return (
         <>
@@ -79,7 +114,128 @@ export function JobsVacancy({vacancy}: IJobsVacancyProps) {
                                 minChildWidth="90px"
                             >
                                 <Button variant="ghost" leftIcon={<GrUserAdd color="green"/>} size='xs'>Concorrer</Button>
-                                <Button variant="ghost" leftIcon={<GrFormView color="blue"/>} size='xs'>Visualizar</Button>
+                                <Button variant="ghost" leftIcon={<GrFormView color="blue"/>} 
+                                    onClick={() => {
+                                                    setSelectedJob(job);
+                                                    onOpen();
+                                                }
+                                            }  size='xs'
+                                >
+                                    Visualizar
+                                </Button>
+                                <Modal
+                                    isCentered
+                                    onClose={() => {
+                                        setSelectedJob(null);
+                                        onClose();
+                                    }}
+                                    isOpen={isOpen}
+                                    motionPreset="slideInBottom"
+                                >
+                                    <ModalOverlay />
+                                    <ModalContent maxW="700px" borderRadius="lg" boxShadow="2xl">
+                                        <ModalHeader alignItems="center">
+                                            <Flex flex="1" gap="4" alignItems="center">
+                                                <Avatar name="avatar" src="./Img/icons/empresaTeste.jpg" />
+                                                <Box>
+                                                    <Text fontWeight="bold" fontSize="xl">{selectedJob?.vacancy}</Text>
+                                                    <Text fontSize="sm" color="gray.500">
+                                                        {(selectedJob?.contractor == null || selectedJob?.contractor === "") ? selectedJob?.user_name : selectedJob?.contractor}
+                                                    </Text>
+                                                </Box>
+                                            </Flex>
+                                        </ModalHeader>
+                                        <ModalCloseButton />
+                                        <ModalBody 
+                                            overflowY="auto" 
+                                            maxH="500px" 
+                                            bg="gray.50" 
+                                            p="6" 
+                                            borderRadius="md"
+                                        >
+                                            {selectedJob ? (
+                                                <VStack align="start" spacing="6">
+                                                    <Box 
+                                                        p="4" 
+                                                        border="1px" 
+                                                        borderColor="blue.100" 
+                                                        borderRadius="md" 
+                                                        w="100%"
+                                                    >
+                                                        <Image 
+                                                            src={job.banner == null ? "./Img/icons/bannerVaga.png" : "./Img/icons/bannerVaga.png"} 
+                                                            borderRadius="md" 
+                                                            boxShadow="md"
+                                                            mb="4"
+                                                            w="100%"
+                                                        />
+                                                        <Box pl="4">{selectedJob.description_vacancy}</Box>
+                                                    </Box>
+                                                    <Box 
+                                                        p="4" 
+                                                        border="1px" 
+                                                        borderColor="blue.100" 
+                                                        borderRadius="md" 
+                                                        w="100%"
+                                                    >
+                                                        <Text fontWeight="bold" fontSize="lg" mb="2">Requisitos:</Text>
+                                                        <Box pl="4">
+                                                            {selectedJob.requirements.split(",").map((req, idx) => (
+                                                                <Text key={idx}>{req.trim()}</Text>
+                                                            ))}
+                                                        </Box>
+                                                    </Box>
+                                                    <Box 
+                                                        p="4" 
+                                                        border="1px" 
+                                                        borderColor="blue.100" 
+                                                        borderRadius="md" 
+                                                        w="100%"
+                                                    >
+                                                        <Flex justifyContent="space-between" gap="4">
+                                                            <Box flex="1">
+                                                                <Text fontWeight="bold" fontSize="lg" mb="2">Carga Horária:</Text>
+                                                                <Box pl="4">{selectedJob.workload}</Box>
+                                                            </Box>
+                                                            <Box flex="1">
+                                                                <Text fontWeight="bold" fontSize="lg" mb="2">Localização:</Text>
+                                                                <Box pl="4">{selectedJob.location}</Box>
+                                                            </Box>
+                                                        </Flex>
+                                                    </Box>
+                                                    <Box 
+                                                        p="4" 
+                                                        border="1px" 
+                                                        borderColor="blue.100" 
+                                                        borderRadius="md" 
+                                                        w="100%"
+                                                    >
+                                                        <Text fontWeight="bold" fontSize="lg" mb="2">Benefícios:</Text>
+                                                        <Box pl="4">
+                                                            {selectedJob.benefits.split(",").map((benefit, idx) => (
+                                                                <Text key={idx}>{benefit.trim()}</Text>
+                                                            ))}
+                                                        </Box>
+                                                    </Box>
+                                                </VStack>
+                                            ) : (
+                                                <Text>Carregando...</Text>
+                                            )}
+                                        </ModalBody>
+                                        <ModalFooter>
+                                            <Button 
+                                                colorScheme="blue" 
+                                                mr={3} 
+                                                onClick={() => {
+                                                    setSelectedJob(null);
+                                                    onClose();
+                                                }}
+                                            >
+                                                Close
+                                            </Button>
+                                        </ModalFooter>
+                                    </ModalContent>
+                                </Modal>
                             </SimpleGrid>
                         </CardFooter>
                     </Card>
