@@ -10,7 +10,6 @@ interface IJobsVacancyProps{
 
 export function JobsVacancy({vacancy}: IJobsVacancyProps) {
     const { data } = useJobsVacancy(vacancy);
-    console.log("TESTE: " + (data?.jobs?.length || 0));
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [selectedJob, setSelectedJob] = useState(null);
     const [isChecking, setIsChecking] = useState(true);
@@ -34,7 +33,7 @@ export function JobsVacancy({vacancy}: IJobsVacancyProps) {
             </Flex>
         );
     }
-    
+
     if (!hasValidJobs) {
         return (
             <Stack>

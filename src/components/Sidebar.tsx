@@ -24,9 +24,7 @@ export function Sidebar(){
                             <Link mt="2" ml="4" borderLeft="2" mr="4" display="flex" alignItems="center">
                                 <ChakraProvider>
                                     <BsCardChecklist fontSize="20" w="6" h="6"/>
-
                                 </ChakraProvider>
-                                
                                 <Text ml="4" fontWeight="mediun">Empregos</Text>
                             </Link>
                         </Stack>

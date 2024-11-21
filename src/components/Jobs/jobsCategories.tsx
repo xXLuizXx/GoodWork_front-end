@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, IconButton, Image, SimpleGrid, Text, useDisclosure, VStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay } from "@chakra-ui/react";
+import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, IconButton, Image, SimpleGrid, Text, useDisclosure, VStack, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, Spinner } from "@chakra-ui/react";
 import {BsThreeDotsVertical} from "react-icons/bs";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
 import { useJobsCategories } from "@/services/hooks/Jobs/useJobsCategories";
@@ -12,7 +12,38 @@ export function JobsCategory({category_id}: IJobsCategoriesProps) {
     const { data } = useJobsCategories(category_id);
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [selectedJob, setSelectedJob] = useState(null);
-    
+    const [isChecking, setIsChecking] = useState(true);
+    const [hasValidJobs, setHasValidJobs] = useState(false);
+
+    useEffect(() => {
+        if (data?.jobs) {
+            const validJobsExist = data.jobs.some((job) => job.valid_vacancy);
+            setHasValidJobs(validJobsExist);
+            setIsChecking(false);
+        } else if (data) {
+            setHasValidJobs(false);
+            setIsChecking(false);
+        }
+    }, [data]);
+
+    if (!data || isChecking) {
+        return (
+            <Flex justify="center" align="center" h="100vh">
+                <Spinner size="xl" color="blue.500" />
+            </Flex>
+        );
+    }
+
+    if (!hasValidJobs) {
+        return (
+            <Stack>
+                <Alert status="info">
+                    <AlertIcon />
+                    Nenhuma vaga encontrada.
+                </Alert>
+            </Stack>
+        );
+    }
     return (
         <>
             {data?.jobs.map(job => (
