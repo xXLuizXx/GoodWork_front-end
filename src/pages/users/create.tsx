@@ -68,11 +68,11 @@ export default function CreateUser(): JSX.Element {
         }
     };
     const handleIdentifierChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = event.target.value.replace(/\D/g, ''); // Remove caracteres não numéricos
+        const rawValue = event.target.value.replace(/\D/g, '');
 
-        if (rawValue.length <= 14) { // Restringe a quantidade de caracteres
+        if (rawValue.length <= 14) {
             const formattedValue = formatCpfCnpj(event.target.value);
-            setValue("identifier", formattedValue); // Atualiza o valor do campo
+            setValue("identifier", formattedValue);
         }
     };
     const createUser = useMutation(
@@ -238,7 +238,7 @@ export default function CreateUser(): JSX.Element {
                                     type="identifier"
                                     error={errors.identifier}
                                     placeholder="CPF/CNPJ"
-                                    {...register("identifier")} // Usa o valor formatado
+                                    {...register("identifier")}
                                     onChange={handleIdentifierChange}
                                 />
                             </GridItem>

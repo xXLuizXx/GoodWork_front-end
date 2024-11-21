@@ -123,11 +123,11 @@ function AuthProvider({ children }: IAuthProviderProps){
             const { token, refreshToken } = response.data;
 
             setCookie(undefined, "token.token", token, {
-                maxAge: 60 * 60 * 1 * 1, // 1 hour
+                maxAge: 60 * 60 * 1 * 1,
                 path: "/",
             });
             setCookie(undefined, "token.refreshToken", refreshToken, {
-                maxAge: 60 * 60 * 1 * 1, // 1 hour
+                maxAge: 60 * 60 * 1 * 1,
                 path: "/",
             });
 
