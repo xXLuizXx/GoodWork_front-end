@@ -32,6 +32,7 @@ interface IUpdateUser {
     functionn: string;
     ability: string;
     is_employee: boolean;
+    business_area: string;
 }
 
 export function MyProfile(): JSX.Element {
@@ -42,14 +43,17 @@ export function MyProfile(): JSX.Element {
 
     useEffect(() => {
         if (user) {
+            const userData = user.user_type === "individual" ? user.individualData : user.companyData;
+
             reset({
                 road: user.road ?? "",
                 number: user.number ?? "",
                 neighborhood: user.neighborhood ?? "",
                 telephone: user.telephone ?? "",
-                functionn: user.functionn ?? "",
-                ability: user.ability ?? "",
-                is_employee: user.is_employee ?? ""
+                functionn: user.user_type === "individual" ? user.individualData?.functionn ?? "" : "",
+                ability: user.user_type === "individual" ? user.individualData?.ability ?? "" : "",
+                is_employee: user.user_type === "individual" ? user.individualData?.is_employee ?? false : false,
+                business_area: user.user_type === "company" ? user.companyData?.business_area ?? "" : "",
             });
         }
     }, [user, reset]);
@@ -57,6 +61,7 @@ export function MyProfile(): JSX.Element {
     const toggleEditing = () => setIsEditing(!isEditing);
 
     const updateUser = useMutation(
+        
         async (data: IUpdateUser) => {
             console.log(data);
             const response = await api.patch("users/profile/updateData", data);
@@ -93,6 +98,10 @@ export function MyProfile(): JSX.Element {
         const updateData = {
             ...data,
             id: user?.id,
+            is_employee: user?.user_type === "individual" ? data.is_employee : undefined,
+            functionn: user.user_type === "individual" ? data.functionn : undefined, 
+            ability: user.user_type === "individual" ? data.ability : undefined,
+            business_area: user.user_type === "company" ? data.business_area : undefined,
         };
         try {
             await updateUser.mutateAsync(updateData);
@@ -108,8 +117,7 @@ export function MyProfile(): JSX.Element {
             </Flex>
         );
     }
-    const employeeOptions = ["Sim", "Não"];
-    console.log("User: " + user.is_employee);
+
     return (
         <Flex
             as="form"
@@ -135,7 +143,7 @@ export function MyProfile(): JSX.Element {
                         {user.name}
                     </Text>
                     <FormControl>
-                        {isEditing ? (
+                        {isEditing && user.user_type === "individual" ? (
                             <Textarea
                                 {...register("ability")}
                                 bg="white"
@@ -145,7 +153,9 @@ export function MyProfile(): JSX.Element {
                             />
                         ) : (
                             <Text fontSize="17px" color="blue.800">
-                                {user.ability ?? ""}
+                                {user.user_type === "individual" 
+                                    ? user.individualData?.ability 
+                                    : null}
                             </Text>
                         )}
                     </FormControl>
@@ -161,13 +171,16 @@ export function MyProfile(): JSX.Element {
                     { label: "Número", field: "number" },
                     { label: "Bairro", field: "neighborhood" },
                     { label: "Telefone", field: "telephone" },
-                    { label: "Função", field: "functionn" },
-                ].map(({ label, field }) => (
+                    { label: "Função", field: "functionn", isIndividual: true },
+                    { label: "Área de Negócio", field: "business_area", isCompany: true },
+                ].map(({ label, field, isIndividual, isCompany }) => (
+                    (user.user_type === "individual" && isCompany) || (user.user_type === "company" && isIndividual) ? null :
                     <FormControl key={field}>
                         <FormLabel color="blue.600">{label}</FormLabel>
                         {isEditing ? (
                             <Input
                                 {...register(field as keyof IUpdateUser)}
+                                defaultValue={user[field as keyof typeof user]}
                                 bg="white"
                                 borderColor="blue.300"
                                 focusBorderColor="blue.500"
@@ -182,86 +195,93 @@ export function MyProfile(): JSX.Element {
                                 borderColor="blue.300"
                                 color="blue.800"
                             >
-                                {user[field as keyof typeof user]}
+                                {
+                                    user.user_type === "individual" && isIndividual
+                                    ? user.individualData?.[field as keyof typeof user.individualData]
+                                    : user.user_type === "company" && isCompany
+                                    ? user.companyData?.[field as keyof typeof user.companyData]
+                                    : user[field as keyof typeof user]
+                                }
                             </Text>
                         )}
                     </FormControl>
                 ))}
 
-                <FormControl>
-                    <FormLabel color="blue.600">Está empregado</FormLabel>
-                    {isEditing ? (
-                        <select
-                        {...register("is_employee")}
-                        style={{
-                            background: "white",
-                            border: "1px solid",
-                            borderColor: "blue.300",
-                            padding: "8px",
-                            borderRadius: "8px",
-                            width: "100%",
-                        }}
-                    >
-                        <option value={true}>Sim</option>
-                        <option value={false}>Não</option>
-                    </select>
-                    ) : (
-                        <Text
-                            bg="gray.100"
-                            p={2}
-                            borderRadius="md"
-                            border="1px solid"
-                            borderColor="blue.300"
-                            color="blue.800"
-                        >
-                            {user.is_employee ? "Sim" : "Não"}
-                        </Text>
-                    )}
-                </FormControl>
+                {user.user_type === "individual" && (
+                    <FormControl>
+                        <FormLabel color="blue.600">Está empregado</FormLabel>
+                        {isEditing ? (
+                            <select
+                                {...register("is_employee", { setValueAs: (v) => v === "true" })}
+                                style={{
+                                    background: "white",
+                                    border: "1px solid",
+                                    borderColor: "blue.300",
+                                    padding: "8px",
+                                    borderRadius: "8px",
+                                    width: "100%",
+                                }}
+                            >
+                                <option value={true}>Sim</option>
+                                <option value={false}>Não</option>
+                            </select>
+                        ) : (
+                            <Text
+                                bg="gray.100"
+                                p={2}
+                                borderRadius="md"
+                                border="1px solid"
+                                borderColor="blue.300"
+                                color="blue.800"
+                            >
+                                {user.individualData?.is_employee ? "Sim" : "Não"}
+                            </Text>
+                        )}
+                    </FormControl>
+                )}
             </SimpleGrid>
-
 
             <Flex mt={8} justify="center">
                 {isEditing ? (
-                <>
+                    <>
+                        <Button
+                            onClick={handleSubmit(handleUpdate)}
+                            type="button"
+                            colorScheme="green"
+                            leftIcon={<LuSaveAll />}
+                        >
+                            Salvar
+                        </Button>
+                        <Button ml={2}
+                            onClick={() => {
+                                reset({
+                                    road: user.road ?? "",
+                                    number: user.number ?? "",
+                                    neighborhood: user.neighborhood ?? "",
+                                    telephone: user.telephone ?? "",
+                                    functionn: user.user_type === "individual" ? user.individualData?.functionn ?? "" : "",
+                                    ability: user.user_type === "individual" ? user.individualData?.ability ?? "" : "",
+                                    is_employee: user.user_type === "individual" ? user.individualData?.is_employee ?? false : false,
+                                    business_area: user.user_type === "company" ? user.companyData?.business_area ?? "" : "",
+                                });
+                                setIsEditing(false);
+                            }}
+                            type="button"
+                            colorScheme="red"
+                        >
+                            Cancelar
+                        </Button>
+                    </>
+                ) : (
                     <Button
-                        onClick={handleSubmit(handleUpdate)}
+                        onClick={toggleEditing}
                         type="button"
-                        colorScheme="green"
-                        leftIcon={<LuSaveAll />}
+                        colorScheme="blue"
+                        leftIcon={<MdEdit />}
                     >
-                        Salvar
+                        Editar
                     </Button>
-                    <Button ml={2}
-                        onClick={() => {
-                            reset({
-                                road: user.road ?? "",
-                                number: user.number ?? "",
-                                neighborhood: user.neighborhood ?? "",
-                                telephone: user.telephone ?? "",
-                                functionn: user.functionn ?? "",
-                                ability: user.ability ?? "",
-                                is_employee: user.is_employee ?? ""
-                            });
-                            setIsEditing(false);
-                        }}
-                        type="button"
-                        colorScheme="red"
-                    >
-                        Cancelar
-                    </Button>
-                </>
-            ) : (
-                <Button
-                    onClick={toggleEditing}
-                    type="button"
-                    colorScheme="blue"
-                    leftIcon={<MdEdit />}
-                >
-                    Editar
-                </Button>
-            )}
-
+                )}
             </Flex>
         </Flex>
     );

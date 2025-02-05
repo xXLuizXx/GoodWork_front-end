@@ -1,29 +1,34 @@
 import {
-    GetServerSideProps,
-    GetServerSidePropsContext,
-    GetServerSidePropsResult,
-  } from "next";
-  import { parseCookies } from "nookies";
-  
-  function withSSRGuest<P>(fn: GetServerSideProps<P>): GetServerSideProps {
+  GetServerSideProps,
+  GetServerSidePropsContext,
+  GetServerSidePropsResult,
+} from "next";
+import { parseCookies } from "nookies";
+
+function withSSRGuest<P>(fn?: GetServerSideProps<P>): GetServerSideProps {
     return async (
-      ctx: GetServerSidePropsContext,
+        ctx: GetServerSidePropsContext,
     ): Promise<GetServerSidePropsResult<P>> => {
-      const cookies = parseCookies(ctx);
-  
-      if (cookies["baseApp.token"]) {
-        return {
-          redirect: {
-            destination: "/dashboard",
-            permanent: false,
-          },
-        };
-      }
-  
-      const resultFn = await fn(ctx);
-      return resultFn;
+        const cookies = parseCookies(ctx);
+
+        // Verifica se o usuário está autenticado
+        if (cookies["token.token"]) {
+            return {
+                redirect: {
+                    destination: "/dashboard",
+                    permanent: false,
+                },
+            };
+        }
+
+        // Executa a função fornecida, se existir
+        if (fn) {
+            return await fn(ctx);
+        }
+
+        // Retorna props padrão caso `fn` seja opcional
+        return { props: {} as P };
     };
-  }
-  
-  export { withSSRGuest };
-  
+}
+
+export { withSSRGuest };

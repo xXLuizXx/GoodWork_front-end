@@ -1,4 +1,5 @@
 export enum accessLevel {
-  "comum",
+  "individual",
+  "company",
   "administrador"
 }

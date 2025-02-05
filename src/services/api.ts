@@ -51,10 +51,6 @@ function setupAPIClient(ctx = undefined){
                                 );
                                 failedRequestsQueue = [];
 
-                                if (process.browser) {
-                                    signOut();
-                                }
-
                             })
                             .catch(error => {
                                 failedRequestsQueue.forEach(request => 

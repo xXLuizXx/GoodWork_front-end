@@ -12,343 +12,575 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { withSSRGuest } from "@/shared/withSSRGuest";
 import { Select } from "@/components/Form/Select";
 import { Helmet } from "react-helmet";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-interface ICreateUser{
+interface ICreateUser {
     name: string;
     road: string;
     number: string;
     identifier: string;
     neighborhood: string;
-    sex: string;
     telephone: string;
-    is_employee: boolean;
-    functionn: string;
-    ability: string;
     email: string;
     password: string;
     confirmPassword: string;
+    user_type: string;
+    sex?: string;
+    is_employee?: boolean;
+    functionn?: string;
+    ability?: string;
+    curriculum?: File;
+    business_area: string;
 }
 
 const validMandatoryFields = yup.object().shape({
-    name: yup.string().required("Campo obrigatório"),
-    road: yup.string().required("Campo obrigatório"),
-    number: yup.string().required("Campo obrigatório"),
-    identifier: yup.string().required("Campo obrigatório").min(11, "CPF/CNPJ incompleto").max(18, "CPF/CNPJ não corresponde ao padrão"),
-    neighborhood: yup.string().required("Campo obrigatório"),
-    sex: yup.string().required("Campo obrigatório"),
-    telephone: yup.string().required("Campo obrigatório"),
-    is_employee: yup.boolean().required("Campo obrigatório"),
-    functionn: yup.string().required("Campo obrigatório"),
-    email: yup.string().required("Campo obrigatório"),
-    password: yup.string().required("Campo obrigatório").min(6, "No mínimo 6 caracteres"),
-    confirmPassword: yup.string().oneOf([yup.ref("password")], "Senha diferente da informada no campo senha"),
+    user_type: yup
+        .string()
+        .required('O tipo de usuário é obrigatório')
+        .oneOf(['individual', 'company'], 'Tipo de usuário inválido'),
+    name: yup
+        .string()
+        .when('user_type', (user_type, schema) => {
+            const type = Array.isArray(user_type) ? user_type[0] : user_type;
+            return type === 'company'
+                ? schema.required('O nome da empresa é obrigatório')
+                : schema.required('O nome completo é obrigatório');
+        }),
+    email: yup
+        .string()
+        .required('O e-mail é obrigatório')
+        .email('O e-mail precisa ser válido'),
+    password: yup
+        .string()
+        .required('A senha é obrigatória')
+        .min(6, 'A senha deve ter pelo menos 6 caracteres'),
+    confirmPassword: yup
+        .string()
+        .oneOf([yup.ref('password'), null], 'As senhas não conferem')
+        .required('A confirmação da senha é obrigatória'),
+    identifier: yup
+        .string()
+        .required('O identificador (CPF/CNPJ) é obrigatório')
+        .test('valid-identifier', 'CPF/CNPJ inválido', (value, context) => {
+            const userType = context.parent.user_type;
+            if (userType === 'company') {
+                // Validação para CNPJ com pontos, barras e hífens
+                return /^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})\-(\d{2})$|^\d{14}$/.test(value);
+            } else {
+                // Validação para CPF com pontos e hífens
+                return /^(\d{3})\.(\d{3})\.(\d{3})\-(\d{2})$|^\d{11}$/.test(value);
+            }
+        }),
+    telephone: yup
+        .string()
+        .required('O telefone é obrigatório')
+        .matches(/\(\d{2}\) \d{5}-\d{4}/, 'O telefone deve estar no formato (XX) XXXXX-XXXX'),
+    road: yup.string().required('A rua é obrigatória'),
+    number: yup
+        .number()
+        .typeError('O número deve ser numérico')
+        .required('O número é obrigatório'),
+    neighborhood: yup.string().required('O bairro é obrigatório'),
+    curriculum: yup
+        .mixed()
+        .when('user_type', (user_type, schema) => {
+            const type = Array.isArray(user_type) ? user_type[0] : user_type;
+            if (type === 'company') {
+                return schema.notRequired(); // Ignorar para empresas
+            }
+            return schema
+                .required('O arquivo é obrigatório')
+                .test('fileType', 'Apenas arquivos do tipo PDF são permitidos', (value) => {
+                    if (!value) return false;
+                    return value.type === 'application/pdf';
+                });
+        }),
+    ability: yup
+        .string()
+        .notRequired()
+        .when('user_type', (user_type, schema) => {
+            const type = Array.isArray(user_type) ? user_type[0] : user_type;
+            return type === 'individual' ? schema.required('As habilidades são obrigatórias') : schema.notRequired();
+        }),
+    business_area: yup
+        .string()
+        .when('user_type', (user_type, schema) => {
+            const type = Array.isArray(user_type) ? user_type[0] : user_type;
+            return type === 'company' ? schema.required('A área de negócio é obrigatória') : schema.notRequired();
+        }),
+    is_employee: yup
+        .string()
+        .when('user_type', (user_type, schema) => {
+            const type = Array.isArray(user_type) ? user_type[0] : user_type;
+            return type === 'individual'
+                ? schema
+                      .required('A informação de emprego é obrigatória')
+                      .oneOf(['true', 'false'], 'Valor inválido para a informação de emprego')
+                : schema.notRequired();
+        }),
+    functionn: yup
+        .string()
+        .when('user_type', (user_type, schema) => {
+            const type = Array.isArray(user_type) ? user_type[0] : user_type;
+            return type === 'individual' ? schema.required('A função é obrigatória') : schema.notRequired();
+        }),
 });
 
-export default function CreateUser(): JSX.Element {
-    const { register, formState, handleSubmit, setValue} = useForm({
-        resolver: yupResolver(validMandatoryFields)
-    });
-    const { errors } = formState;
-    const toast = useToast();
-    const formatCpfCnpj = (value: string) => {
-        if (value.length <= 14) {
-          return value
-            .replace(/\D/g, '')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-        } else {
-          return value
-            .replace(/\D/g, '')
-            .replace(/^(\d{2})(\d)/, '$1.$2')
-            .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-            .replace(/\.(\d{3})(\d)/, '.$1/$2')
-            .replace(/(\d{4})(\d)/, '$1-$2');
-        }
-    };
-    const handleIdentifierChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = event.target.value.replace(/\D/g, '');
 
-        if (rawValue.length <= 14) {
+export default function CreateUser(): JSX.Element {
+        const { register, formState, handleSubmit, setValue } = useForm({
+            resolver: yupResolver(validMandatoryFields),
+        });
+        const { errors } = formState;
+        const toast = useToast();
+        useEffect(() => {
+            register("curriculum", { required: false });
+        }, [register]);
+        const [userType, setUserType] = useState<"" | "individual" | "company">("");
+        
+        const formatCpfCnpj = (value: string) => {
+            if (value.length <= 14) {
+                return value
+                    .replace(/\D/g, "")
+                    .replace(/(\d{3})(\d)/, "$1.$2")
+                    .replace(/(\d{3})(\d)/, "$1.$2")
+                    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            } else {
+                return value
+                    .replace(/\D/g, "")
+                    .replace(/^(\d{2})(\d)/, "$1.$2")
+                    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
+                    .replace(/\.(\d{3})(\d)/, ".$1/$2")
+                    .replace(/(\d{4})(\d)/, "$1-$2");
+            }
+        };
+    
+        const handleIdentifierChange = (event: React.ChangeEvent<HTMLInputElement>) => {
             const formattedValue = formatCpfCnpj(event.target.value);
             setValue("identifier", formattedValue);
-        }
-    };
-    const createUser = useMutation(
-        async (user: ICreateUser) => {
-            api.post("users", user)
-            .then(response => {
-                toast({
-                    description: "Usuário criado com sucesso.",
-                    status: "success",
-                    position: "top",
-                    duration: 8000,
-                    isClosable: true,
-                });
-
-                Router.push("/");
-                return response.data.user;
-            }).catch(error => {
-                toast({
-                    description: error.response.data.message,
-                    status: "error",
-                    position: "top",
-                    duration: 8000,
-                    isClosable: true,
-                });
-            });
-        },
-        {
-            onSuccess: () => {
-                queryClient.invalidateQueries("users")
+        };
+    
+        const createUser = useMutation(
+            async (user: ICreateUser) => {
+                try {
+                    const response = await api.post("users", user,{
+                        headers: { "Content-Type": "multipart/form-data" },
+                    });
+                    toast({
+                        description: "Usuário criado com sucesso.",
+                        status: "success",
+                        position: "top",
+                        duration: 8000,
+                        isClosable: true,
+                    });
+                    Router.push("/");
+                    return response.data.user;
+                } catch (error) {
+                    toast({
+                        description: error.response?.data?.message || "Erro ao criar usuário",
+                        status: "error",
+                        position: "top",
+                        duration: 8000,
+                        isClosable: true,
+                    });
+                }
+            },
+            {
+                onSuccess: () => {
+                    queryClient.invalidateQueries("users");
+                },
             }
-        },
-    );
-
-
-    const creteHandle: SubmitHandler<ICreateUser> = async data=>{
-        await createUser.mutateAsync(data);
-    };
-
-
-    return(
-        <Flex
-            as="form" 
-            w="100vw"
-            h="100vh" 
-            align="center" 
-            justify="center"
-            onSubmit={handleSubmit(creteHandle)}
-        >
-            <Helmet>
-                <title>Criar Conta</title>
-                <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>
-            </Helmet>
-            <Stack
-                w="35%"
-                h="80%"
-                spacing="1"
+        );
+    
+        const createHandle: SubmitHandler<ICreateUser> = async (data) => {
+            console.log(data);
+            const formDataToSend = new FormData();
+        
+            console.log("DADOS");
+            for (const [key, value] of Object.entries(data)) {
+                if (key === "curriculum" && value instanceof File) {
+                    formDataToSend.append(key, value);
+                    console.log(`Campo: ${key} -> Valor: ${value.name}`);
+                } else if (value !== null && value !== undefined) {
+                    formDataToSend.append(key, String(value));
+                    console.log(`Campo: ${key} -> Valor: ${value}`);
+                }
+            }
+        
+            try {
+                await createUser.mutateAsync(formDataToSend);
+            } catch (error) {
+                console.error("Erro no envio do formulário:", error);
+            }
+        };
+        
+        
+    
+        return (
+            <Flex
+                as="form"
+                w="100vw"
+                h="100vh"
                 align="center"
+                justify="center"
+                overflowX="hidden"
+                onSubmit={handleSubmit(createHandle)}
             >
-                <Flex 
-                    width="100%" 
-                    maxWidth={1050}
-                    borderRadius={20}
-                    border="1px"
-                    pl="4%"
-                    pr="5%"
-                    pb="6%"
-                    borderColor="blue.400"
-                >
-                    <VStack>                    
-                        <Image
-                            maxW="50%"
-                            boxSize='250px'
-                            src="../Img/logos/GoodworkSSlogan.png"
-                        />
-                        <Grid
-                            pt="1%"
-                            gap="2"
-                            templateAreas={`"row1 row2"
-                                            "row3 row4"
-                                            "row5 row5"
-                                            "row6 row6"
-                                            "row7 row8"
-                                            "row9 row10"
-                                            "row11 row12"
-                                            "row13 row13"
-                                        `}
-                            gridTemplateRows={'50px 1fr 90px'}
-                            gridTemplateColumns={'310px 1fr'}
-                            minWidth={[200, 250]}
-                        >
-                            <GridItem pl="2" area={'row1'}>
-                                <Input
-                                    name="Nome"
-                                    type="name"
-                                    error={errors.name}
-                                    placeholder="Nome Completo"
-                                    {...register("name")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row2'}>
-                                <Input
-                                    name="email"
-                                    type="email"
-                                    placeholder="E-mail"
-                                    {...register("email")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row3'}>
-                                <Input
-                                    name="password"
-                                    type="password"
-                                    error={errors.password}
-                                    placeholder="Senha"
-                                    {...register("password")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row4'}>
-                                <Input
-                                    name="confirmPassword"
-                                    type="password"
-                                    error={errors.confirmPassword}
-                                    placeholder="Confirmar senha"
-                                    {...register("confirmPassword")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row5'}>
-                                <Select 
-                                    name="sex"
-                                    error={errors.sex}
-                                    placeholder='Sexo'
-                                    options={[
-                                        { value: "masculino", label: "Masculino" },
-                                        { value: "feminino", label: "Feminino" },
-                                    ]}
-                                    {...register("sex")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row6'}>
-                                <Select
-                                    name="is_employee"
-                                    error={errors.is_employee}
-                                    placeholder="Está empregado?"
-                                    options={[
-                                    { value: "true", label: "Sim" },
-                                    { value: "false", label: "Não" },
-                                    ]}
-                                    
-                                    {...register("is_employee")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row7'}>
-                                <Input
-                                    name="functionn"
-                                    type="functionn"
-                                    error={errors.functionn}
-                                    placeholder="Função"
-                                    {...register("functionn")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row8'}>
-                                <Input
-                                    name="identifier"
-                                    type="identifier"
-                                    error={errors.identifier}
-                                    placeholder="CPF/CNPJ"
-                                    {...register("identifier")}
-                                    onChange={handleIdentifierChange}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row9'}>
-                                <Input
-                                    name="road"
-                                    type="road"
-                                    error={errors.road}
-                                    placeholder="Rua"
-                                    {...register("road")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row10'}>
-                                <Input
-                                    name="number"
-                                    type="number"
-                                    error={errors.number}
-                                    placeholder="Número"
-                                    {...register("number")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row11'}>
-                                <Input
-                                    name="neighborhood"
-                                    type="neighborhood"
-                                    error={errors.neighborhood}
-                                    placeholder="Bairro"
-                                    {...register("neighborhood")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row12'}>
-                                <InputMask
-                                    name="telephone"
-                                    type="telephone"
-                                    mask="(**) *****-****"
-                                    maskChar="_"
-                                    error={errors.telephone}
-                                    placeholder="Telefone"
-                                    {...register("telephone")}
-                                />
-                            </GridItem>
-                            <GridItem pl="2" area={'row13'}>
-                                <Textarea
-                                    boxShadow="2xl"
-                                    borderRadius="md"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg"
-                                    name="ability"
-                                    type="ability"
-                                    error={errors.ability}
-                                    placeholder="Habilidades"
-                                    {...register("ability")}
-                                />
-                            </GridItem>
-                            
-                        </Grid>
-                    </VStack>
-                </Flex>
-                <Flex 
-                    width="100%" 
-                    maxWidth={1050} 
-                    p="8" 
-                    borderRadius={10} 
-                    flexDir="column"
-                >
-                    <Stack spacing='1'>
-                        <SimpleGrid
-                            gap="2"
-                            w="100%"
-                            flex="1"
-                            minChildWidth="90px"
-                        >
-                            <Button 
-                                boxShadow="dark-lg" 
-                                type="submit"  
-                                borderRadius="full" 
-                                mt="4" 
-                                colorScheme="blue" 
-                                w='100%' 
-                                h="12" 
-                                isLoading={formState.isSubmitting}
+                <Helmet>
+                    <title>Criar Conta</title>
+                    <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />
+                </Helmet>
+                <Stack w="35%" h="80%" spacing="1" align="center">
+                    <Flex
+                        width="100%"
+                        maxWidth={1050}
+                        borderRadius={20}
+                        border="1px"
+                        pl="4%"
+                        pr="5%"
+                        pb="6%"
+                        borderColor="blue.400"
+                    >
+                        <VStack>
+                            <Image maxW="50%" boxSize="250px" src="../Img/logos/GoodworkSSlogan.png" />
+                            <Grid
+                                pt="1%"
+                                gap="2"
+                                templateAreas={`"row1 row1"
+                                                "row2 row3"
+                                                "row4 row5"
+                                                "row6 row7"
+                                                "row8 row9"
+                                                "row10 row11"
+                                                "row12 row13"
+                                                "row14 row14"
+                                                "row15 row15"
+                                                "row16 row17"`}
+                                gridTemplateRows={
+                                    userType === "" ? "auto" : "auto auto auto"
+                                  }
+                                gridTemplateColumns={"310px 1fr"}
+                                w="550px"
+                                minWidth={[200, 250]}
                             >
-                                Salvar
-                            </Button>
-                            <Link href="/" passHref>
-                                <Button
-                                    boxShadow="dark-lg"   
+                                <GridItem pl="2" area={"row1"}>
+                                    <Select
+                                        name="user_type"
+                                        error={errors.user_type}
+                                        placeholder="Tipo de usuário"
+                                        options={[
+                                            { value: "individual", label: "Pessoa Física" },
+                                            { value: "company", label: "Empresa" },
+                                        ]}
+                                        {...register("user_type")}
+                                        onChange={(e) => {
+                                            const value = e.target.value; 
+                                            setUserType(value);
+                                        }}
+                                    />
+                                </GridItem>
+                                {userType === "" ? (
+                                    <>
+                                    </>
+                                ) : userType === "individual" ? (
+                                    <>
+                                        <GridItem pl="2" area={'row2'}>
+                                            <Input
+                                                name="Nome"
+                                                type="name"
+                                                error={errors.name}
+                                                placeholder="Nome Completo"
+                                                {...register("name")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row3'}>
+                                            <Input
+                                                name="email"
+                                                type="email"
+                                                placeholder="E-mail"
+                                                {...register("email")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row4'}>
+                                            <Input
+                                                name="password"
+                                                type="password"
+                                                error={errors.password}
+                                                placeholder="Senha"
+                                                {...register("password")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row5'}>
+                                            <Input
+                                                name="confirmPassword"
+                                                type="password"
+                                                error={errors.confirmPassword}
+                                                placeholder="Confirmar senha"
+                                                {...register("confirmPassword")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row6'}>
+                                            <Select 
+                                                name="sex"
+                                                error={errors.sex}
+                                                placeholder='Sexo'
+                                                options={[
+                                                    { value: "masculino", label: "Masculino" },
+                                                    { value: "feminino", label: "Feminino" },
+                                                ]}
+                                                {...register("sex")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row7'}>
+                                            <Select
+                                                name="is_employee"
+                                                error={errors.is_employee}
+                                                placeholder="Está empregado?"
+                                                options={[
+                                                { value: "true", label: "Sim" },
+                                                { value: "false", label: "Não" },
+                                                ]}
+                                                
+                                                {...register("is_employee")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row8'}>
+                                            <Input
+                                                name="functionn"
+                                                type="functionn"
+                                                error={errors.functionn}
+                                                placeholder="Função"
+                                                {...register("functionn")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row9'}>
+                                            <Input
+                                                name="identifier"
+                                                type="identifier"
+                                                error={errors.identifier}
+                                                placeholder="CPF/CNPJ"
+                                                {...register("identifier")}
+                                                onChange={handleIdentifierChange}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row10'}>
+                                            <Input
+                                                name="road"
+                                                type="road"
+                                                error={errors.road}
+                                                placeholder="Rua"
+                                                {...register("road")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row11'}>
+                                            <Input
+                                                name="number"
+                                                type="number"
+                                                error={errors.number}
+                                                placeholder="Número"
+                                                {...register("number")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row12'}>
+                                            <Input
+                                                name="neighborhood"
+                                                type="neighborhood"
+                                                error={errors.neighborhood}
+                                                placeholder="Bairro"
+                                                {...register("neighborhood")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row13'}>
+                                            <InputMask
+                                                name="telephone"
+                                                type="telephone"
+                                                mask="(**) *****-****"
+                                                maskChar="_"
+                                                error={errors.telephone}
+                                                placeholder="Telefone"
+                                                {...register("telephone")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row14'}>
+                                            <Textarea
+                                                boxShadow="2xl"
+                                                borderRadius="md"
+                                                focusBorderColor="blue.400" 
+                                                bgColor="gray.100" 
+                                                variant="filled" 
+                                                _hover={{ bgColor: 'gray.200' }} 
+                                                size="lg"
+                                                name="ability"
+                                                type="ability"
+                                                error={errors.ability}
+                                                placeholder="Habilidades"
+                                                {...register("ability")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row15'}>
+                                            <Input
+                                                type="file"
+                                                name="curriculum"
+                                                accept=".pdf"
+                                                onChange={(event) => {
+                                                    if (userType === "company") {
+                                                        setValue("curriculum", null, { shouldValidate: true });
+                                                    } else {
+                                                        const file = event.target.files?.[0];
+                                                        if (file) {
+                                                            setValue("curriculum", file, { shouldValidate: true });
+                                                        }
+                                                    }
+                                                }}
+                                                error={errors.curriculum}
+                                            />
+
+                                        </GridItem>
+                                    </>
+                                ) : (
+                                    <>
+                                        <GridItem pl="2" area={"row2"}>
+                                            <Input
+                                                name="name"
+                                                placeholder="Nome da Empresa"
+                                                error={errors.name}
+                                                {...register("name")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={"row3"}>
+                                            <Input
+                                                name="business_area"
+                                                placeholder="Área de Negócio"
+                                                error={errors.business_area}
+                                                {...register("business_area")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={"row4"}>
+                                            <Input
+                                                name="identifier"
+                                                type="identifier"
+                                                error={errors.identifier}
+                                                placeholder="CNPJ"
+                                                {...register("identifier")}
+                                                onChange={handleIdentifierChange}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={"row5"}>
+                                            <Input
+                                                name="email"
+                                                type="email"
+                                                placeholder="E-mail"
+                                                {...register("email")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={"row6"}>
+                                            <Input
+                                                name="password"
+                                                type="password"
+                                                error={errors.password}
+                                                placeholder="Senha"
+                                                {...register("password")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={'row7'}>
+                                            <Input
+                                                name="confirmPassword"
+                                                type="password"
+                                                error={errors.confirmPassword}
+                                                placeholder="Confirmar senha"
+                                                {...register("confirmPassword")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={"row8"}>
+                                        <InputMask
+                                                name="telephone"
+                                                type="telephone"
+                                                mask="(**) *****-****"
+                                                maskChar="_"
+                                                error={errors.telephone}
+                                                placeholder="Telefone"
+                                                {...register("telephone")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={"row9"}>
+                                            <Input
+                                                name="road"
+                                                type="road"
+                                                error={errors.road}
+                                                placeholder="Rua"
+                                                {...register("road")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={"row10"}>
+                                            <Input
+                                                name="number"
+                                                type="number"
+                                                error={errors.number}
+                                                placeholder="Número"
+                                                {...register("number")}
+                                            />
+                                        </GridItem>
+                                        <GridItem pl="2" area={"row11"}>
+                                            <Input
+                                                name="neighborhood"
+                                                type="text"
+                                                error={errors.neighborhood}
+                                                placeholder="Bairro"
+                                                {...register("neighborhood")}
+                                            />
+                                        </GridItem>
+                                    </>
+                                )}
+                            </Grid>
+                        </VStack>
+                    </Flex>
+                    <Flex 
+                        width="100%" 
+                        maxWidth={1050} 
+                        p="8" 
+                        borderRadius={10} 
+                        flexDir="column"
+                    >
+                        <Stack spacing='1'>
+                            <SimpleGrid
+                                gap="2"
+                                w="100%"
+                                flex="1"
+                                minChildWidth="90px"
+                            >
+                                <Button 
+                                    boxShadow="dark-lg" 
+                                    type="submit"  
                                     borderRadius="full" 
                                     mt="4" 
                                     colorScheme="blue" 
                                     w='100%' 
-                                    h="12"  
+                                    h="12" 
+                                    isLoading={formState.isSubmitting}
                                 >
-                                    Cancelar
+                                    Salvar
                                 </Button>
-                            </Link>
-                        </SimpleGrid>
-                    </Stack>
-                </Flex>
-            </Stack>
-        </Flex>
-    );
-
+                                <Link href="/" passHref>
+                                    <Button
+                                        boxShadow="dark-lg"   
+                                        borderRadius="full" 
+                                        mt="4" 
+                                        colorScheme="blue" 
+                                        w='100%' 
+                                        h="12"  
+                                    >
+                                        Cancelar
+                                    </Button>
+                                </Link>
+                            </SimpleGrid>
+                        </Stack>
+                    </Flex>
+                </Stack>
+            </Flex>
+        );    
 }
 
-
-const getServerSideProps = withSSRGuest(async ctx => {
+const getServerSideProps = withSSRGuest(async (ctx) => {
     return {
         props: {},
     };
