@@ -18,7 +18,7 @@ async function getCategories(): Promise<IGetCategoriesResponse> {
         return {
             id: category.id,
             name: category.name,
-            descripion: category.description,
+            description: category.description,
         };
     });
 

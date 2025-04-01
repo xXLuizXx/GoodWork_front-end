@@ -64,10 +64,8 @@ const validMandatoryFields = yup.object().shape({
         .test('valid-identifier', 'CPF/CNPJ inválido', (value, context) => {
             const userType = context.parent.user_type;
             if (userType === 'company') {
-                // Validação para CNPJ com pontos, barras e hífens
                 return /^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})\-(\d{2})$|^\d{14}$/.test(value);
             } else {
-                // Validação para CPF com pontos e hífens
                 return /^(\d{3})\.(\d{3})\.(\d{3})\-(\d{2})$|^\d{11}$/.test(value);
             }
         }),
@@ -86,7 +84,7 @@ const validMandatoryFields = yup.object().shape({
         .when('user_type', (user_type, schema) => {
             const type = Array.isArray(user_type) ? user_type[0] : user_type;
             if (type === 'company') {
-                return schema.notRequired(); // Ignorar para empresas
+                return schema.notRequired();
             }
             return schema
                 .required('O arquivo é obrigatório')
@@ -193,10 +191,8 @@ export default function CreateUser(): JSX.Element {
         );
     
         const createHandle: SubmitHandler<ICreateUser> = async (data) => {
-            console.log(data);
             const formDataToSend = new FormData();
-        
-            console.log("DADOS");
+            
             for (const [key, value] of Object.entries(data)) {
                 if (key === "curriculum" && value instanceof File) {
                     formDataToSend.append(key, value);
@@ -230,7 +226,7 @@ export default function CreateUser(): JSX.Element {
                     <title>Criar Conta</title>
                     <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />
                 </Helmet>
-                <Stack w="35%" h="80%" spacing="1" align="center">
+                <Stack w="40%" h="80%" spacing="1" align="center">
                     <Flex
                         width="100%"
                         maxWidth={1050}
@@ -242,7 +238,7 @@ export default function CreateUser(): JSX.Element {
                         borderColor="blue.400"
                     >
                         <VStack>
-                            <Image maxW="50%" boxSize="250px" src="../Img/logos/GoodworkSSlogan.png" />
+                            <Image maxW="100%" boxSize="250px" src="../Img/logos/GoodworkSSlogan.png" />
                             <Grid
                                 pt="1%"
                                 gap="2"

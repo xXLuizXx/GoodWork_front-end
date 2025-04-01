@@ -59,11 +59,11 @@ function AuthProvider({ children }: IAuthProviderProps) {
 
   function saveTokens(token: string, refreshToken: string): void {
     setCookie(undefined, "token.token", token, {
-      maxAge: 60 * 60 * 1, // 1 hora
+      maxAge: 60 * 60 * 24 * 30, // 30 dias
       path: "/",
     });
     setCookie(undefined, "token.refreshToken", refreshToken, {
-      maxAge: 60 * 60 * 1, // 1 hora
+      maxAge: 60 * 60 * 24 * 30, // 30 dias
       path: "/",
     });
   }

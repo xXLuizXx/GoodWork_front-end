@@ -4,6 +4,10 @@ import {
   Button,
   Flex,
   FormLabel,
+  Grid,
+  GridItem,
+  SimpleGrid,
+  Stack,
   useToast,
   VStack,
 } from "@chakra-ui/react";
@@ -21,6 +25,7 @@ import { useMutation } from "react-query";
 import { api } from "@/services/apiClient";
 import { queryClient } from "@/services/queryClient";
 import { withSSRGuest } from "@/shared/withSSRGuest";
+import Link from "next/link";
 
 interface ICreateJob{
     vacancy: string;
@@ -121,6 +126,11 @@ export default function CreateJob(): JSX.Element {
         }
     };          
         
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     return (
         <Flex 
             as="form"
@@ -139,120 +149,168 @@ export default function CreateJob(): JSX.Element {
                 <Flex 
                     justify="center" 
                     align="center"
+                    height="100%"
+                    width="100%"
                 >
                     <Box
                         p={8} 
                         borderWidth="1px" 
-                        borderRadius="lg" 
-                        maxWidth="600px" 
-                        width="100%" 
+                        borderRadius="lg"
+                        height="100%"
+                        width="70%"
                     >
                         <VStack spacing={4}>
-                            <FormLabel>Vaga</FormLabel>
-                            <Input
-                                border="1px solid"
-                                borderColor="rgba(0, 0, 255, 0.2)"
-                                name="vacancy"
-                                type="vacancy"
-                                error={errors.vacancy}
-                                {...register("vacancy")}
-                            />
-
-                            <FormLabel>Contratante</FormLabel>
-                            <Input 
-                                border="1px solid"
-                                borderColor="rgba(0, 0, 255, 0.2)"
-                                name="contractor"
-                                type="contractor"
-                                error={errors.contractor}
-                                {...register("contractor")}
-                            />
-
-                            <FormLabel>Descrição</FormLabel>
-                            <Textarea 
-                                border="1px solid"
-                                borderColor="rgba(0, 0, 255, 0.2)"
-                                name="description"
-                                type="description"
-                                error={errors.description_vacancy}
-                                {...register("description_vacancy")}
-                            />
-
-                            <FormLabel>Requisitos</FormLabel>
-                            <Textarea 
-                                border="1px solid"
-                                borderColor="rgba(0, 0, 255, 0.2)"
-                                name="requirements"
-                                type="requirements"
-                                error={errors.requirements}
-                                {...register("requirements")}
-                            />
-
-                            <FormLabel>Carga horaria de trabalho</FormLabel>
-                            <Input 
-                                border="1px solid"
-                                borderColor="rgba(0, 0, 255, 0.2)"
-                                name="workload"
-                                type="workload"
-                                error={errors.workload}
-                                {...register("workload")}
-                            />
-
-                            <FormLabel>Localização</FormLabel>
-                            <Input 
-                                border="1px solid"
-                                borderColor="rgba(0, 0, 255, 0.2)"
-                                name="location"
-                                type="location"
-                                error={errors.location}
-                                {...register("location")}
-                            />
-
-                            <FormLabel>Beneficios</FormLabel>
-                            <Textarea
-                                border="1px solid"
-                                borderColor="rgba(0, 0, 255, 0.2)"
-                                name="benefits"
-                                type="benefits"
-                                error={errors.benefits}
-                                {...register("benefits")}
-                            />
-
-                            <FormLabel>Banner</FormLabel>
-                            <Input
-                                type="file"
-                                name="banner"
-                                accept="image/*"
-                                onChange={(event) => {
-                                    const file = event.target.files?.[0];
-                                    if (file) {
-                                        setValue("banner", file, { shouldValidate: true });
-                                    }
-                                }}
-                                error={errors.banner}
-                            />
-
-                            <FormLabel>Categoria</FormLabel>
-                            <Select
-                                border="1px solid"
-                                borderColor="rgba(0, 0, 255, 0.2)"
-                                name="category_id"
-                                error={errors.category_id}
-                                options={
-                                    data?.categories
-                                    .map((category) => ({
-                                        key: category.id,
-                                        value: category.id,
-                                        label: category.name,
-                                    })) || []
-                                }
-                                {...register("category_id")}
-                                />
-            
-                            <Button type="submit" colorScheme="blue" width="full" isLoading={formState.isSubmitting}>
+                            <Grid
+                                pt="1%"
+                                gap="2"
+                                templateAreas={`"row1 row1"
+                                                "row2 row3"
+                                                "row4 row4"
+                                                "row5 row5"
+                                                "row6 row7"
+                                                "row8 row8"
+                                                "row9 row9"`}
+                                gridTemplateColumns={"310px 1fr"}
+                                w="550px"
+                                minWidth={[200, 250]}
+                            >
+                                <GridItem pl="2" area={"row1"}>
+                                    <FormLabel color="blue.600">Categoria</FormLabel>
+                                    {isClient && (
+                                        <Select
+                                            border="1px solid"
+                                            borderColor="rgba(0, 0, 255, 0.2)"
+                                            name="category_id"
+                                            error={errors.category_id}
+                                            options={[
+                                                { key: "", value: "", label: "Selecione uma categoria", disabled: true },
+                                                ...(data?.categories.map((category) => ({
+                                                    key: category.id,
+                                                    value: category.id,
+                                                    label: category.name,
+                                                })) || []),
+                                            ]}
+                                            {...register("category_id")}
+                                        />
+                                    )}
+                                </GridItem>
+                                <GridItem pl="2" area={"row2"}>
+                                    <FormLabel color="blue.600">Vaga</FormLabel>
+                                    <Input
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="vacancy"
+                                        type="vacancy"
+                                        error={errors.vacancy}
+                                        {...register("vacancy")}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row3"}>
+                                    <FormLabel color="blue.600">Contratante</FormLabel>
+                                    <Input 
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="contractor"
+                                        type="contractor"
+                                        error={errors.contractor}
+                                        {...register("contractor")}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row4"}>
+                                    <FormLabel color="blue.600">Descrição</FormLabel>
+                                    <Textarea 
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="description"
+                                        type="description"
+                                        error={errors.description_vacancy}
+                                        {...register("description_vacancy")}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row5"}>
+                                    <FormLabel color="blue.600">Requisitos</FormLabel>
+                                    <Textarea 
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="requirements"
+                                        type="requirements"
+                                        error={errors.requirements}
+                                        {...register("requirements")}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row6"}>
+                                    <FormLabel color="blue.600">Carga horaria de trabalho</FormLabel>
+                                    <Input 
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="workload"
+                                        type="workload"
+                                        error={errors.workload}
+                                        {...register("workload")}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row7"}>
+                                    <FormLabel color="blue.600">Localização</FormLabel>
+                                    <Input 
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="location"
+                                        type="location"
+                                        error={errors.location}
+                                        {...register("location")}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row8"}>
+                                    <FormLabel color="blue.600">Beneficios</FormLabel>
+                                    <Textarea
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="benefits"
+                                        type="benefits"
+                                        error={errors.benefits}
+                                        {...register("benefits")}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row9"}>
+                                    <FormLabel color="blue.600">Banner</FormLabel>
+                                    <Input
+                                        type="file"
+                                        name="banner"
+                                        accept="image/*"
+                                        onChange={(event) => {
+                                            const file = event.target.files?.[0];
+                                            if (file) {
+                                                setValue("banner", file, { shouldValidate: true });
+                                            }
+                                        }}
+                                        error={errors.banner}
+                                    />
+                                </GridItem>
+                            </Grid>
+                        </VStack>
+                        <Flex 
+                            width="100%" 
+                            maxWidth={1050} 
+                            p="8" 
+                            borderRadius={10} 
+                            justify="center"
+                            gap={4}
+                        >
+                            <Button 
+                                type="submit" 
+                                colorScheme="blue" 
+                                isLoading={formState.isSubmitting} 
+                                width="200px"
+                            >
                                 Cadastrar Vaga
                             </Button>
-                        </VStack>
+
+                            <Button as={Link} href="/" colorScheme="red" width="200px">
+                                Cancelar
+                            </Button>
+                        </Flex>
+
+
                     </Box>
                 </Flex>
             </Flex>
@@ -261,4 +319,3 @@ export default function CreateJob(): JSX.Element {
   
 };
 
-export { getServerSideProps };
