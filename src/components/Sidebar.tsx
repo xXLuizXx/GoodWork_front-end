@@ -1,4 +1,4 @@
-import { Box, Button, ChakraProvider, Icon, Link, Stack, StackDivider, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, ChakraProvider, Icon, Link, Stack, StackDivider, Text } from "@chakra-ui/react";
 import { RiDashboardLine } from "react-icons/ri";
 import { Image } from '@chakra-ui/react';
 import { TbReportAnalytics } from "react-icons/tb";
@@ -7,15 +7,46 @@ import { Accordion, AccordionItem, AccordionButton, AccordionPanel, AccordionIco
 import { useEffect, useState } from 'react';
 import NextLink from 'next/link';
 import { Link as ChakraLink } from '@chakra-ui/react';
+import { useCountJobsNotValidated } from '@/services/hooks/Jobs/useCountJobsValidated';
+import { parseCookies } from "nookies";
+import decode from "jwt-decode";
+
+interface DecodedToken {
+    accessLevel: string;
+}
+
+interface CountData {
+    count?: number;
+}
 
 export function Sidebar(){
     const [mounted, setMounted] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
+
+    const { data, isLoading } = useCountJobsNotValidated({
+        enabled: isAdmin
+    });
 
     useEffect(() => {
-      setMounted(true);
+        setMounted(true);
+        
+        const cookies = parseCookies();
+        const token = cookies["token.token"];
+
+        if (token) {
+            try {
+                const decoded = decode<DecodedToken>(token);
+                setIsAdmin(!!decoded.accessLevel); // Define isAdmin baseado no token
+            } catch (error) {
+                console.error("Erro ao decodificar o token:", error);
+            }
+        }
     }, []);
-  
+
     if (!mounted) return null;
+
+    const count = isAdmin ? (isLoading ? 0 : (data?.count || 0)) : 0;
+
     return(
         <Box borderBlockEnd="1" as="aside" w="64" mr="8">
             <ChakraProvider>
@@ -34,13 +65,36 @@ export function Sidebar(){
                         </Stack>
                     </Stack>
                 </Box>
-                <Box >
+                <Box>
                     <Accordion allowMultiple marginBottom={50}>
                         <AccordionItem>
-                            <AccordionButton pb="7">
+                            {({ isOpen }) => (
+                            <>
+                            <AccordionButton pb="7" position="relative">
                                 <Text textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
                                     EMPREGOS
                                 </Text>
+                                {isAdmin && !isOpen && count > 0 && (
+                                    <Box
+                                        position="absolute"
+                                        right="2"
+                                        top="2"
+                                        bg="red.600"
+                                        borderRadius="full"
+                                        w="12px"
+                                        h="12px"
+                                        border="2px solid white"
+                                        boxShadow="md"
+                                        animation="pulse 1.5s infinite"
+                                        css={{
+                                            "@keyframes pulse": {
+                                                "0%": { transform: "scale(0.95)", opacity: 0.8 },
+                                                "70%": { transform: "scale(1.1)", opacity: 1 },
+                                                "100%": { transform: "scale(0.95)", opacity: 0.8 },
+                                            },
+                                        }}
+                                    />
+                                )}
                                 <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel>
@@ -62,7 +116,53 @@ export function Sidebar(){
                                         Cadastrar nova vaga
                                     </ChakraLink>
                                 </NextLink>
+                                
+                                {isAdmin && (
+                                    <NextLink href="#" legacyBehavior>
+                                        <ChakraLink
+                                            display="inline-flex"
+                                            alignItems="center"
+                                            color="gray.500"
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                            py={2}
+                                            px={4}
+                                            _hover={{
+                                            color: "gray.600",
+                                            transform: "scale(1.05)",
+                                            }}
+                                            transition="all 0.3s ease"
+                                            textDecoration="none"
+                                            position="relative"
+                                        >
+                                            Aprovar vagas
+                                            {count > 0 && (
+                                            <Badge
+                                                ml={2}
+                                                bg="red.600"
+                                                color="black"
+                                                borderRadius="full"
+                                                boxSize="20px"
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                fontSize="xs"
+                                                fontWeight="extrabold"
+                                                lineHeight="none"
+                                                _hover={{
+                                                bg: "red.500",
+                                                }}
+                                                transition="background 0.2s"
+                                            >
+                                                {count}
+                                            </Badge>
+                                            )}
+                                        </ChakraLink>
+                                    </NextLink>
+                                )}
                             </AccordionPanel>
+                            </>
+                        )}
                         </AccordionItem>
 
                         <AccordionItem>
@@ -77,7 +177,6 @@ export function Sidebar(){
                             </AccordionPanel>
                         </AccordionItem>
                     </Accordion>
-
                 </Box>
 
                 <Box>
