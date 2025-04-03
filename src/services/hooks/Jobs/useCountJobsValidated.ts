@@ -6,10 +6,8 @@ interface ICountJobsNotValidated {
 }
 
 async function getCountJobsVacancyNotValidated(): Promise<ICountJobsNotValidated> {
-    const { data } = await api.get(`jobs/listVacancyNotValidated`);
-    console.log("TESTEETETW");
-    console.log(data);
-    
+    const { data } = await api.get(`jobs/countVacancyNotValidated`);
+
     return {
         count: data
     };
@@ -17,7 +15,7 @@ async function getCountJobsVacancyNotValidated(): Promise<ICountJobsNotValidated
 
 function useCountJobsNotValidated() {
     return useQuery<ICountJobsNotValidated>(
-        ["jobs/listVacancyNotValidated"],
+        ["jobs/countVacancyNotValidated"],
         getCountJobsVacancyNotValidated,
         {
             staleTime: 1000 * 60 * 10,

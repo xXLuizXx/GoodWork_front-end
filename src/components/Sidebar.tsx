@@ -118,7 +118,7 @@ export function Sidebar(){
                                 </NextLink>
                                 
                                 {isAdmin && (
-                                    <NextLink href="#" legacyBehavior>
+                                    <NextLink href="/jobs/jobsNotValidated" legacyBehavior>
                                         <ChakraLink
                                             display="inline-flex"
                                             alignItems="center"
