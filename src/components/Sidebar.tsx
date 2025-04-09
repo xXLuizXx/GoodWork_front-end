@@ -10,6 +10,7 @@ import { Link as ChakraLink } from '@chakra-ui/react';
 import { useCountJobsNotValidated } from '@/services/hooks/Jobs/useCountJobsValidated';
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
+import { queryClient } from "@/services/queryClient";
 
 interface DecodedToken {
     accessLevel: string;
@@ -36,7 +37,7 @@ export function Sidebar(){
         if (token) {
             try {
                 const decoded = decode<DecodedToken>(token);
-                setIsAdmin(!!decoded.accessLevel); // Define isAdmin baseado no token
+                setIsAdmin(!!decoded.accessLevel);
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
             }

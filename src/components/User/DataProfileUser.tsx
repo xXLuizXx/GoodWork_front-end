@@ -63,7 +63,6 @@ export function MyProfile(): JSX.Element {
     const updateUser = useMutation(
         
         async (data: IUpdateUser) => {
-            console.log(data);
             const response = await api.patch("users/profile/updateData", data);
             return response.data;
         },

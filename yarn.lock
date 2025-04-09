@@ -4351,6 +4351,11 @@ tailwindcss@^3.3.0:
     resolve "^1.22.2"
     sucrase "^3.32.0"
 
+tanstack@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/tanstack/-/tanstack-1.0.0.tgz#7eeb4d2d196696e8e10fc0e346d440140fd2161e"
+  integrity sha512-BUpDmwGlWHk2F183Uu1+k85biSLrpSh/zA9ephJwmZ9ze+XDEw3JOyN9vhcbFqrQFrf5yuWImt+0Kn4fUNgzTg==
+
 tapable@^2.2.0:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/tapable/-/tapable-2.2.1.tgz#1967a73ef4060a82f12ab96af86d52fdb76eeca0"
