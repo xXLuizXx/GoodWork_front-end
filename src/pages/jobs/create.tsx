@@ -37,6 +37,7 @@ interface ICreateJob{
     benefits: string;
     banner?: File;
     category_id: string;
+    amount_vacancy: number;
 }
 const validMandatoryFields = yup.object().shape({
     vacancy: yup.string().required("Campo obrigatório"),
@@ -47,6 +48,7 @@ const validMandatoryFields = yup.object().shape({
     location: yup.string().required("Campo obrigatório"),
     benefits: yup.string().required("Campo obrigatório"),
     category_id: yup.string().required("Campo obrigatório"),
+    amount_vacancy: yup.number().required("Campo obrigatório"),
 });
 const schema = yup.object().shape({
     banner: yup.mixed()
@@ -169,7 +171,7 @@ export default function CreateJob(): JSX.Element {
                                                 "row5 row5"
                                                 "row6 row7"
                                                 "row8 row8"
-                                                "row9 row9"`}
+                                                "row9 row10"`}
                                 gridTemplateColumns={"310px 1fr"}
                                 w="550px"
                                 minWidth={[200, 250]}
@@ -284,6 +286,17 @@ export default function CreateJob(): JSX.Element {
                                             }
                                         }}
                                         error={errors.banner}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row10"}>
+                                    <FormLabel color="blue.600">Quantidade Vagas</FormLabel>
+                                    <Input 
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="amount_vacancy"
+                                        type="number"
+                                        error={errors.amount_vacancy}
+                                        {...register("amount_vacancy")}
                                     />
                                 </GridItem>
                             </Grid>

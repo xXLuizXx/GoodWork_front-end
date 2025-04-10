@@ -15,6 +15,7 @@ interface IJobs {
     user_id: string;
     user_name: string;
     valid_vacancy: boolean;
+    amount_vacancy: number;
 }
 
 interface IGetJobsResponse {
@@ -38,7 +39,8 @@ async function getJobsVacancy(vacancy: string): Promise<IGetJobsResponse> {
             category_id: job.category_id,
             user_id: job.user_id,
             user_name: job.user.name,
-            valid_vacancy: job.valid_vacancy
+            valid_vacancy: job.valid_vacancy,
+            amount_vacancy: job.amount_vacancy
         };
     });
 

@@ -209,12 +209,20 @@ export function JobsVacancy({vacancy}: IJobsVacancyProps) {
                                                         borderRadius="md" 
                                                         w="100%"
                                                     >
-                                                        <Text fontWeight="bold" fontSize="lg" mb="2">Benefícios:</Text>
-                                                        <Box pl="4">
-                                                            {selectedJob.benefits.split(",").map((benefit, idx) => (
-                                                                <Text key={idx}>{benefit.trim()}</Text>
-                                                            ))}
-                                                        </Box>
+                                                        <Flex justifyContent="space-between" gap="4">
+                                                            <Box flex="1">
+                                                                <Text fontWeight="bold" fontSize="lg" mb="2">Benefícios:</Text>
+                                                                <Box pl="4">
+                                                                    {selectedJob.benefits.split(",").map((benefit, idx) => (
+                                                                        <Text key={idx}>{benefit.trim()}</Text>
+                                                                    ))}
+                                                                </Box>
+                                                            </Box>
+                                                            <Box flex="1">
+                                                                <Text fontWeight="bold" fontSize="lg" mb="2">Quantidade de Vagas:</Text>
+                                                                <Box pl="4">{selectedJob.amount_vacancy}</Box>
+                                                            </Box>
+                                                        </Flex>
                                                     </Box>
                                                 </VStack>
                                             ) : (
@@ -230,7 +238,7 @@ export function JobsVacancy({vacancy}: IJobsVacancyProps) {
                                                     onClose();
                                                 }}
                                             >
-                                                Close
+                                                Fechar
                                             </Button>
                                         </ModalFooter>
                                     </ModalContent>
