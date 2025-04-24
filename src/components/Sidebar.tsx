@@ -14,6 +14,7 @@ import { queryClient } from "@/services/queryClient";
 
 interface DecodedToken {
     accessLevel: string;
+    isAdmin: boolean;
 }
 
 interface CountData {
@@ -22,10 +23,10 @@ interface CountData {
 
 export function Sidebar(){
     const [mounted, setMounted] = useState(false);
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [admin, setAdmin] = useState(false);
 
     const { data, isLoading } = useCountJobsNotValidated({
-        enabled: isAdmin
+        enabled: admin
     });
 
     useEffect(() => {
@@ -37,7 +38,7 @@ export function Sidebar(){
         if (token) {
             try {
                 const decoded = decode<DecodedToken>(token);
-                setIsAdmin(!!decoded.accessLevel);
+                setAdmin(!!decoded.isAdmin);
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
             }
@@ -46,7 +47,7 @@ export function Sidebar(){
 
     if (!mounted) return null;
 
-    const count = isAdmin ? (isLoading ? 0 : (data?.count || 0)) : 0;
+    const count = admin ? (isLoading ? 0 : (data?.count || 0)) : 0;
 
     return(
         <Box borderBlockEnd="1" as="aside" w="64" mr="8">
@@ -75,7 +76,7 @@ export function Sidebar(){
                                 <Text textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
                                     EMPREGOS
                                 </Text>
-                                {isAdmin && !isOpen && count > 0 && (
+                                {admin && !isOpen && count > 0 && (
                                     <Box
                                         position="absolute"
                                         right="2"
@@ -118,7 +119,7 @@ export function Sidebar(){
                                     </ChakraLink>
                                 </NextLink>
                                 
-                                {isAdmin && (
+                                {admin && (
                                     <NextLink href="/jobs/jobsNotValidated" legacyBehavior>
                                         <ChakraLink
                                             display="inline-flex"

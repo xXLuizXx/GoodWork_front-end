@@ -8,6 +8,7 @@ import decode from "jwt-decode";
 
 interface DecodedToken {
     accessLevel: string;
+    isAdmin: boolean;
 }
 
 export function Categories() {
@@ -18,8 +19,8 @@ export function Categories() {
         category.description?.toLowerCase().includes(search.toLowerCase())
     );
     const { isOpen, onOpen, onClose } = useDisclosure(); 
-    const [isAdmin, setIsAdmin] = useState(false); 
-
+    const [admin, setAdmin] = useState(false); 
+    const [ typeUser, setTypeUser ] = useState("");
     useEffect(() => {
         const cookies = parseCookies();
         const token = cookies["token.token"];
@@ -27,8 +28,10 @@ export function Categories() {
         if (token) {
             try {
                 const decoded = decode<DecodedToken>(token);
+
                 if (decoded.accessLevel) {
-                    setIsAdmin(true);
+                    setTypeUser(decoded.accessLevel);
+                    setAdmin(decoded.isAdmin);
                 }
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
@@ -74,11 +77,17 @@ export function Categories() {
                     </Link>
                 ))}
                 
-                {isAdmin && (
-                    <Button onClick={onOpen} colorScheme="blue">
-                        Cadastrar categoria
-                    </Button>
-                )}
+                {
+                    admin ? (
+                        <Button onClick={onOpen} colorScheme="blue">
+                            Cadastrar categoria
+                        </Button>
+                    ) : !admin && typeUser?.toString() === "company" ? (
+                        <Button onClick={onOpen} colorScheme="blue">
+                            Solicitar cadastro de categoria
+                        </Button>
+                    ) : null
+                }
                 <CreateCategory isOpen={isOpen} onClose={onClose} />
 
             </Stack>

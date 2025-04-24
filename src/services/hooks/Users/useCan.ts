@@ -11,7 +11,7 @@ function useCan(requiredAccessLevel: string): boolean {
   }
 
   return validateUserAccessLevel({
-    userAccessLevel: user.accessLevel,
+    userAccessLevel: user.user_type,
     requiredAccessLevel,
   });
 }

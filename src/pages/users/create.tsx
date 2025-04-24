@@ -196,10 +196,8 @@ export default function CreateUser(): JSX.Element {
             for (const [key, value] of Object.entries(data)) {
                 if (key === "curriculum" && value instanceof File) {
                     formDataToSend.append(key, value);
-                    console.log(`Campo: ${key} -> Valor: ${value.name}`);
                 } else if (value !== null && value !== undefined) {
                     formDataToSend.append(key, String(value));
-                    console.log(`Campo: ${key} -> Valor: ${value}`);
                 }
             }
         

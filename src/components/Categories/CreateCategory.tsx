@@ -6,6 +6,9 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useMutation } from "react-query";
 import { api } from "@/services/apiClient";
 import { queryClient } from "@/services/queryClient";
+import { useEffect, useState } from "react";
+import { parseCookies } from "nookies";
+import decode from "jwt-decode";
 
 interface CreateCategoryProps {
     isOpen: boolean;
@@ -15,6 +18,11 @@ interface CreateCategoryProps {
 interface ICreateCategory {
     name: string;
     description: string;
+}
+
+interface DecodedToken {
+    accessLevel: string;
+    isAdmin: boolean;
 }
 
 const validMandatoryFields = yup.object().shape({
@@ -28,6 +36,8 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
     });
     const { errors } = formState;
     const toast = useToast();
+    const [admin, setAdmin] = useState(false); 
+    const [ typeUser, setTypeUser ] = useState("");
     const createCategory = useMutation(
         async (category: ICreateCategory) => {
             const response = await api.post("categories", category);
@@ -68,6 +78,23 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
         }
     };
 
+    useEffect(() => {
+            const cookies = parseCookies();
+            const token = cookies["token.token"];
+    
+            if (token) {
+                try {
+                    const decoded = decode<DecodedToken>(token);
+    
+                    if (decoded.accessLevel) {
+                        setTypeUser(decoded.accessLevel);
+                        setAdmin(decoded.isAdmin);
+                    }
+                } catch (error) {
+                    console.error("Erro ao decodificar o token:", error);
+                }
+            }
+        }, []);
     return (
         <Modal isCentered isOpen={isOpen} onClose={onClose} motionPreset="slideInRight">
             <ModalOverlay />
@@ -81,7 +108,13 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
                             <Avatar name="avatar" src="/Img/logos/GoodworkSSlogan.png" />
                             <Box>
                                 <Text fontWeight="bold" fontSize="xl" color="gray.500">
-                                    Criação de nova categoria
+                                {
+                                    admin ? (
+                                        <>Criação de nova categoria</>
+                                    ) : !admin && typeUser?.toString() === "company" ? (
+                                        <>Solicitar criação de categoria</>
+                                    ) : null
+                                }
                                 </Text>
                             </Box>
                         </Flex>
@@ -129,7 +162,15 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
                             Fechar
                         </Button>
                         <Button type="submit" colorScheme="blue" isLoading={formState.isSubmitting}>
-                            Cadastrar
+                            {
+                                admin ? (
+                                    <>Cadastrar</>
+                                    
+                                ) : !admin && typeUser?.toString() === "company" ? (
+                                    
+                                        <>Solicitar</>
+                                ) : null
+                            }
                         </Button>
                     </ModalFooter>
                 </ModalContent>
