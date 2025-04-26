@@ -24,7 +24,7 @@ interface CountData {
 export function Sidebar(){
     const [mounted, setMounted] = useState(false);
     const [admin, setAdmin] = useState(false);
-
+    const [ typeUser, setTypeUser ] = useState("");
     const { data, isLoading } = useCountJobsNotValidated({
         enabled: admin
     });
@@ -39,6 +39,7 @@ export function Sidebar(){
             try {
                 const decoded = decode<DecodedToken>(token);
                 setAdmin(!!decoded.isAdmin);
+                setTypeUser(decoded.accessLevel);
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
             }
@@ -74,7 +75,7 @@ export function Sidebar(){
                             <>
                             <AccordionButton pb="7" position="relative">
                                 <Text textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
-                                    EMPREGOS
+                                    VAGAS
                                 </Text>
                                 {admin && !isOpen && count > 0 && (
                                     <Box
@@ -100,24 +101,28 @@ export function Sidebar(){
                                 <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel>
-                                <NextLink href="/jobs/create" legacyBehavior>
-                                    <ChakraLink
-                                        display="inline-block"
-                                        color="gray.500"
-                                        fontSize="sm"
-                                        fontWeight="bold"
-                                        py={2}
-                                        px={4}
-                                        _hover={{
-                                        color: "gray.600",
-                                        transform: "scale(1.05)",
-                                        }}
-                                        transition="all 0.3s ease"
-                                        textDecoration="none"
-                                    >
-                                        Cadastrar nova vaga
-                                    </ChakraLink>
-                                </NextLink>
+                                {
+                                    typeUser?.toString() === "company" && (
+                                        <NextLink href="/jobs/create" legacyBehavior>
+                                            <ChakraLink
+                                                display="inline-block"
+                                                color="gray.500"
+                                                fontSize="sm"
+                                                fontWeight="bold"
+                                                py={2}
+                                                px={4}
+                                                _hover={{
+                                                color: "gray.600",
+                                                transform: "scale(1.05)",
+                                                }}
+                                                transition="all 0.3s ease"
+                                                textDecoration="none"
+                                            >
+                                                Cadastrar nova vaga
+                                            </ChakraLink>
+                                        </NextLink>
+                                    )
+                                }
                                 
                                 {admin && (
                                     <NextLink href="/jobs/jobsNotValidated" legacyBehavior>

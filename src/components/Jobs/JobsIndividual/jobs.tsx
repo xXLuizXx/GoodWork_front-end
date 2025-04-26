@@ -8,7 +8,7 @@ export function Jobs() {
     const {data} = useAllJobs();
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [selectedJob, setSelectedJob] = useState(null);
-
+    
     if(!data?.jobs || data.jobs.length === 0){
         return (
             <Stack>

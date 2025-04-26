@@ -15,7 +15,7 @@ export default function JobsNotValidatedd(): JSX.Element {
     return(
         <Flex direction="column" h="100vh">
             <Helmet>
-                <title>Empregos</title>
+                <title>Vagas</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>
             </Helmet>
             <Header/>

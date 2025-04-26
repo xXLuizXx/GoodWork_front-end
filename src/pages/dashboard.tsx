@@ -1,7 +1,7 @@
 import { Header } from "@/components/Header/Header";
 import { Sidebar } from "@/components/Sidebar";
 import { Flex, SimpleGrid} from "@chakra-ui/react";
-import {Jobs} from "@/components/Jobs/jobs";
+import { Home } from "@/components/Home/home";
 import { Helmet } from "react-helmet";
 
 export default function Dashboard(){
@@ -24,7 +24,7 @@ export default function Dashboard(){
                         minChildWidth={[200, 250]}
                         >
                         
-                        <Jobs/>
+                        <Home/>
 
                     </SimpleGrid>
             </Flex>

@@ -2,7 +2,7 @@ import {Flex, SimpleGrid, Text} from "@chakra-ui/react";
 import {Sidebar} from "@/components/Sidebar";
 import {Header} from "@/components/Header/Header";
 import { Helmet } from "react-helmet";
-import { JobsVacancy } from "@/components/Jobs/jobsVacancy";
+import { JobsVacancy } from "@/components/Jobs/JobsIndividual/jobsVacancy";
 import {useRouter} from "next/router";
 
 interface IVacancy{
@@ -16,7 +16,7 @@ export default function Jobs({vacancy: string}: IVacancy): JSX.Element {
     return(
         <Flex direction="column" h="100vh">
             <Helmet>
-                <title>Empregos</title>
+                <title>Vagas</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>
             </Helmet>
             <Header/>
