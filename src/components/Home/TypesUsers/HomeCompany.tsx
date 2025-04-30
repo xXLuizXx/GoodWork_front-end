@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   SimpleGrid,
   Card,
@@ -9,27 +9,42 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
-
-// Importando imagem
 import CardImage from '../../../../public/Img/icons/vagasCard.png';
+import { parseCookies } from 'nookies';
+import decode from "jwt-decode";
 
+interface DecodedToken {
+  accessLevel: string;
+  sub: string;
+}
 export function HomeCompany(): JSX.Element {
   const router = useRouter();
+  const [ typeUser, setTypeUser] = useState("");
+  const [ userId, setUserId ] = useState("");
 
+  useEffect(() => {
+          const cookies = parseCookies();
+          const token = cookies["token.token"];
+  
+          if (token) {
+              try {
+                  const decoded = decode<DecodedToken>(token);
+                  if (decoded.accessLevel) {
+                      setTypeUser(decoded.accessLevel);
+                      setUserId(decoded.sub);
+                  }
+              } catch (error) {
+                  console.error("Erro ao decodificar o token:", error);
+              }
+          }
+      }, []);
   const cards = [
     {
       title: 'Vagas',
       borderColor: 'blue',
       bgColor: '#FFFFFF',
       hoverColor: '#FFFFFF',
-      route: '/jobs-company-genereted/generetedVancancys'
-    },
-    {
-      title: 'Candidaturas (7d)',
-      borderColor: 'blue',
-      bgColor: '#FFFFFF',
-      hoverColor: '#FFFFFF',
-      route: '/company/applications'
+      route: `/jobs-company-genereted?id=${userId}`
     },
     {
       title: 'Perfis',

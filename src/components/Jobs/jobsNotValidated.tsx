@@ -106,8 +106,6 @@ export function JobsNotValidated() {
                             </Button>
                         </SimpleGrid>
                     </CardFooter>
-
-                    {/* Modal de visualização */}
                     {selectedJob && (
                         <Modal
                             isCentered
