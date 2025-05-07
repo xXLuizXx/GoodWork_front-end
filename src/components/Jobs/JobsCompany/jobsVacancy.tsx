@@ -42,6 +42,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const { updateStatusJob, isLoading } = useUpdateStatusJob();
+    const toast = useToast();
     const [filter, setFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
 

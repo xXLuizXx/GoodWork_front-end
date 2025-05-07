@@ -1,4 +1,4 @@
-import { Flex, Input, Text, Icon, HStack, VStack, useBreakpointValue, IconButton, Image } from "@chakra-ui/react";
+import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image } from "@chakra-ui/react";
 import { RiSearchLine } from "react-icons/ri";
 import { Profile } from "./Profile";
 import { useEffect, useState } from "react";
@@ -15,10 +15,16 @@ interface DecodedToken {
     isAdmin: boolean;
 }
 
-function Header(): JSX.Element {
+interface HeaderProps {
+    onSearch?: (vacancy: string) => void;
+    searchValue?: string;
+    onSearchChange?: (value: string) => void;
+}
+
+function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Element {
     const [admin, setAdmin] = useState(false); 
     const [typeUser, setTypeUser] = useState("");
-    const [vacancy, setVacancy] = useState('');
+    const [localVacancy, setLocalVacancy] = useState('');
     const router = useRouter();
     const isWideVersion = useBreakpointValue({
         base: false,
@@ -43,19 +49,25 @@ function Header(): JSX.Element {
     }, []);
 
     const handleSearch = () => {
-        if (!vacancy.trim()) return;
+        const currentVacancy = searchValue !== undefined ? searchValue : localVacancy;
+        if (!currentVacancy.trim()) return;
         
-        if (admin) {
-            router.push(`/jobs-vacancy?vacancy=${encodeURIComponent(vacancy)}`);
-        } else if (typeUser === "company") {
-            router.push(`/jobs-vacancy/jobs-company-vacancy?vacancy=${encodeURIComponent(vacancy)}`);
-        } else if (typeUser === "individual") {
-            router.push(`/jobs-vacancy?vacancy=${encodeURIComponent(vacancy)}`);
+        if (onSearch) {
+            onSearch(currentVacancy);
+        } else {
+            if (admin) {
+                router.push(`/jobs-vacancy?vacancy=${encodeURIComponent(currentVacancy)}`);
+            } else if (typeUser === "company") {
+                router.push(`/jobs-vacancy/jobs-company-vacancy?vacancy=${encodeURIComponent(currentVacancy)}`);
+            } else if (typeUser === "individual") {
+                router.push(`/jobs-vacancy?vacancy=${encodeURIComponent(currentVacancy)}`);
+            }
         }
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
+            e.preventDefault();
             handleSearch();
         }
     };
@@ -79,7 +91,6 @@ function Header(): JSX.Element {
                 alt="Logo GoodWork"
                 w="auto"
                 h="75px"
-                alt="Logo GoodWork"
                 objectFit="contain"
                 ml="4"
                 loading="eager"
@@ -89,8 +100,6 @@ function Header(): JSX.Element {
                     cursor: "pointer"
                 }}
                 onClick={() => router.push("/")}
-                quality={100}
-                priority
                 draggable={false} 
                 style={{
                     userSelect: "none"
@@ -98,7 +107,6 @@ function Header(): JSX.Element {
             />
                 
             <Flex
-                as="form"
                 flex="1"
                 py="2"
                 px="8"
@@ -109,10 +117,6 @@ function Header(): JSX.Element {
                 position="relative"
                 bg="gray.200"
                 borderRadius="full"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSearch();
-                }}
             >
                 <Input
                     color="black"
@@ -123,8 +127,8 @@ function Header(): JSX.Element {
                     _placeholder={{
                         color: "gray.500"
                     }}
-                    value={vacancy}
-                    onChange={(e) => setVacancy(e.target.value)}
+                    value={searchValue !== undefined ? searchValue : localVacancy}
+                    onChange={(e) => onSearchChange ? onSearchChange(e.target.value) : setLocalVacancy(e.target.value)}
                     onKeyDown={handleKeyDown}
                 />
                 <IconButton

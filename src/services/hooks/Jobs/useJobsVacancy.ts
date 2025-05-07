@@ -11,6 +11,7 @@ interface IJobs {
     location: string;
     benefits?: string;
     banner: string;
+    vacancy_available: boolean;
     category_id: string;
     user_id: string;
     user_name: string;
@@ -37,6 +38,7 @@ async function getJobsVacancy(vacancy: string): Promise<IGetJobsResponse> {
             location: job.location,
             benefits: job.benefits,
             banner: job.banner,
+            vacancy_available: job.vacancy_available,
             category_id: job.category_id,
             user_id: job.user_id,
             user_name: job.user.name,
