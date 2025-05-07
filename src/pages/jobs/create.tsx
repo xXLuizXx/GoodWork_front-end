@@ -38,17 +38,17 @@ interface ICreateJob{
     banner?: File;
     category_id: string;
     amount_vacancy: number;
+    closing_date: Date;
 }
 const validMandatoryFields = yup.object().shape({
     vacancy: yup.string().required("Campo obrigatório"),
-    contractor: yup.string().required("Campo obrigatório"),
     description_vacancy: yup.string().required("Campo obrigatório"),
     requirements: yup.string().required("Campo obrigatório"),
     workload: yup.string().required("Campo obrigatório"),
     location: yup.string().required("Campo obrigatório"),
     benefits: yup.string().required("Campo obrigatório"),
     category_id: yup.string().required("Campo obrigatório"),
-    amount_vacancy: yup.number().required("Campo obrigatório"),
+    amount_vacancy: yup.number() .transform((value, originalValue) => originalValue === "" ? 0 : value).required("Campo obrigatório").min(1, "Mínimo 1 vaga"),
 });
 const schema = yup.object().shape({
     banner: yup.mixed()
@@ -56,6 +56,15 @@ const schema = yup.object().shape({
         .test("fileRequired", "Arquivo obrigatório", (value) => {
             return value instanceof File;
         }),
+        closing_date: yup
+            .date()
+            .required("Data de encerramento é obrigatória")
+            .typeError("Informe uma data válida")
+            .transform((value, originalValue) => {
+                if (!originalValue) return null;
+                const date = new Date(originalValue);
+                return isNaN(date.getTime()) ? null : date;
+            }),
   });
 const getServerSideProps = withSSRGuest(async ctx => {
     return {
@@ -116,6 +125,10 @@ export default function CreateJob(): JSX.Element {
                 if (value instanceof File) {
                     formDataToSend.append(key, value);
                 }
+            } else if (key === "closing_date" && value) {
+                const date = new Date(value);
+                const formattedDate = date.toISOString().split('T')[0];
+                formDataToSend.append(key, formattedDate);
             } else {
                 formDataToSend.append(key, value as string);
             }
@@ -171,7 +184,8 @@ export default function CreateJob(): JSX.Element {
                                                 "row5 row5"
                                                 "row6 row7"
                                                 "row8 row8"
-                                                "row9 row10"`}
+                                                "row9 row9"
+                                                "row10 row11"`}
                                 gridTemplateColumns={"310px 1fr"}
                                 w="550px"
                                 minWidth={[200, 250]}
@@ -297,6 +311,17 @@ export default function CreateJob(): JSX.Element {
                                         type="number"
                                         error={errors.amount_vacancy}
                                         {...register("amount_vacancy")}
+                                    />
+                                </GridItem>
+                                <GridItem pl="2" area={"row11"}>
+                                    <FormLabel color="blue.600">Data de encerramento</FormLabel>
+                                    <Input 
+                                        border="1px solid"
+                                        borderColor="rgba(0, 0, 255, 0.2)"
+                                        name="closing_date"
+                                        type="date"
+                                        error={errors.closing_date}
+                                        {...register("closing_date")}
                                     />
                                 </GridItem>
                             </Grid>

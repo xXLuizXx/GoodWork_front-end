@@ -1,24 +1,66 @@
-import { Flex, Input, Text, Icon, HStack, VStack, useBreakpointValue, Link} from "@chakra-ui/react";
+import { Flex, Input, Text, Icon, HStack, VStack, useBreakpointValue, IconButton, Image } from "@chakra-ui/react";
 import { RiSearchLine } from "react-icons/ri";
 import { Profile } from "./Profile";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { parseCookies } from "nookies";
+import decode from "jwt-decode";
+import { useRouter } from "next/router";
 
 interface IProfileProps {
     showProfileData: boolean;
 }
-function Header(): JSX.Element{
-    const [vacancy, setVacancy] = useState('');
 
+interface DecodedToken {
+    accessLevel: string;
+    isAdmin: boolean;
+}
+
+function Header(): JSX.Element {
+    const [admin, setAdmin] = useState(false); 
+    const [typeUser, setTypeUser] = useState("");
+    const [vacancy, setVacancy] = useState('');
+    const router = useRouter();
     const isWideVersion = useBreakpointValue({
         base: false,
         lg: true,
-      });
+    });
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        setVacancy(event.target.value);
+    useEffect(() => {
+        const cookies = parseCookies();
+        const token = cookies["token.token"];
+
+        if (token) {
+            try {
+                const decoded = decode<DecodedToken>(token);
+                if (decoded.accessLevel) {
+                    setTypeUser(decoded.accessLevel);
+                    setAdmin(decoded.isAdmin);
+                }
+            } catch (error) {
+                console.error("Erro ao decodificar o token:", error);
+            }
+        }
+    }, []);
+
+    const handleSearch = () => {
+        if (!vacancy.trim()) return;
+        
+        if (admin) {
+            router.push(`/jobs-vacancy?vacancy=${encodeURIComponent(vacancy)}`);
+        } else if (typeUser === "company") {
+            router.push(`/jobs-vacancy/jobs-company-vacancy?vacancy=${encodeURIComponent(vacancy)}`);
+        } else if (typeUser === "individual") {
+            router.push(`/jobs-vacancy?vacancy=${encodeURIComponent(vacancy)}`);
+        }
     };
 
-    return(
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') {
+            handleSearch();
+        }
+    };
+
+    return (
         <Flex
             as="header"
             w="100%"
@@ -32,20 +74,33 @@ function Header(): JSX.Element{
             boxShadow="dark-lg"
             borderRadius="full"
         >
-            <Text
-                fontSize="3xl"
-                fontWeight="bold"
-                letterSpacing="tigth"
-                w="64"
-            >
-                GoodWork
-                <Text as="span" ml="1" color="blue">.</Text>
-            </Text>
+            <Image 
+                src="/Img/logos/GoodWorkLogoBranco.png"
+                alt="Logo GoodWork"
+                w="auto"
+                h="75px"
+                alt="Logo GoodWork"
+                objectFit="contain"
+                ml="4"
+                loading="eager"
+                transition="all 0.2s ease"
+                _hover={{
+                    transform: "scale(1.05)",
+                    cursor: "pointer"
+                }}
+                onClick={() => router.push("/")}
+                quality={100}
+                priority
+                draggable={false} 
+                style={{
+                    userSelect: "none"
+                }}
+            />
                 
             <Flex
-                as="label"
+                as="form"
                 flex="1"
-                py="4"
+                py="2"
                 px="8"
                 ml="6"
                 maxWidth={1000}
@@ -54,6 +109,10 @@ function Header(): JSX.Element{
                 position="relative"
                 bg="gray.200"
                 borderRadius="full"
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSearch();
+                }}
             >
                 <Input
                     color="black"
@@ -65,17 +124,20 @@ function Header(): JSX.Element{
                         color: "gray.500"
                     }}
                     value={vacancy}
-                    onChange={handleInputChange}
+                    onChange={(e) => setVacancy(e.target.value)}
+                    onKeyDown={handleKeyDown}
                 />
-                <Link href={`/jobs-vacancy?vacancy=${vacancy}`}>
-                    <Icon as={RiSearchLine} fontSize="20"/>
-                </Link>
+                <IconButton
+                    aria-label="Pesquisar vagas"
+                    icon={<RiSearchLine />}
+                    onClick={handleSearch}
+                    variant="unstyled"
+                    color="gray.500"
+                    _hover={{ color: "blue.500" }}
+                />
             </Flex>
 
-            <Flex
-                align="center"
-                ml="auto"
-            >
+            <Flex align="center" ml="auto">
                 <HStack 
                     spacing="4"
                     mx="8"
@@ -84,7 +146,6 @@ function Header(): JSX.Element{
                     color="gray.50"
                     borderRightWidth={1}
                     borderColor="gray.100"
-
                 >
                 </HStack>
                 <Flex align="center">
@@ -103,13 +164,10 @@ function Header(): JSX.Element{
                     color="gray.900"
                     borderRightWidth={1}
                     borderColor="gray.100"
-
                 >
                 </VStack>
             </Flex>
         </Flex>
-        
-        
     );
 }
 

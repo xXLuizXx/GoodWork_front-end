@@ -14,9 +14,10 @@ import { TiInputChecked } from "react-icons/ti";
 import { useAllJobsCompany } from "@/services/hooks/Jobs/useAllJobsCompany";
 import { useRouter } from "next/router";
 import { useUpdateStatusJob } from "@/services/hooks/Jobs/useUpdateStatusJob";
+import { useJobsVacancy } from "@/services/hooks/Jobs/useJobsVacancy";
 
 interface IJobsCompanyProps {
-    id: string;
+    vacancy: string;
 }
 
 interface Job {
@@ -35,13 +36,14 @@ interface Job {
     closing_date: Date;
 }
 
-export function MyVacancy({id}: IJobsCompanyProps) {
+export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
     const router = useRouter();
-    const { data } = useAllJobsCompany(id);
+    const { data } = useJobsVacancy(vacancy);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const { updateStatusJob, isLoading } = useUpdateStatusJob();
     const [filter, setFilter] = useState("all");
+    const [searchTerm, setSearchTerm] = useState("");
 
     const handleValidate = async (jobId: string, validated: boolean) => {
         const success = await updateStatusJob(jobId, validated);
@@ -260,8 +262,6 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                     </Card>
                 ))}
             </SimpleGrid>
-
-            {/* Modal mantendo o estilo original */}
             {selectedJob && (
                 <Modal
                     isCentered

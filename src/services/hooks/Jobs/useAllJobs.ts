@@ -11,11 +11,13 @@ interface IJobs {
     location: string;
     benefits?: string;
     banner: string;
+    vacancy_available: boolean;
     category_id: string;
     user_id: string;
     user_name: string;
     valid_vacancy: boolean;
     amount_vacancy: number;
+    closing_date: Date;
 }
 
 interface IGetJobsResponse {

@@ -8,7 +8,7 @@ export const useUpdateStatusJob = () => {
 
     const updateStatusJob = async (jobId: string, validated: boolean) => {
         setIsLoading(true);
-        console.log("ID: " + jobId);
+        
         try {
             await api.patch(`/jobs/updateStatusJob`, { 
                 id: jobId,

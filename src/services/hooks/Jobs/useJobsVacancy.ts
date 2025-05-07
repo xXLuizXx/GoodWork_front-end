@@ -16,6 +16,7 @@ interface IJobs {
     user_name: string;
     valid_vacancy: boolean;
     amount_vacancy: number;
+    closing_date: Date;
 }
 
 interface IGetJobsResponse {

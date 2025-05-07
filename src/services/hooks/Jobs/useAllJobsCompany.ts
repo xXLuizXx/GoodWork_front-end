@@ -17,6 +17,7 @@ interface IJobs {
     user_name: string;
     valid_vacancy: boolean;
     amount_vacancy: number;
+    closing_date: Date;
     created_at: Date;
 }
 
@@ -44,6 +45,7 @@ async function getAllJobsCompany( user_id: string ): Promise<IGetJobsResponse> {
             user_name: job.user.name,
             valid_vacancy: job.valid_vacancy,
             amount_vacancy: job.amount_vacancy,
+            closing_date: job.closing_date,
             created_at: job.created_at
         };
     });

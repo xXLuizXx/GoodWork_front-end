@@ -11,16 +11,24 @@ interface DecodedToken {
     isAdmin: boolean;
 }
 
+interface Category {
+    id: string;
+    name: string;
+    description?: string;
+}
+
 export function Categories() {
     const { data } = useCategories();
     const [search, setSearch] = useState("");
-    const filteredCategories = data?.categories.filter(category =>
+    const [admin, setAdmin] = useState(false); 
+    const [typeUser, setTypeUser] = useState<string>("");
+    const { isOpen, onOpen, onClose } = useDisclosure();
+
+    const filteredCategories = data?.categories?.filter(category =>
         category.name.toLowerCase().includes(search.toLowerCase()) ||
         category.description?.toLowerCase().includes(search.toLowerCase())
     );
-    const { isOpen, onOpen, onClose } = useDisclosure(); 
-    const [admin, setAdmin] = useState(false); 
-    const [ typeUser, setTypeUser ] = useState("");
+
     useEffect(() => {
         const cookies = parseCookies();
         const token = cookies["token.token"];
@@ -28,18 +36,31 @@ export function Categories() {
         if (token) {
             try {
                 const decoded = decode<DecodedToken>(token);
-
-                if (decoded.accessLevel) {
-                    setTypeUser(decoded.accessLevel);
-                    setAdmin(decoded.isAdmin);
-                }
+                setTypeUser(decoded.accessLevel || "");
+                setAdmin(decoded.isAdmin || false);
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
             }
         }
     }, []);
+
+    const getCategoryLink = (categoryId: string): string => {
+        if (admin) return `/jobs-category?category_id=${categoryId}`;
+        if (typeUser === "company") return `/jobs-category/jobs-company-category?category_id=${categoryId}`;
+        return `/jobs-category?category_id=${categoryId}`;
+    };
+
+    const renderButton = () => {
+        if (admin) {
+            return <Button onClick={onOpen} colorScheme="blue">Cadastrar categoria</Button>;
+        }
+        if (typeUser === "company") {
+            return <Button onClick={onOpen} colorScheme="blue">Solicitar cadastro de categoria</Button>;
+        }
+        return null;
+    };
+
     return (
-        <>
         <Box>
             <Input
                 placeholder="Pesquisar categorias..."
@@ -56,42 +77,31 @@ export function Categories() {
                 overflowY="auto"
                 p="2"
             >
-                {filteredCategories?.length === 0 && (
+                {filteredCategories?.length === 0 ? (
                     <Box textAlign="center" color="gray.500">Nenhuma categoria encontrada.</Box>
+                ) : (
+                    filteredCategories?.map(category => (
+                        <Link
+                            key={category.id}
+                            mt="2"
+                            ml="4"
+                            borderLeft="2px solid"
+                            borderColor="gray.200"
+                            mr="4"
+                            display="flex"
+                            alignItems="center"
+                            href={getCategoryLink(category.id)}
+                            _hover={{ bgColor: 'gray.200' }}
+                        >
+                            <Icon as={FcNext} fontSize="20" w="6" h="6" />
+                            {category.name}
+                        </Link>
+                    ))
                 )}
-                {filteredCategories?.map(category => (
-                    <Link
-                        key={category.id}
-                        mt="2"
-                        ml="4"
-                        borderLeft="2px solid"
-                        borderColor="gray.200"
-                        mr="4"
-                        display="flex"
-                        alignItems="center"
-                        href={`/jobs-category?category_id=${category.id}`}
-                        _hover={{ bgColor: 'gray.200' }}
-                    >
-                        <Icon as={FcNext} fontSize="20" w="6" h="6" />
-                        {category.name}
-                    </Link>
-                ))}
                 
-                {
-                    admin ? (
-                        <Button onClick={onOpen} colorScheme="blue">
-                            Cadastrar categoria
-                        </Button>
-                    ) : !admin && typeUser?.toString() === "company" ? (
-                        <Button onClick={onOpen} colorScheme="blue">
-                            Solicitar cadastro de categoria
-                        </Button>
-                    ) : null
-                }
+                {renderButton()}
                 <CreateCategory isOpen={isOpen} onClose={onClose} />
-
             </Stack>
         </Box>
-        </>
     );
-};
+}
