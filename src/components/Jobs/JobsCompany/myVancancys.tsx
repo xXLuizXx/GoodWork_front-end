@@ -3,18 +3,17 @@ import {
     Heading, Image, SimpleGrid, Text, VStack, useDisclosure, Modal, 
     ModalBody, ModalContent, ModalFooter, ModalHeader, 
     ModalOverlay, Stack, Alert, AlertIcon, useToast, HStack, Icon, 
-    Menu, MenuButton, MenuList, MenuItem, InputGroup, InputLeftElement, 
-    Input, Badge 
+    Menu, MenuButton, MenuList, MenuItem, Badge, 
+    ModalCloseButton
 } from "@chakra-ui/react";
 import { GrFormView, GrAdd } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
 import { useState } from "react";
-import { useValidateJob } from "@/services/hooks/Jobs/useValidateJob";
 import { FaRegEdit } from "react-icons/fa";
 import { TiInputChecked } from "react-icons/ti";
 import { useAllJobsCompany } from "@/services/hooks/Jobs/useAllJobsCompany";
-import { FiSearch } from "react-icons/fi";
 import { useRouter } from "next/router";
+import { useUpdateStatusJob } from "@/services/hooks/Jobs/useUpdateStatusJob";
 
 interface IJobsCompanyProps {
     id: string;
@@ -41,23 +40,17 @@ export function MyVacancy({id}: IJobsCompanyProps) {
     const { data } = useAllJobsCompany(id);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-    const { validateJob, isLoading } = useValidateJob();
+    const { updateStatusJob, isLoading } = useUpdateStatusJob();
     const toast = useToast();
     const [filter, setFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
 
     const handleValidate = async (jobId: string, validated: boolean) => {
-        const success = await validateJob(jobId, validated);
+        const success = await updateStatusJob(jobId, validated);
         if (success) {
             if (selectedJob?.id === jobId) {
                 onClose();
             }
-            toast({
-                title: validated ? "Vaga aprovada" : "Vaga reprovada",
-                status: "success",
-                duration: 3000,
-                isClosable: true,
-            });
         }
     };
 
@@ -89,7 +82,6 @@ export function MyVacancy({id}: IJobsCompanyProps) {
 
     return (
         <Box p="4">
-            {/* Barra de filtros - agora dentro de um Box com padding */}
             <Flex 
                 justify="space-between" 
                 align="center" 
@@ -142,7 +134,6 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                 </Button>
             </Flex>
 
-            {/* Grid de vagas - agora com padding consistente */}
             <SimpleGrid columns={{ base: 1, lg: Math.min(4, filteredJobs?.length || 1) }} spacing="6">
                 {filteredJobs?.map(job => (
                     <Card

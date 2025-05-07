@@ -94,7 +94,7 @@ export default function EditJob({id:string}:IJob): JSX.Element  {
                     duration: 5000,
                     isClosable: true,
                 });
-                setTimeout(() => router.back(), 1500);
+                setTimeout(() => router.back(), 1000);
             },
             onError: (error: any) => {
                 toast({
@@ -209,7 +209,6 @@ export default function EditJob({id:string}:IJob): JSX.Element  {
                                     bg="white"
                                     borderColor="blue.300"
                                     focusBorderColor="blue.500"
-                                    value="ZZ" // Exemplo
                                 />
                                 </FormControl>
 
