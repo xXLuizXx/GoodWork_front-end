@@ -251,7 +251,7 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                                     variant="ghost"
                                     leftIcon={<TiInputChecked color="green" />}
                                     size="xs"
-                                    onClick={() => router.push(`/jobs/${job.id}/applications`)}
+                                    onClick={() => router.push(`/applications?id=${job.id}`)}
                                 >
                                     Candidaturas
                                 </Button>

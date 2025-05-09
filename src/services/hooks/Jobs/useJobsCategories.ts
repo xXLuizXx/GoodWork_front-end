@@ -43,7 +43,8 @@ async function getJobsCategory(category_id: string): Promise<IGetJobsResponse> {
             user_id: job.user_id,
             user_name: job.user.name,
             valid_vacancy: job.valid_vacancy,
-            amount_vacancy: job.amount_vacancy
+            amount_vacancy: job.amount_vacancy,
+            closing_date: job.closing_date
         };
     });
 
