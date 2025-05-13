@@ -12,6 +12,7 @@ interface IApplicationsVacancyCompany {
     user_telephone: string;
     user_avatar: string;
     individualUser_functionn: string;
+    job_amount_vacancy: number;
     created_at: Date;
 }
 
