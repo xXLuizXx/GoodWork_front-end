@@ -15,6 +15,7 @@ import { queryClient } from "@/services/queryClient";
 interface DecodedToken {
     accessLevel: string;
     isAdmin: boolean;
+    sub: string;
 }
 
 interface CountData {
@@ -25,6 +26,7 @@ export function Sidebar(){
     const [mounted, setMounted] = useState(false);
     const [admin, setAdmin] = useState(false);
     const [ typeUser, setTypeUser ] = useState("");
+    const [ userId, setUserId ] = useState("");
     const { data, isLoading } = useCountJobsNotValidated({
         enabled: admin
     });
@@ -40,6 +42,7 @@ export function Sidebar(){
                 const decoded = decode<DecodedToken>(token);
                 setAdmin(!!decoded.isAdmin);
                 setTypeUser(decoded.accessLevel);
+                setUserId(decoded.sub);
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
             }
@@ -101,29 +104,35 @@ export function Sidebar(){
                                 <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel>
-                                {
-                                    typeUser?.toString() === "company" && (
-                                        <NextLink href="/jobs/create" legacyBehavior>
-                                            <ChakraLink
-                                                display="inline-block"
-                                                color="gray.500"
-                                                fontSize="sm"
-                                                fontWeight="bold"
-                                                py={2}
-                                                px={4}
-                                                _hover={{
-                                                color: "gray.600",
-                                                transform: "scale(1.05)",
-                                                }}
-                                                transition="all 0.3s ease"
-                                                textDecoration="none"
-                                            >
-                                                Cadastrar nova vaga
-                                            </ChakraLink>
-                                        </NextLink>
-                                    )
-                                }
-                                
+                                {typeUser?.toString() === "company" && [
+                                    {
+                                        href: "/jobs/create",
+                                        text: "Cadastrar nova vaga"
+                                    },
+                                    {
+                                        href: `/jobs-company-genereted?id=${userId}`,
+                                        text: "Ver minhas vagas"
+                                    }
+                                    ].map((link) => (
+                                    <NextLink key={link.href} href={link.href} legacyBehavior passHref>
+                                        <ChakraLink
+                                        display="inline-block"
+                                        color="gray.500"
+                                        fontSize="sm"
+                                        fontWeight="bold"
+                                        py={2}
+                                        px={4}
+                                        _hover={{
+                                            color: "gray.600",
+                                            transform: "scale(1.05)",
+                                        }}
+                                        transition="all 0.3s ease"
+                                        textDecoration="none"
+                                        >
+                                        {link.text}
+                                        </ChakraLink>
+                                    </NextLink>
+                                ))}
                                 {admin && (
                                     <NextLink href="/jobs/jobsNotValidated" legacyBehavior>
                                         <ChakraLink

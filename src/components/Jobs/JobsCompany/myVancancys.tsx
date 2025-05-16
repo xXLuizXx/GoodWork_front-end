@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react";
 import { GrFormView, GrAdd } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaRegEdit } from "react-icons/fa";
 import { TiInputChecked } from "react-icons/ti";
 import { useAllJobsCompany } from "@/services/hooks/Jobs/useAllJobsCompany";
@@ -37,55 +37,104 @@ interface Job {
 
 export function MyVacancy({id}: IJobsCompanyProps) {
     const router = useRouter();
-    const { data } = useAllJobsCompany(id);
+    const { data, refetch } = useAllJobsCompany(id);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const { updateStatusJob, isLoading } = useUpdateStatusJob();
     const [filter, setFilter] = useState("all");
+    const toast = useToast();
+
+    const checkAndUpdateJobStatus = async (jobs: Job[]) => {
+        const agoraBR = new Date().toLocaleString('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            hour12: false
+        });
+        
+        const [dataParte, horaParte] = agoraBR.split(', ');
+        const [dia, mes, ano] = dataParte.split('/').map(Number);
+        const [hora, minuto, segundo] = horaParte.split(':').map(Number);
+    
+        const todayUTC = new Date(Date.UTC(
+            ano,
+            mes - 1,
+            dia,
+            hora,
+            minuto,
+            segundo
+        ));
+        
+        todayUTC.setUTCHours(0, 0, 0, 0);
+    
+        let needsRefetch = false;
+    
+        for (const job of jobs) {
+            try {
+                if (!job.closing_date) continue;
+                
+                const closingDate = new Date(job.closing_date);
+                closingDate.setUTCHours(0, 0, 0, 0);
+                
+                if (closingDate <= todayUTC && job.vacancy_available) {
+                    await updateStatusJob(job.id, false);
+                    needsRefetch = true;
+                }
+            } catch (error) {
+                console.error(`Erro ao verificar vaga ${job.id}:`, error);
+            }
+        }
+    
+        if (needsRefetch) {
+            refetch();
+        }
+    };
+
+    useEffect(() => {
+        if (data?.jobs) {
+            checkAndUpdateJobStatus(data.jobs);
+        }
+    }, [data?.jobs]);
 
     const handleValidate = async (jobId: string, validated: boolean) => {
+        console.log("FAZENDO REQUISIÇÃO PARA ALTERAR O STATUS DA VAGA");
+        console.log(jobId);
+        console.log(validated);
         const success = await updateStatusJob(jobId, validated);
         if (success) {
             if (selectedJob?.id === jobId) {
                 onClose();
             }
+            //refetch();
         }
     };
 
     const filteredJobs = data?.jobs?.filter(job => {
-        if (filter === "open" && !job.vacancy_available) return false;
-        if (filter === "closed" && job.vacancy_available) return false;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const isClosedByDate = job.closing_date && new Date(job.closing_date) <= today;
+        const isClosed = !job.vacancy_available || isClosedByDate;
+
+        if (filter === "open" && isClosed) return false;
+        if (filter === "closed" && !isClosed) return false;
         
         if (filter === "month") {
-          if (!job.closing_date) return false;
-          
-          try {
-            const closingDate = new Date(job.closing_date);
-            const now = new Date();
+            if (!job.closing_date) return false;
             
-            const normalizedClosing = new Date(
-              closingDate.getUTCFullYear(),
-              closingDate.getUTCMonth(),
-              closingDate.getUTCDate()
-            );
-            
-            const normalizedNow = new Date(
-              now.getUTCFullYear(),
-              now.getUTCMonth(),
-              now.getUTCDate()
-            );
-            
-            return (
-              normalizedClosing.getUTCMonth() === normalizedNow.getUTCMonth() && 
-              normalizedClosing.getUTCFullYear() === normalizedNow.getUTCFullYear()
-            );
-          } catch {
-            return false;
-          }
+            try {
+                const closingDate = new Date(job.closing_date);
+                const now = new Date();
+                
+                return (
+                    closingDate.getMonth() === now.getMonth() && 
+                    closingDate.getFullYear() === now.getFullYear()
+                );
+            } catch {
+                return false;
+            }
         }
         
         return true;
-      });
+    });
 
     if (!data?.jobs || data.jobs.length === 0) {
         return (
@@ -126,13 +175,15 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                             <MenuItem onClick={() => setFilter("open")}>
                                 Vagas Abertas
                                 <Badge ml="2" colorScheme="green">
-                                    {data.jobs.filter(j => j.vacancy_available).length}
+                                    {data.jobs.filter(j => j.vacancy_available && 
+                                        (!j.closing_date || new Date(j.closing_date) > new Date())).length}
                                 </Badge>
                             </MenuItem>
                             <MenuItem onClick={() => setFilter("closed")}>
                                 Vagas Fechadas
                                 <Badge ml="2" colorScheme="red">
-                                    {data.jobs.filter(j => !j.vacancy_available).length}
+                                    {data.jobs.filter(j => !j.vacancy_available || 
+                                        (j.closing_date && new Date(j.closing_date) <= new Date())).length}
                                 </Badge>
                             </MenuItem>
                             <MenuItem onClick={() => setFilter("month")}>
@@ -168,100 +219,107 @@ export function MyVacancy({id}: IJobsCompanyProps) {
             </Flex>
 
             <SimpleGrid columns={{ base: 1, lg: Math.min(4, filteredJobs?.length || 1) }} spacing="6">
-                {filteredJobs?.map(job => (
-                    <Card
-                        key={job.id}
-                        boxShadow="dark-lg"
-                        maxW="md"
-                        h="96"
-                        _hover={{ 
-                            transform: "translateY(-4px)",
-                            transition: "all 0.2s ease"
-                        }}
-                    >
-                        <CardHeader p="2.5">
-                            <Flex>
-                                <Flex flex="1" gap="4" alignItems="center">
-                                    <Avatar name="avatar" src="../Img/icons/empresaTeste.jpg" />
-                                    <Box>
-                                        <Heading size="sm">
-                                            <Text fontSize="14">
-                                                {job.vacancy}
+                {filteredJobs?.map(job => {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const isClosedByDate = job.closing_date && new Date(job.closing_date) <= today;
+                    const isClosed = !job.vacancy_available || isClosedByDate;
+
+                    return (
+                        <Card
+                            key={job.id}
+                            boxShadow="dark-lg"
+                            maxW="md"
+                            h="96"
+                            _hover={{ 
+                                transform: "translateY(-4px)",
+                                transition: "all 0.2s ease"
+                            }}
+                        >
+                            <CardHeader p="2.5">
+                                <Flex>
+                                    <Flex flex="1" gap="4" alignItems="center">
+                                        <Avatar name="avatar" src="../Img/icons/empresaTeste.jpg" />
+                                        <Box>
+                                            <Heading size="sm">
+                                                <Text fontSize="14">
+                                                    {job.vacancy}
+                                                </Text>
+                                            </Heading>
+                                            <Text fontSize="12">
+                                                {(job.contractor == null || job.contractor == "") ? job.user_name : job.contractor}
                                             </Text>
-                                        </Heading>
-                                        <Text fontSize="12">
-                                            {(job.contractor == null || job.contractor == "") ? job.user_name : job.contractor}
-                                        </Text>
-                                    </Box>
+                                        </Box>
+                                    </Flex>
+                                    <Badge 
+                                        colorScheme={isClosed ? "red" : "green"}
+                                        alignSelf="flex-start"
+                                        ml="2"
+                                    >
+                                        {isClosed ? "Fechada" : "Aberta"}
+                                    </Badge>
                                 </Flex>
-                                <Badge 
-                                    colorScheme={job.vacancy_available ? "green" : "red"}
-                                    alignSelf="flex-start"
-                                    ml="2"
-                                >
-                                    {job.vacancy_available ? "Aberta" : "Fechada"}
-                                </Badge>
-                            </Flex>
-                        </CardHeader>
+                            </CardHeader>
 
-                        <CardBody whiteSpace="1" h="10">
-                            <VStack spacing="2" alignItems="center" height="100%">
-                                <Text textAlign="justify" fontSize="12" maxW="100%" noOfLines={3}>
-                                    {job.description_vacancy.toString()}
-                                </Text>
-                                <Image
-                                    maxW="40%"
-                                    src={job.banner == null ? "../Img/icons/bannerVaga.png" : "../Img/icons/bannerVaga.png"} 
-                                    alt="Banner da vaga"
-                                />
-                            </VStack>
-                        </CardBody>
+                            <CardBody whiteSpace="1" h="10">
+                                <VStack spacing="2" alignItems="center" height="100%">
+                                    <Text textAlign="justify" fontSize="12" maxW="100%" noOfLines={3}>
+                                        {job.description_vacancy.toString()}
+                                    </Text>
+                                    <Image
+                                        maxW="40%"
+                                        src={job.banner == null ? "../Img/icons/bannerVaga.png" : "../Img/icons/bannerVaga.png"} 
+                                        alt="Banner da vaga"
+                                    />
+                                </VStack>
+                            </CardBody>
 
-                        <CardFooter alignItems="center" p="2.5" pt="1">
-                            <SimpleGrid gap="2" w="100%" flex="1" minChildWidth="90px">
-                                <Button
-                                    variant="ghost"
-                                    leftIcon={<GrFormView color="blue" />}
-                                    onClick={() => {
-                                        setSelectedJob(job);
-                                        onOpen();
-                                    }}
-                                    size="xs"
-                                >
-                                    Visualizar
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    leftIcon={<FaRegEdit color="orange" />}
-                                    size="xs"
-                                    onClick={() => router.push(`jobs-company-genereted/edit?id=${job.id}`)}
-                                >
-                                    Editar
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    leftIcon={<GoXCircleFill color={job.vacancy_available ? "red" : "green"} />}
-                                    size="xs"
-                                    onClick={() => handleValidate(job.id, !job.vacancy_available)}
-                                    isLoading={isLoading}
-                                >
-                                    {job.vacancy_available ? "Fechar" : "Reabrir"}
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    leftIcon={<TiInputChecked color="green" />}
-                                    size="xs"
-                                    onClick={() => router.push(`/applications?id=${job.id}`)}
-                                >
-                                    Candidaturas
-                                </Button>
-                            </SimpleGrid>
-                        </CardFooter>
-                    </Card>
-                ))}
+                            <CardFooter alignItems="center" p="2.5" pt="1">
+                                <SimpleGrid gap="2" w="100%" flex="1" minChildWidth="90px">
+                                    <Button
+                                        variant="ghost"
+                                        leftIcon={<GrFormView color="blue" />}
+                                        onClick={() => {
+                                            setSelectedJob(job);
+                                            onOpen();
+                                        }}
+                                        size="xs"
+                                    >
+                                        Visualizar
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        leftIcon={<FaRegEdit color="orange" />}
+                                        size="xs"
+                                        onClick={() => router.push(`jobs-company-genereted/edit?id=${job.id}`)}
+                                    >
+                                        Editar
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        leftIcon={<GoXCircleFill color={isClosed ? "green" : "red"} />}
+                                        size="xs"
+                                        onClick={() => handleValidate(job.id, isClosed)}
+                                        isLoading={isLoading}
+                                        isDisabled={isClosedByDate}
+                                    >
+                                        {isClosed ? "Reabrir" : "Fechar"}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        leftIcon={<TiInputChecked color="green" />}
+                                        size="xs"
+                                        onClick={() => router.push(`/applications?id=${job.id}`)}
+                                    >
+                                        Candidaturas
+                                    </Button>
+                                </SimpleGrid>
+                            </CardFooter>
+                        </Card>
+                    );
+                })}
             </SimpleGrid>
 
-            {/* Modal mantendo o estilo original */}
             {selectedJob && (
                 <Modal
                     isCentered
@@ -285,9 +343,19 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                                 </Box>
                                 <Badge 
                                     ml="auto"
-                                    colorScheme={selectedJob.vacancy_available ? "green" : "red"}
+                                    colorScheme={
+                                        (!selectedJob.vacancy_available || 
+                                        (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                        ? "red" 
+                                        : "green"
+                                    }
                                 >
-                                    {selectedJob.vacancy_available ? "Aberta" : "Fechada"}
+                                    {
+                                        (!selectedJob.vacancy_available || 
+                                        (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                        ? "Fechada" 
+                                        : "Aberta"
+                                    }
                                 </Badge>
                             </Flex>
                         </ModalHeader>
@@ -345,13 +413,33 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                         </ModalBody>
                         <ModalFooter>
                             <Button
-                                colorScheme={selectedJob.vacancy_available ? "red" : "green"}
-                                leftIcon={<Icon as={selectedJob.vacancy_available ? GoXCircleFill : GoCheckCircleFill} />}
-                                onClick={() => handleValidate(selectedJob.id, !selectedJob.vacancy_available)}
+                                colorScheme={
+                                    (!selectedJob.vacancy_available || 
+                                    (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                    ? "green" 
+                                    : "red"
+                                }
+                                leftIcon={<Icon as={
+                                    (!selectedJob.vacancy_available || 
+                                    (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                    ? GoCheckCircleFill 
+                                    : GoXCircleFill
+                                } />}
+                                onClick={() => handleValidate(
+                                    selectedJob.id, 
+                                    !(!selectedJob.vacancy_available || 
+                                      (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date()))
+                                )}
                                 isLoading={isLoading}
                                 mr={3}
+                                isDisabled={selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date()}
                             >
-                                {selectedJob.vacancy_available ? "Fechar Vaga" : "Reabrir Vaga"}
+                                {
+                                    (!selectedJob.vacancy_available || 
+                                    (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                    ? "Reabrir Vaga" 
+                                    : "Fechar Vaga"
+                                }
                             </Button>
                             <Button
                                 colorScheme="blue"

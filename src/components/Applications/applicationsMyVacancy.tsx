@@ -14,6 +14,7 @@ import { useRouter } from "next/router";
 import { useAllApplicationsVacancy } from "@/services/hooks/applications/useAllApplicationsVacancyCompany";
 import { IApplicationsVacancyCompany } from "@/services/hooks/applications/useAllApplicationsVacancyCompany";
 import { api } from "@/services/apiClient";
+import { ChevronLeftIcon } from "@chakra-ui/icons";
 
 interface IApplicationMyVacancyProps {
    id: string;
@@ -259,7 +260,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                 gap="4"
                 position="sticky"
                 top="4"
-                zIndex="10"
+                zIndex="9"
             >
               <HStack spacing="4">
                   <Text fontWeight="bold" fontSize="sm">
@@ -304,7 +305,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                   </Menu>
               </HStack>
 
-              {allPositionsFilled && (
+              {allPositionsFilled && applications[0]?.job?.vacancy_available !== false && (
                   <Button
                       colorScheme="green"
                       onClick={handleFinalizeApprovals}
@@ -408,33 +409,38 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                             </TagLabel>
                                         </Tag>
                                 
-                                        <Button 
-                                            leftIcon={<GoCheckCircleFill />} 
-                                            colorScheme={isApproved ? "green" : "gray"} 
-                                            variant={isApproved ? "solid" : "outline"}
-                                            size="xs"
-                                            onClick={() => handleApproveClick(application.id)}
-                                            isDisabled={isApproved}
-                                            width="100%"
-                                        >
-                                            {isApproved ? "Aprovado" : `Aprovar`}
-                                        </Button>
-                                      
-                                        <Button 
-                                            leftIcon={<GoXCircleFill />} 
-                                            colorScheme={isRejected ? "red" : "gray"} 
-                                            variant={isRejected ? "solid" : "outline"} 
-                                            size="xs"
-                                            onClick={() => handleRejectClick(application.id)}
-                                            isDisabled={isRejected}
-                                            width="100%"
-                                        >
-                                            {isRejected ? "Rejeição confirmada" : "Rejeitar"}
-                                        </Button>
-                                      
+                                        {!applications[0]?.job?.vacancy_available === false &&(
+                                            <Button 
+                                                leftIcon={<GoCheckCircleFill />}
+                                                bgColor="green.300"
+                                                colorScheme={isApproved ? "green" : "gray"} 
+                                                variant={isApproved ? "solid" : "outline"}
+                                                size="xs"
+                                                onClick={() => handleApproveClick(application.id)}
+                                                isDisabled={isApproved || applications[0]?.job?.vacancy_available === false}
+                                                width="100%"
+                                            >
+                                                {isApproved ? "Aprovado" : `Aprovar`}
+                                            </Button>
+                                        )}
+                                        {!applications[0]?.job?.vacancy_available === false &&(
+                                            <Button 
+                                                leftIcon={<GoXCircleFill />} 
+                                                bgColor="red.400"
+                                                colorScheme={isRejected ? "red" : "gray"} 
+                                                variant={isRejected ? "solid" : "outline"} 
+                                                size="xs"
+                                                onClick={() => handleRejectClick(application.id)}
+                                                isDisabled={isRejected}
+                                                width="100%"
+                                            >
+                                                {isRejected ? "Rejeição confirmada" : "Rejeitar"}
+                                            </Button>
+                                        )}
                                         <Button 
                                             leftIcon={<GrFormView />} 
                                             variant="outline" 
+                                            bgColor="blue.500"
                                             size="xs"
                                             onClick={() => handleViewDetails(application)}
                                             width="100%"
@@ -443,7 +449,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                         </Button>
                                       
                                         <Button 
-                                            leftIcon={<Icon as={FaFilePdf} />} 
+                                            leftIcon={<Icon color="red" as={FaFilePdf} />} 
                                             variant="outline" 
                                             size="xs"
                                             as={Link}
