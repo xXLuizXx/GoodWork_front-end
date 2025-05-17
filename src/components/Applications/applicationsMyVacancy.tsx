@@ -94,7 +94,8 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         }
     }, [id]);
 
-    const allPositionsFilled = approvedCount >= totalVacancyJob;
+    //const allPositionsFilled = approvedCount >= totalVacancyJob;
+    const allPositionsFilled = approvedCount >= 1;
     const remainingPositions = totalVacancyJob - approvedCount;
 
     const handleConfirmAction = () => {

@@ -51,7 +51,7 @@ export function HomeCompany(): JSX.Element {
             borderColor: 'blue',
             bgColor: '#FFFFFF',
             hoverColor: '#FFFFFF',
-            route: '/company/saved-profiles'
+            route: '/users/list-users/listAllUsers'
         }
     ];
 

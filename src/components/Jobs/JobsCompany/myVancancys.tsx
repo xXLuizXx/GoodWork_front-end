@@ -4,7 +4,7 @@ import {
     ModalBody, ModalContent, ModalFooter, ModalHeader, 
     ModalOverlay, Stack, Alert, AlertIcon, useToast, HStack, Icon, 
     Menu, MenuButton, MenuList, MenuItem, Badge, 
-    ModalCloseButton
+    ModalCloseButton, Tooltip
 } from "@chakra-ui/react";
 import { GrFormView, GrAdd } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
@@ -62,8 +62,6 @@ export function MyVacancy({id}: IJobsCompanyProps) {
             minuto,
             segundo
         ));
-        
-        todayUTC.setUTCHours(0, 0, 0, 0);
     
         let needsRefetch = false;
     
@@ -72,8 +70,7 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                 if (!job.closing_date) continue;
                 
                 const closingDate = new Date(job.closing_date);
-                closingDate.setUTCHours(0, 0, 0, 0);
-                
+
                 if (closingDate <= todayUTC && job.vacancy_available) {
                     await updateStatusJob(job.id, false);
                     needsRefetch = true;
@@ -95,21 +92,17 @@ export function MyVacancy({id}: IJobsCompanyProps) {
     }, [data?.jobs]);
 
     const handleValidate = async (jobId: string, validated: boolean) => {
-        console.log("FAZENDO REQUISIÇÃO PARA ALTERAR O STATUS DA VAGA");
-        console.log(jobId);
-        console.log(validated);
         const success = await updateStatusJob(jobId, validated);
         if (success) {
             if (selectedJob?.id === jobId) {
                 onClose();
             }
-            //refetch();
+            refetch();
         }
     };
 
     const filteredJobs = data?.jobs?.filter(job => {
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
         
         const isClosedByDate = job.closing_date && new Date(job.closing_date) <= today;
         const isClosed = !job.vacancy_available || isClosedByDate;
@@ -224,6 +217,9 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                     today.setHours(0, 0, 0, 0);
                     const isClosedByDate = job.closing_date && new Date(job.closing_date) <= today;
                     const isClosed = !job.vacancy_available || isClosedByDate;
+                    const closingDateFormatted = job.closing_date ? 
+                        new Date(job.closing_date).toLocaleDateString('pt-BR') : 
+                        'Sem data definida';
 
                     return (
                         <Card
@@ -249,15 +245,20 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                                             <Text fontSize="12">
                                                 {(job.contractor == null || job.contractor == "") ? job.user_name : job.contractor}
                                             </Text>
+                                            <Text fontSize="10" color="gray.500" mt="1">
+                                                Encerra em: {closingDateFormatted}
+                                            </Text>
                                         </Box>
                                     </Flex>
-                                    <Badge 
-                                        colorScheme={isClosed ? "red" : "green"}
-                                        alignSelf="flex-start"
-                                        ml="2"
-                                    >
-                                        {isClosed ? "Fechada" : "Aberta"}
-                                    </Badge>
+                                    <Tooltip label={`Data de encerramento: ${closingDateFormatted}`}>
+                                        <Badge 
+                                            colorScheme={isClosed ? "red" : "green"}
+                                            alignSelf="flex-start"
+                                            ml="2"
+                                        >
+                                            {isClosed ? "Fechada" : "Aberta"}
+                                        </Badge>
+                                    </Tooltip>
                                 </Flex>
                             </CardHeader>
 
@@ -341,27 +342,72 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                                         {(selectedJob.contractor == null || selectedJob.contractor === "") ? selectedJob.user_name : selectedJob.contractor}
                                     </Text>
                                 </Box>
-                                <Badge 
-                                    ml="auto"
-                                    colorScheme={
-                                        (!selectedJob.vacancy_available || 
-                                        (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
-                                        ? "red" 
-                                        : "green"
-                                    }
-                                >
-                                    {
-                                        (!selectedJob.vacancy_available || 
-                                        (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
-                                        ? "Fechada" 
-                                        : "Aberta"
-                                    }
-                                </Badge>
+                                <Tooltip label={`Data de encerramento: ${
+                                    selectedJob.closing_date ? 
+                                    new Date(selectedJob.closing_date).toLocaleDateString('pt-BR') : 
+                                    'Sem data definida'
+                                }`}>
+                                    <Badge 
+                                        ml="auto"
+                                        colorScheme={
+                                            (!selectedJob.vacancy_available || 
+                                            (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                            ? "red" 
+                                            : "green"
+                                        }
+                                    >
+                                        {
+                                            (!selectedJob.vacancy_available || 
+                                            (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                            ? "Fechada" 
+                                            : "Aberta"
+                                        }
+                                    </Badge>
+                                </Tooltip>
                             </Flex>
                         </ModalHeader>
                         <ModalCloseButton />
                         <ModalBody overflowY="auto" maxH="500px" bg="gray.50" p="6" borderRadius="md">
                             <VStack align="start" spacing="6">
+                                <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
+                                    <Flex justifyContent="space-between" gap="4">
+                                        <Box flex="1">
+                                            <Text fontWeight="bold" fontSize="lg" mb="2">Data de Encerramento:</Text>
+                                            <Box pl="4">
+                                                {selectedJob.closing_date ? 
+                                                    new Date(selectedJob.closing_date).toLocaleDateString('pt-BR', {
+                                                        day: '2-digit',
+                                                        month: '2-digit',
+                                                        year: 'numeric',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    }) : 
+                                                    'Não definida'}
+                                            </Box>
+                                        </Box>
+                                        <Box flex="1">
+                                            <Text fontWeight="bold" fontSize="lg" mb="2">Status:</Text>
+                                            <Box pl="4">
+                                                <Badge 
+                                                    colorScheme={
+                                                        (!selectedJob.vacancy_available || 
+                                                        (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                                        ? "red" 
+                                                        : "green"
+                                                    }
+                                                >
+                                                    {
+                                                        (!selectedJob.vacancy_available || 
+                                                        (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                                        ? "Fechada" 
+                                                        : "Aberta"
+                                                    }
+                                                </Badge>
+                                            </Box>
+                                        </Box>
+                                    </Flex>
+                                </Box>
+
                                 <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
                                     <Image
                                         src={selectedJob.banner == null ? "../Img/icons/bannerVaga.png" : "../Img/icons/bannerVaga.png"}

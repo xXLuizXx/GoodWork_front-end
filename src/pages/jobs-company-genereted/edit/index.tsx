@@ -25,6 +25,8 @@ import { Helmet } from "react-helmet";
 import { Header } from '@/components/Header/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { useCategories } from '@/services/hooks/Categories/useCategories';
+import { parseCookies } from 'nookies';
+import decode from "jwt-decode";
 
 interface IJob {
     id: string;
@@ -41,6 +43,9 @@ interface IJob {
     closing_date: string;
 }
 
+interface DecodedToken {
+    sub: string;
+}
 export default function EditJob({id:string}:IJob): JSX.Element  {
     const router = useRouter();
     const { id } = router.query;
@@ -48,6 +53,25 @@ export default function EditJob({id:string}:IJob): JSX.Element  {
     const [isLoading, setIsLoading] = useState(true);
     const { handleSubmit, register, reset } = useForm<IJob>();
     const { data } = useCategories(); 
+    const [ userId, setUserId ] = useState("");
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        
+        const cookies = parseCookies();
+        const token = cookies["token.token"];
+
+        if (token) {
+            try {
+                const decoded = decode<DecodedToken>(token);
+
+                setUserId(decoded.sub);
+            } catch (error) {
+                console.error("Erro ao decodificar o token:", error);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (id) {
@@ -55,20 +79,24 @@ export default function EditJob({id:string}:IJob): JSX.Element  {
                 try {
                     const response = await api.get(`/jobs/getJob?id=${id}`);
                     const jobData = response.data;
+                    
+                    const closingDateBR = jobData.closing_date 
+                        ? new Date(jobData.closing_date).toLocaleString('pt-BR', {
+                            timeZone: 'America/Sao_Paulo',
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit'
+                          }).split(',')[0].split('/').reverse().join('-')
+                        : '';
+    
                     reset({
                         ...jobData,
-                        closing_date: jobData.closing_date ? jobData.closing_date.split('T')[0] : ''
+                        closing_date: closingDateBR
                     });
+                    
                     setIsLoading(false);
                 } catch (error) {
-                    toast({
-                        description: "Erro ao carregar os dados da vaga.",
-                        status: "error",
-                        position: "top",
-                        duration: 5000,
-                        isClosable: true,
-                    });
-                    setIsLoading(false);
+                    console.error("Erro ao resgatar dados:", error);
                 }
             };
             fetchJob();
@@ -77,16 +105,27 @@ export default function EditJob({id:string}:IJob): JSX.Element  {
 
     const updateJob = useMutation(
         async (formData: IJob) => {
+            const closingDateBR = new Date(`${formData.closing_date}T00:00:00-03:00`);
+
+            const agoraBR = new Date().toLocaleString('pt-BR', {
+                timeZone: 'America/Sao_Paulo',
+                hour12: false
+            });
+            
             const payload = {
                 ...formData,
-                id: id as string
+                id: id as string,
+                closing_date: closingDateBR.toISOString(),
+                updated_at: agoraBR
             };
+    
             const response = await api.patch(`/jobs/updateJob`, payload);
             return response.data;
         },
         {
             onSuccess: () => {
                 queryClient.invalidateQueries(['job', id]);
+                queryClient.invalidateQueries(["jobs/listJobsCompany", userId]); 
                 toast({
                     description: "Vaga atualizada com sucesso!",
                     status: "success",
@@ -105,7 +144,7 @@ export default function EditJob({id:string}:IJob): JSX.Element  {
                     isClosable: true,
                 });
             },
-        }
+        },
     );
     
     const handleSubmitForm: SubmitHandler<IJob> = async (formData) => {
