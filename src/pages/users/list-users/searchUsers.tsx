@@ -4,12 +4,11 @@ import {
     useDisclosure, Modal, ModalBody, ModalContent, ModalFooter,
     ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast,
     Menu, MenuButton, MenuList, MenuItem, Tooltip, ModalCloseButton,
-    Tag, TagLabel,
-    Icon
+    Tag, TagLabel, Icon
 } from "@chakra-ui/react";
-import { GrFormView, GrAdd } from "react-icons/gr";
+import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
-import { FaRegEdit, FaFileDownload } from "react-icons/fa";
+import { FaFileDownload } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import { Sidebar } from "@/components/Sidebar";
 import { HeaderSearchProfiles } from "@/components/Header/HeaderSearchProfiles";
@@ -47,10 +46,12 @@ export default function SearchAllUsers() {
     const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
     const [filter, setFilter] = useState("all");
     const toast = useToast();
-    const [typeUser, setTypeUser] = useState("");
     const [userId, setUserId] = useState("");
     const { search } = router.query;
     const [searchTerm, setSearchTerm] = useState(typeof search === 'string' ? search : '');
+    
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 9;
 
     useEffect(() => {
         const cookies = parseCookies();
@@ -66,34 +67,37 @@ export default function SearchAllUsers() {
     }, []);
 
     const handleSearch = async (term: string) => {
-        // Primeiro atualiza o estado
         setSearchTerm(term);
-        
-        // Depois faz a navegação
+        setCurrentPage(1);
         await router.push({
             pathname: '/users/list-users/searchUsers',
             query: { search: term }
         }, undefined, { shallow: true });
     };
-    
-    // Adicione esta função
+
     const handleSearchComplete = () => {
-        setSearchTerm('');
     };
 
     const handleClearSearch = () => {
         setSearchTerm('');
+        setCurrentPage(1);
         router.push('/users/list-users/searchUsers', undefined, { shallow: true });
     };
 
     const { data, isLoading } = useAllDataUsersSearch(searchTerm, userId);
     const users = data?.users ?? [];
-    const filteredProfiles = users?.filter(profile => {
+    
+    const filteredProfiles = users.filter(profile => {
         if (filter === "company") return profile.user_type === 'company';
         if (filter === "individual") return profile.user_type === 'individual';
         if (filter === "available") return profile.user_type === 'individual' && !profile.is_employee;
         return true;
-    }) || [];
+    });
+
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentProfiles = filteredProfiles.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredProfiles.length / itemsPerPage);
 
     const handleContact = (profile: UserProfile) => {
         toast({
@@ -105,6 +109,68 @@ export default function SearchAllUsers() {
         });
     };
 
+    const PaginationButtons = () => {
+        if (totalPages <= 1) return null;
+
+        return (
+            <Flex justify="center" mt="8" gap="2">
+                <Button
+                    size="sm"
+                    onClick={() => setCurrentPage(1)}
+                    isDisabled={currentPage === 1}
+                >
+                    «
+                </Button>
+                <Button
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    isDisabled={currentPage === 1}
+                >
+                    ‹
+                </Button>
+
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                        pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                    } else {
+                        pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                        <Button
+                            key={pageNum}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            colorScheme={currentPage === pageNum ? 'blue' : 'gray'}
+                        >
+                            {pageNum}
+                        </Button>
+                    );
+                })}
+
+                <Button
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    isDisabled={currentPage === totalPages}
+                >
+                    ›
+                </Button>
+                <Button
+                    size="sm"
+                    onClick={() => setCurrentPage(totalPages)}
+                    isDisabled={currentPage === totalPages}
+                >
+                    »
+                </Button>
+            </Flex>
+        );
+    };
+
     if (isLoading) {
         return (
             <Flex justify="center" align="center" h="100vh">
@@ -113,10 +179,7 @@ export default function SearchAllUsers() {
         );
     }
 
-    console.log("data:", data);
-    console.log("users:", users);
-    console.log("users.length:", users?.length);
-    if (users?.length === 0) {
+    if (searchTerm && users.length === 0) {
         return (
             <Flex direction="column" h="100vh">
                 <HeaderSearchProfiles 
@@ -124,13 +187,14 @@ export default function SearchAllUsers() {
                     searchValue={searchTerm}
                     onSearch={handleSearch}
                     onClearSearch={handleClearSearch}
+                    onSearchComplete={handleSearchComplete}
                 />
                 <Flex w="100%" my="8" maxWidth={1480} mx="auto" px="4">
                     <Sidebar />
                     <Stack flex="1" p="4">
                         <Alert status="info">
                             <AlertIcon />
-                            Nenhum perfil encontrado.
+                            Nenhum perfil encontrado para "{searchTerm}".
                         </Alert>
                     </Stack>
                 </Flex>
@@ -150,7 +214,7 @@ export default function SearchAllUsers() {
                 searchValue={searchTerm}
                 onSearch={handleSearch}
                 onClearSearch={handleClearSearch}
-                onSearchComplete={handleSearchComplete} // Nova prop
+                onSearchComplete={handleSearchComplete}
             />
     
             <Flex w="100%" my="8" maxWidth={1480} mx="auto" px="4">
@@ -179,28 +243,28 @@ export default function SearchAllUsers() {
                                     Filtrar
                                 </MenuButton>
                                 <MenuList>
-                                    <MenuItem onClick={() => setFilter("all")}>
+                                    <MenuItem onClick={() => { setFilter("all"); setCurrentPage(1); }}>
                                         Todos os Perfis
                                         <Badge ml="2" colorScheme="gray">
-                                            {users?.length || 0}
+                                            {users.length}
                                         </Badge>
                                     </MenuItem>
-                                    <MenuItem onClick={() => setFilter("company")}>
+                                    <MenuItem onClick={() => { setFilter("company"); setCurrentPage(1); }}>
                                         Empresas
                                         <Badge ml="2" colorScheme="blue">
-                                            {users?.filter(p => p.user_type === 'company').length || 0}
+                                            {users.filter(p => p.user_type === 'company').length}
                                         </Badge>
                                     </MenuItem>
-                                    <MenuItem onClick={() => setFilter("individual")}>
+                                    <MenuItem onClick={() => { setFilter("individual"); setCurrentPage(1); }}>
                                         Profissionais
                                         <Badge ml="2" colorScheme="green">
-                                            {users?.filter(p => p.user_type === 'individual').length || 0}
+                                            {users.filter(p => p.user_type === 'individual').length}
                                         </Badge>
                                     </MenuItem>
-                                    <MenuItem onClick={() => setFilter("available")}>
+                                    <MenuItem onClick={() => { setFilter("available"); setCurrentPage(1); }}>
                                         Disponíveis para contratação
                                         <Badge ml="2" colorScheme="orange">
-                                            {users?.filter(p => p.user_type === 'individual' && !p.is_employee).length || 0}
+                                            {users.filter(p => p.user_type === 'individual' && !p.is_employee).length}
                                         </Badge>
                                     </MenuItem>
                                 </MenuList>
@@ -209,7 +273,7 @@ export default function SearchAllUsers() {
                     </Flex>
 
                     <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacingY="8" pb="4">
-                        {filteredProfiles.map(profile => (
+                        {currentProfiles.map(profile => (
                             <Card
                                 key={profile.id}
                                 boxShadow="dark-lg"
@@ -285,7 +349,7 @@ export default function SearchAllUsers() {
                                 </CardBody>
 
                                 <CardFooter alignItems="center" p="2.5" pt="1">
-                                    <SimpleGrid gap="2" w="100%" flex="1" minChildWidth="90px">
+                                    <SimpleGrid gap="2" w="40%" flex="1" minChildWidth="50px">
                                         <Button
                                             variant="ghost"
                                             leftIcon={<GrFormView color="blue" />}
@@ -308,19 +372,20 @@ export default function SearchAllUsers() {
                                                 Currículo
                                             </Button>
                                         )}
-                                        {/* <Button
+                                        <Button
                                             variant="ghost"
                                             leftIcon={<Icon as={GoCheckCircleFill} color="purple" />}
                                             size="xs"
                                             onClick={() => handleContact(profile)}
                                         >
                                             Contatar
-                                        </Button> */}
+                                        </Button>
                                     </SimpleGrid>
                                 </CardFooter>
                             </Card>
                         ))}
                     </SimpleGrid>
+                    <PaginationButtons />
                 </Box>
             </Flex>
 

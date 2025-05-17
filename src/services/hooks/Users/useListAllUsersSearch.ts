@@ -23,9 +23,6 @@ interface IGetDataUsersResponse {
 }
 
 async function getDataUsersSearch(search:string, id: string): Promise<IGetDataUsersResponse> {
-    console.log("REQUISIÇÃO HOOK");
-    console.log(search);
-    console.log(id);
     const { data } = await api.post("users/getAllUsersSearch", { search, id });
 
     const users = data.map(user => {
@@ -73,7 +70,8 @@ function useAllDataUsersSearch(search: string, id: string) {
         () => getDataUsersSearch(search, id),
         {
             staleTime: 1000 * 60 * 10,
-            enabled: !!id && !!search, // Só faz a busca se tiver search e id
+            enabled: !!id && !!search,
+            refetchOnWindowFocus: false,
         }
     );
 }

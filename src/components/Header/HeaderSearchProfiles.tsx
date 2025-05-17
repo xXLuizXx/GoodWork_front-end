@@ -1,5 +1,6 @@
 import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image } from "@chakra-ui/react";
 import { RiSearchLine } from "react-icons/ri";
+import { GoXCircleFill } from "react-icons/go";
 import { Profile } from "./Profile";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
@@ -13,39 +14,34 @@ interface IHeaderProps {
     searchValue?: string;
     onSearch?: (term: string) => void;
     onClearSearch?: () => void;
-    onSearchComplete?: () => void; // Nova prop
+    onSearchComplete?: () => void;
 }
 
 function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSearchComplete }: IHeaderProps) {
     const [localSearchTerm, setLocalSearchTerm] = useState(searchValue || '');
+    const [isSearching, setIsSearching] = useState(false);
     const router = useRouter();
-    const isWideVersion = useBreakpointValue({
-        base: false,
-        lg: true,
-    });
-
-    useEffect(() => {
-        setLocalSearchTerm(searchValue || '');
-    }, [searchValue]);
 
     const handleSearch = async () => {
         const term = localSearchTerm.trim();
-        if (!term) {
-            if (onClearSearch) onClearSearch();
-            return;
-        }
+        if (!term) return;
+
+        setIsSearching(true);
         
-        if (onSearch) {
-            await onSearch(term);
-        } else {
-            await router.push({
-                pathname: '/users/list-users/searchUsers',
-                query: { search: term, userId: id }
-            });
+        try {
+            if (onSearch) {
+                await onSearch(term);
+            }
+            setLocalSearchTerm('');
+            if (onSearchComplete) onSearchComplete();
+        } finally {
+            setIsSearching(false);
         }
-        
-        // Chama o callback de conclusão
-        if (onSearchComplete) onSearchComplete();
+    };
+
+    const handleClear = () => {
+        setLocalSearchTerm('');
+        if (onClearSearch) onClearSearch();
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -56,10 +52,14 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
     };
 
     const handleLogoClick = () => {
-        setLocalSearchTerm('');
-        if (onClearSearch) onClearSearch();
+        handleClear();
         router.push('/');
     };
+
+    const isWideVersion = useBreakpointValue({
+        base: false,
+        lg: true,
+    });
 
     return (
         <Flex
@@ -111,7 +111,7 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
                     color="black"
                     variant="unstyled"
                     px="4"
-                    mr="4"
+                    mr="2"
                     placeholder="Buscar perfis por nome, função ou habilidade"
                     _placeholder={{
                         color: "gray.500"
@@ -120,13 +120,29 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
                     onChange={(e) => setLocalSearchTerm(e.target.value)}
                     onKeyDown={handleKeyDown}
                 />
+
+                {localSearchTerm && (
+                    <IconButton
+                        aria-label="Limpar pesquisa"
+                        icon={<GoXCircleFill />}
+                        onClick={handleClear}
+                        variant="unstyled"
+                        color="gray.500"
+                        _hover={{ color: "red.500" }}
+                        mr="2"
+                        size="sm"
+                    />
+                )}
+
                 <IconButton
-                    aria-label="Pesquisar perfis, funções ou habilidades"
+                    aria-label="Pesquisar perfis"
                     icon={<RiSearchLine />}
                     onClick={handleSearch}
                     variant="unstyled"
-                    color="gray.500"
-                    _hover={{ color: "blue.500" }}
+                    color={localSearchTerm.trim() ? "blue.500" : "gray.500"}
+                    _hover={{ color: "blue.600" }}
+                    isLoading={isSearching}
+                    isDisabled={!localSearchTerm.trim()}
                 />
             </Flex>
 
