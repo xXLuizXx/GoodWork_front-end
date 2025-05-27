@@ -67,7 +67,7 @@ export function JobsNotValidated() {
                             </Text>
                             <Image
                                 maxW="40%"
-                                src={job.banner == null ? "../Img/icons/bannerVaga.png" : "../Img/icons/bannerVaga.png"} 
+                                src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "../Img/icons/bannerVaga.png"}
                                 alt="Banner da vaga"
                             />
                         </VStack>
@@ -134,7 +134,7 @@ export function JobsNotValidated() {
                                     <VStack align="start" spacing="6">
                                         <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
                                             <Image
-                                                src={job.banner == null ? "../Img/icons/bannerVaga.png" : "../Img/icons/bannerVaga.png"}
+                                                src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "../Img/icons/bannerVaga.png"}
                                                 borderRadius="md"
                                                 boxShadow="md"
                                                 mb="4"

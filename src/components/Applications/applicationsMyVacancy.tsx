@@ -33,7 +33,8 @@ interface ApplicationDecision {
 }
 
 interface FinalApprovalPayload {
-    [applicationId: string]: ApplicationDecision;
+    decisions: FinalApprovalPayload;
+    selected_count: number;
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -65,6 +66,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
     const { data: applications = [], isLoading, isError } = useAllApplicationsVacancy(id);
     const totalApplicationVacancy = applications.length;
     const totalVacancyJob = applications[0]?.job?.amount_vacancy || 0;
+    const remainingPositions = totalVacancyJob - approvedCount;
 
     useEffect(() => {
         if (applications.length > 0) {
@@ -94,16 +96,13 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         }
     }, [id]);
 
-    //const allPositionsFilled = approvedCount >= totalVacancyJob;
-    const allPositionsFilled = approvedCount >= 1;
-    const remainingPositions = totalVacancyJob - approvedCount;
+    const allPositionsFilled = approvedCount >= totalVacancyJob;
 
     const handleConfirmAction = () => {
         if (!approvalAction) return;
         
         const { type, id } = approvalAction;
         const isApproving = type === 'approve';
-
 
         setApprovalList(prev => ({
             ...prev,
@@ -149,16 +148,17 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         setIsFinalizing(true);
         
         try {
-            const payload: FinalApprovalPayload = {};
+            const payload = {
+                decisions: {} as FinalApprovalPayload,
+                selected_count: approvedCount
+            };
             
             Object.values(approvalList).forEach(app => {
-                payload[app.id] = {
+                payload.decisions[app.id] = {
                     job_id: id,
                     approved: app.approved === true
                 };
             });
-
-            console.log("Payload para finalização:", payload);
 
             await api.patch(`/application/finalizeApplications`, payload);
             
@@ -267,8 +267,8 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                   <Text fontWeight="bold" fontSize="sm">
                       Vagas: {approvedCount}/{totalVacancyJob} | 
                       Candidaturas: {totalApplicationVacancy} | 
-                      Aprovadas: {approvedCount} | 
-                      Reprovadas: {rejectedCount}
+                      Selecionadas: {approvedCount} | 
+                      Rejeitadas: {rejectedCount}
                   </Text>
                   
                   <Menu>
@@ -304,19 +304,39 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                           </MenuItem>
                       </MenuList>
                   </Menu>
-              </HStack>
+                </HStack>
 
-              {allPositionsFilled && applications[0]?.job?.vacancy_available !== false && (
-                  <Button
-                      colorScheme="green"
-                      onClick={handleFinalizeApprovals}
-                      isLoading={isFinalizing}
-                      size="sm"
-                  >
-                      Finalizar Aprovações
-                  </Button>
-              )}
+                {/* {allPositionsFilled && applications[0]?.job?.vacancy_available !== false && (
+                    <Button
+                        colorScheme="green"
+                        onClick={handleFinalizeApprovals}
+                        isLoading={isFinalizing}
+                        size="sm"
+                    >
+                        Finalizar Processo
+                    </Button>
+                )} */}
+                {approvedCount >= 1 && applications[0]?.job?.vacancy_available !== false && (
+                    <Button
+                        colorScheme="green"
+                        onClick={handleFinalizeApprovals}
+                        isLoading={isFinalizing}
+                        size="sm"
+                    >
+                        {approvedCount < totalVacancyJob 
+                            ? `Aprovar candidatos selecionados`
+                            : `Finalizar Processo`
+                        }
+                    </Button>
+                )}
             </Flex>
+
+            {allPositionsFilled && (
+                <Alert status="info" mb="4">
+                    <AlertIcon />
+                    Todas as vagas foram preenchidas. Agora você só pode rejeitar candidatos.
+                </Alert>
+            )}
 
             <VStack spacing="4" align="stretch">
                 {paginatedApplications.map(application => {
@@ -418,10 +438,10 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                                 variant={isApproved ? "solid" : "outline"}
                                                 size="xs"
                                                 onClick={() => handleApproveClick(application.id)}
-                                                isDisabled={isApproved || applications[0]?.job?.vacancy_available === false}
+                                                isDisabled={isApproved || applications[0]?.job?.vacancy_available === false || allPositionsFilled}
                                                 width="100%"
                                             >
-                                                {isApproved ? "Aprovado" : `Aprovar`}
+                                                {isApproved ? "Candidato Selecionado" : `Selecionar`}
                                             </Button>
                                         )}
                                         {!applications[0]?.job?.vacancy_available === false &&(
@@ -591,14 +611,14 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader>
-                        {approvalAction?.type === 'approve' ? 'Confirmar aprovação' : 'Confirmar rejeição'}
+                        {approvalAction?.type === 'approve' ? 'Confirmar seleção' : 'Confirmar rejeição'}
                     </ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <Text>
                             {approvalAction?.type === 'approve' 
-                              ? 'Tem certeza que deseja aprovar esta candidatura?' 
-                              : 'Tem certeza que deseja rejeitar esta candidatura?'}
+                              ? 'Tem certeza que deseja selecionar este candidato?' 
+                              : 'Tem certeza que deseja rejeitar este candidato?'}
                         </Text>
                     </ModalBody>
                     <ModalFooter>
@@ -609,7 +629,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                             colorScheme={approvalAction?.type === 'approve' ? 'green' : 'red'} 
                             onClick={handleConfirmAction}
                         >
-                            {approvalAction?.type === 'approve' ? 'Confirmar Aprovação' : 'Confirmar Rejeição'}
+                            {approvalAction?.type === 'approve' ? 'Confirmar seleção' : 'Confirmar rejeição'}
                         </Button>
                     </ModalFooter>
                 </ModalContent>

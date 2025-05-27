@@ -60,17 +60,15 @@ export function Jobs() {
                                     <Text textAlign="justify" fontSize="12" maxW="100%" noOfLines={3}>
                                         {job.description_vacancy.toString()}
                                     </Text>
-                                    {job.banner == null ? (
-                                            <Image
-                                                maxW="40%"
-                                                src="./Img/icons/bannerVaga.png"
-                                            />
-                                        ) :
-                                        <Image
-                                            maxW="40%"
-                                            src="./Img/icons/bannerVaga.png"
-                                        />
-                                    }
+                                    <Image
+                                        maxW="40%"
+                                        src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "./Img/icons/bannerVaga.png"}
+                                        alt="Banner da vaga"
+                                        fallbackSrc="./Img/icons/bannerVaga.png"
+                                        onError={(e) => {
+                                            e.currentTarget.src = "./Img/icons/bannerVaga.png";
+                                        }}
+                                    />
                                 </VStack>
 
                             </CardBody>
@@ -136,7 +134,7 @@ export function Jobs() {
                                                             w="100%"
                                                         >
                                                             <Image 
-                                                                src={job.banner == null ? "./Img/icons/bannerVaga.png" : "./Img/icons/bannerVaga.png"} 
+                                                                src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "../Img/icons/bannerVaga.png"}
                                                                 borderRadius="md" 
                                                                 boxShadow="md"
                                                                 mb="4"

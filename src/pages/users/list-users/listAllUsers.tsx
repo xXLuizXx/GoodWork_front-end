@@ -42,6 +42,11 @@ interface UserProfile {
 }
 
 export default function ListAllDataUsers() {
+    const {
+        isOpen: isContactModalOpen,
+        onOpen: onContactModalOpen,
+        onClose: onContactModalClose,
+    } = useDisclosure();
     const router = useRouter();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);

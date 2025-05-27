@@ -17,6 +17,8 @@ import { useRouter } from "next/router";
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { useAllDataUsersSearch } from "@/services/hooks/Users/useListAllUsersSearch";
+import { api } from "@/services/apiClient";
+import { ContactModal } from "@/components/Contact/contactModal";
 
 interface DecodedToken {
     accessLevel: string;
@@ -41,6 +43,25 @@ interface UserProfile {
 }
 
 export default function SearchAllUsers() {
+    const {
+        isOpen: isContactModalOpen,
+        onOpen: onContactModalOpen,
+        onClose: onContactModalClose,
+    } = useDisclosure();
+    const [contactModalData, setContactModalData] = useState<{
+        profile: UserProfile | null;
+        contactData: {
+            subject: string;
+            company: string;
+            email_company: string;
+            telephone: string;
+            message: string;
+            jobTitle: string;
+        } | null;
+    }>({
+        profile: null,
+        contactData: null
+    });
     const router = useRouter();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
@@ -75,8 +96,7 @@ export default function SearchAllUsers() {
         }, undefined, { shallow: true });
     };
 
-    const handleSearchComplete = () => {
-    };
+    const handleSearchComplete = () => {};
 
     const handleClearSearch = () => {
         setSearchTerm('');
@@ -99,14 +119,68 @@ export default function SearchAllUsers() {
     const currentProfiles = filteredProfiles.slice(indexOfFirstItem, indexOfLastItem);
     const totalPages = Math.ceil(filteredProfiles.length / itemsPerPage);
 
-    const handleContact = (profile: UserProfile) => {
-        toast({
-            title: 'Contato iniciado',
-            description: `Mensagem enviada para ${profile.name}`,
-            status: 'success',
-            duration: 5000,
-            isClosable: true,
+    const handleContact = async (contactData: {
+        subject: string;
+        company: string;
+        email_company: string;
+        telephone: string;
+        message: string;
+        jobTitle: string;
+    }) => {
+        if (!contactModalData.profile) {
+            throw new Error('Perfil não selecionado');
+        }
+
+        console.log("DADOS E-MAIL");
+        console.log(contactModalData);
+        try {
+            const response = await api.post('/mail/', {
+                to: contactModalData.profile.email,
+                subject: contactData.subject,
+                variables: {
+                    name: contactModalData.profile.name,
+                    jobTitle: contactData.jobTitle,
+                    company: contactData.company,
+                    email_company: contactData.email_company,
+                    telephone: contactData.telephone,
+                    message: contactData.message
+                }
+            });
+
+            toast({
+                title: 'Contato enviado!',
+                description: `Proposta enviada para ${contactModalData.profile.name}`,
+                status: 'success',
+                duration: 5000,
+                isClosable: true,
+            });
+
+            return response.data;
+        } catch (error) {
+            console.error('Erro ao enviar e-mail:', error);
+            toast({
+                title: 'Erro ao enviar',
+                description: error.response?.data?.message || 'Não foi possível enviar o contato',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+            });
+            throw error;
+        }
+    };
+
+    const handleOpenContact = (profile: UserProfile) => {
+        setContactModalData({
+            profile,
+            contactData: {
+                subject: `Oportunidade de Vaga para ${profile.name}`,
+                company: "",
+                email_company: "",
+                telephone: "",
+                message: `Olá ${profile.name},\n\nEncontramos seu perfil e gostaríamos de conversar sobre uma possível oportunidade em nossa equipe.`
+            }
         });
+        onContactModalOpen();
     };
 
     const PaginationButtons = () => {
@@ -349,7 +423,7 @@ export default function SearchAllUsers() {
                                 </CardBody>
 
                                 <CardFooter alignItems="center" p="2.5" pt="1">
-                                    <SimpleGrid gap="2" w="40%" flex="1" minChildWidth="50px">
+                                    <SimpleGrid gap="2" w="100%" flex="1" minChildWidth="90px">
                                         <Button
                                             variant="ghost"
                                             leftIcon={<GrFormView color="blue" />}
@@ -376,7 +450,7 @@ export default function SearchAllUsers() {
                                             variant="ghost"
                                             leftIcon={<Icon as={GoCheckCircleFill} color="purple" />}
                                             size="xs"
-                                            onClick={() => handleContact(profile)}
+                                            onClick={() => handleOpenContact(profile)}
                                         >
                                             Contatar
                                         </Button>
@@ -487,7 +561,7 @@ export default function SearchAllUsers() {
                             <Button 
                                 colorScheme="green" 
                                 onClick={() => {
-                                    handleContact(selectedProfile);
+                                    handleOpenContact(selectedProfile);
                                     onClose();
                                 }}
                             >
@@ -496,6 +570,19 @@ export default function SearchAllUsers() {
                         </ModalFooter>
                     </ModalContent>
                 </Modal>
+            )}
+
+            {contactModalData.profile && contactModalData.contactData && (
+                <ContactModal
+                    isOpen={isContactModalOpen}
+                    onClose={() => {
+                        onContactModalClose();
+                        setContactModalData({ profile: null, contactData: null });
+                    }}
+                    profile={contactModalData.profile}
+                    initialData={contactModalData.contactData}
+                    onSendContact={handleContact}
+                />
             )}
         </Flex>
     );

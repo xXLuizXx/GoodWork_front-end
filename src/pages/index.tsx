@@ -27,40 +27,45 @@ export default function Login(): JSX.Element {
     const { signIn } = useContext(AuthContext);
     const toast = useToast();
     const [showPassword, setShowPassword] = useState(false);
+    const [isRememberChecked, setIsRememberChecked] = useState(false);
     const { register, handleSubmit, formState, setValue, watch } = useForm<ISignInFormData>({
         resolver: yupResolver(signInFormSchema)
     });
 
     useEffect(() => {
-        const rememberedEmail = localStorage.getItem('rememberedEmail');
-        const rememberedPassword = localStorage.getItem('rememberedPassword');
-        const expiration = localStorage.getItem('rememberExpiration');
-        const rememberChecked = localStorage.getItem('rememberChecked');
+        if (typeof window !== 'undefined') {
+            const rememberedEmail = localStorage.getItem('rememberedEmail');
+            const rememberedPassword = localStorage.getItem('rememberedPassword');
+            const expiration = localStorage.getItem('rememberExpiration');
+            const rememberChecked = localStorage.getItem('rememberChecked');
 
-        if (rememberedEmail && rememberedPassword && expiration && rememberChecked) {
-            const now = new Date().getTime();
-            const isExpired = now > parseInt(expiration);
+            if (rememberedEmail && rememberedPassword && expiration && rememberChecked) {
+                const now = new Date().getTime();
+                const isExpired = now > parseInt(expiration);
 
-            if (!isExpired) {
-                setValue('email', rememberedEmail);
-                setValue('password', rememberedPassword);
-                setValue('remember', true);
-            } else {
-                localStorage.removeItem('rememberedEmail');
-                localStorage.removeItem('rememberedPassword');
-                localStorage.removeItem('rememberExpiration');
-                localStorage.removeItem('rememberChecked');
+                if (!isExpired) {
+                    setValue('email', rememberedEmail);
+                    setValue('password', rememberedPassword);
+                    setValue('remember', true);
+                    setIsRememberChecked(true);
+                } else {
+                    localStorage.removeItem('rememberedEmail');
+                    localStorage.removeItem('rememberedPassword');
+                    localStorage.removeItem('rememberExpiration');
+                    localStorage.removeItem('rememberChecked');
+                }
             }
         }
     }, [setValue]);
 
     const rememberValue = watch('remember');
     useEffect(() => {
-        if (rememberValue === false) {
+        if (rememberValue === false && typeof window !== 'undefined') {
             localStorage.removeItem('rememberedEmail');
             localStorage.removeItem('rememberedPassword');
             localStorage.removeItem('rememberExpiration');
             localStorage.removeItem('rememberChecked');
+            setIsRememberChecked(false);
         }
     }, [rememberValue]);
 
@@ -75,7 +80,7 @@ export default function Login(): JSX.Element {
     }
     
     const handleSignIn: SubmitHandler<ISignInFormData> = async (data) => {
-        if (data.remember) {
+        if (data.remember && typeof window !== 'undefined') {
             const oneMonth = 30 * 24 * 60 * 60 * 1000;
             const expirationDate = new Date().getTime() + oneMonth;
             
@@ -187,7 +192,7 @@ export default function Login(): JSX.Element {
                             <Checkbox 
                                 boxShadow="2xl" 
                                 ml="8"
-                                defaultChecked={localStorage.getItem('rememberChecked') === 'true'}
+                                defaultChecked={isRememberChecked}
                                 {...register("remember")}
                             >
                                 Lembrar

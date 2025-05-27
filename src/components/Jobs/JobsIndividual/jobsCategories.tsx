@@ -85,17 +85,15 @@ export function JobsCategory({category_id}: IJobsCategoriesProps) {
                                 <Text textAlign="justify" fontSize="12" maxW="100%" noOfLines={3}>
                                     {job.description_vacancy.toString()}
                                 </Text>
-                                {job.banner == null ? (
-                                        <Image
-                                            maxW="40%"
-                                            src="./Img/icons/bannerVaga.png"
-                                        />
-                                    ) :
-                                    <Image
-                                        maxW="40%"
-                                        src="./Img/icons/bannerVaga.png"
-                                    />
-                                }
+                                <Image
+                                    maxW="40%"
+                                    src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "./Img/icons/bannerVaga.png"}
+                                    alt="Banner da vaga"
+                                    fallbackSrc="./Img/icons/bannerVaga.png"
+                                    onError={(e) => {
+                                        e.currentTarget.src = "./Img/icons/bannerVaga.png";
+                                    }}
+                                />
                             </VStack>
 
                         </CardBody>
