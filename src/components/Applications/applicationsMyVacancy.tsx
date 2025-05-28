@@ -15,6 +15,7 @@ import { useAllApplicationsVacancy } from "@/services/hooks/applications/useAllA
 import { IApplicationsVacancyCompany } from "@/services/hooks/applications/useAllApplicationsVacancyCompany";
 import { api } from "@/services/apiClient";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
+import { position } from "@chakra-ui/react";
 
 interface IApplicationMyVacancyProps {
    id: string;
@@ -125,7 +126,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         }
 
         toast({
-            title: isApproving ? "Candidatura aprovada" : "Candidatura rejeitada",
+            title: isApproving ? "Candidato(a) selecionado(a). Ao final finalize o processo de seleção" : "Candidato(a) rejeitado(a). Ao final finalize o processo de seleção",
             status: "success",
             duration: 3000,
             isClosable: true,
@@ -306,29 +307,23 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                   </Menu>
                 </HStack>
 
-                {/* {allPositionsFilled && applications[0]?.job?.vacancy_available !== false && (
-                    <Button
-                        colorScheme="green"
-                        onClick={handleFinalizeApprovals}
-                        isLoading={isFinalizing}
-                        size="sm"
-                    >
-                        Finalizar Processo
-                    </Button>
-                )} */}
-                {approvedCount >= 1 && applications[0]?.job?.vacancy_available !== false && (
-                    <Button
-                        colorScheme="green"
-                        onClick={handleFinalizeApprovals}
-                        isLoading={isFinalizing}
-                        size="sm"
-                    >
-                        {approvedCount < totalVacancyJob 
-                            ? `Aprovar candidatos selecionados`
-                            : `Finalizar Processo`
-                        }
-                    </Button>
-                )}
+                <Box position="fixed" bottom="6" right="6" zIndex="10">
+                    {approvedCount >= 1 && applications[0]?.job?.vacancy_available !== false && (
+                        <Button
+                            colorScheme="green"
+                            onClick={handleFinalizeApprovals}
+                            isLoading={isFinalizing}
+                            size="md"
+                            boxShadow="lg"
+                            rightIcon={<Icon as={GoCheckCircleFill} />}
+                        >
+                            {approvedCount < totalVacancyJob 
+                                ? `Aprovar candidatos selecionados`
+                                : `Finalizar Processo`
+                            }
+                        </Button>
+                    )}
+                </Box>
             </Flex>
 
             {allPositionsFilled && (
@@ -383,7 +378,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                     <Flex align="center" mb="4">
                                         <Avatar 
                                             name={application.user?.name} 
-                                            src={application.user?.avatar} 
+                                            src={application.user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${application.user?.avatar}` : "../../../Img/icons/avatarLogin.png"}
                                             size="lg"
                                             mr="4"
                                         />
@@ -425,7 +420,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                             alignSelf="center"
                                         >
                                             <TagLabel>
-                                                {isApproved ? "Aprovado" : 
+                                                {isApproved ? "Selecionado" : 
                                                 isRejected ? "Rejeitado" : "Pendente"}
                                             </TagLabel>
                                         </Tag>
@@ -474,7 +469,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                             variant="outline" 
                                             size="xs"
                                             as={Link}
-                                            href={`${process.env.NEXT_PUBLIC_API_URL}/files/${application.curriculum_user}`}
+                                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_application/${application.curriculum_user}`}
                                             isExternal
                                             width="100%"
                                         >
@@ -527,7 +522,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                           <Flex align="center">
                             <Avatar 
                               name={selectedApplication.user?.name} 
-                              src={selectedApplication.user?.avatar} 
+                              src={selectedApplication.user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedApplication.user?.avatar}` : "../../../Img/icons/avatarLogin.png"} 
                               size="lg"
                               mr="4"
                             />
@@ -568,7 +563,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                     <HStack>
                                       <Icon as={FaFilePdf} color="gray.500" />
                                       <Link 
-                                        href={`${process.env.NEXT_PUBLIC_API_URL}/files/${selectedApplication.curriculum_user}`}
+                                        href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_application/${selectedApplication.curriculum_user}`}
                                         isExternal
                                         color="blue.500"
                                       >

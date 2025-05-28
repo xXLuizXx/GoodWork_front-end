@@ -31,6 +31,7 @@ interface Job {
     banner: string | null;
     vacancy_available: boolean;
     user_name: string;
+    user_avatar: string;
     amount_vacancy: number;
     closing_date: Date;
 }
@@ -235,7 +236,7 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                             <CardHeader p="2.5">
                                 <Flex>
                                     <Flex flex="1" gap="4" alignItems="center">
-                                        <Avatar name="avatar" src="../Img/icons/empresaTeste.jpg" />
+                                        <Avatar name="avatar" src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"}/>
                                         <Box>
                                             <Heading size="sm">
                                                 <Text fontSize="14">
@@ -335,7 +336,7 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                     <ModalContent maxW="700px" borderRadius="lg" boxShadow="2xl">
                         <ModalHeader alignItems="center">
                             <Flex flex="1" gap="4" alignItems="center">
-                                <Avatar name="avatar" src="../Img/icons/empresaTeste.jpg" />
+                                <Avatar name="avatar" src={selectedJob.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJob.user_avatar}` : "../../../Img/icons/avatarLogin.png"}/>
                                 <Box>
                                     <Text fontWeight="bold" fontSize="xl">{selectedJob.vacancy}</Text>
                                     <Text fontSize="sm" color="gray.500">

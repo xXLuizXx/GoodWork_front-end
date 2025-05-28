@@ -18,6 +18,10 @@ import { useRouter } from "next/router";
 import { useAllDataUsers } from '@/services/hooks/Users/useListAllUsersForCompany';
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
+import { Header } from "@/components/Header/Header";
+import { api } from "@/services/apiClient";
+import { ContactModal } from "@/components/Contact/contactModal";
+import Link from "next/link";
 
 interface DecodedToken {
     accessLevel: string;
@@ -47,28 +51,42 @@ export default function ListAllDataUsers() {
         onOpen: onContactModalOpen,
         onClose: onContactModalClose,
     } = useDisclosure();
+    const [contactModalData, setContactModalData] = useState<{
+        profile: UserProfile | null;
+        contactData: {
+            subject: string;
+            company: string;
+            email_company: string;
+            telephone: string;
+            message: string;
+            jobTitle: string;
+        } | null;
+    }>({
+        profile: null,
+        contactData: null
+    });
+
     const router = useRouter();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
     const [filter, setFilter] = useState("all");
     const toast = useToast();
-    const [mounted, setMounted] = useState(false);
-    const [ typeUser, setTypeUser ] = useState("");
-    const { search } = router.query;
     const [ userId, setUserId ] = useState("");
+
+    const { search } = router.query;
+    
     const [searchTerm, setSearchTerm] = useState(typeof search === 'string' ? search : '');
     const [localSearch, setLocalSearch] = useState(searchTerm);
 
-    useEffect(() => {
-        setMounted(true);
-        
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 9;
+
+     useEffect(() => {
         const cookies = parseCookies();
         const token = cookies["token.token"];
-
         if (token) {
             try {
                 const decoded = decode<DecodedToken>(token);
-                setTypeUser(decoded.accessLevel);
                 setUserId(decoded.sub);
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
@@ -76,7 +94,27 @@ export default function ListAllDataUsers() {
         }
     }, []);
 
-    const { data } = useAllDataUsers(userId);
+    
+
+    const handleSearch = async (term: string) => {
+        setSearchTerm(term);
+        setCurrentPage(1);
+        await router.push({
+            pathname: '/users/list-users/searchUsers',
+            query: { search: term }
+        }, undefined, { shallow: true });
+    };
+
+    const handleSearchComplete = () => {};
+
+    const handleClearSearch = () => {
+        setSearchTerm('');
+        setCurrentPage(1);
+        router.push('/users/list-users/searchUsers', undefined, { shallow: true });
+    };
+
+    const { data, isLoading } = useAllDataUsers(userId);
+    const users = data?.users ?? [];
 
     const filteredProfiles = data?.users?.filter(profile => {
         if (filter === "company") return profile.user_type === 'company';
@@ -85,43 +123,163 @@ export default function ListAllDataUsers() {
         return true;
     }) || [];
 
-    const handleContact = (profile: UserProfile) => {
-        toast({
-            title: 'Contato iniciado',
-            description: `Mensagem enviada para ${profile.name}`,
-            status: 'success',
-            duration: 5000,
-            isClosable: true,
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentProfiles = filteredProfiles.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredProfiles.length / itemsPerPage);
+
+    const handleContact = async (contactData: {
+        subject: string;
+        company: string;
+        email_company: string;
+        telephone: string;
+        message: string;
+        jobTitle: string;
+    }) => {
+        if (!contactModalData.profile) {
+            throw new Error('Perfil não selecionado');
+        }
+
+        console.log("DADOS E-MAIL");
+        console.log(contactModalData);
+        try {
+            const response = await api.post('/mail/', {
+                to: contactModalData.profile.email,
+                subject: contactData.subject,
+                variables: {
+                    name: contactModalData.profile.name,
+                    jobTitle: contactData.jobTitle,
+                    company: contactData.company,
+                    email_company: contactData.email_company,
+                    telephone: contactData.telephone,
+                    message: contactData.message
+                }
+            });
+
+            toast({
+                title: 'Contato enviado!',
+                description: `Proposta enviada para ${contactModalData.profile.name}`,
+                status: 'success',
+                duration: 5000,
+                isClosable: true,
+            });
+
+            return response.data;
+        } catch (error) {
+            console.error('Erro ao enviar e-mail:', error);
+            toast({
+                title: 'Erro ao enviar',
+                description: error.response?.data?.message || 'Não foi possível enviar o contato',
+                status: 'error',
+                duration: 5000,
+                isClosable: true,
+            });
+            throw error;
+        }
+    };
+
+    const handleOpenContact = (profile: UserProfile) => {
+        setContactModalData({
+            profile,
+            contactData: {
+                subject: `Oportunidade de Vaga para ${profile.name}`,
+                company: "",
+                email_company: "",
+                telephone: "",
+                message: `Olá ${profile.name},\n\nEncontramos seu perfil e gostaríamos de conversar sobre uma possível oportunidade em nossa equipe.`
+            }
         });
+        onContactModalOpen();
     };
 
-    const handleSearch = (term: string) => {
-        router.push({
-            pathname: '/users/list-users/searchUsers',
-            query: { search: term }
-        }, undefined, { shallow: true })
-        .then(() => {
-            setSearchTerm('');
-        })
-        .catch(error => {
-            console.error("Erro na navegação:", error);
-        });
+    const PaginationButtons = () => {
+        if (totalPages <= 1) return null;
+
+        return (
+            <Flex justify="center" mt="8" gap="2">
+                <Button
+                    size="sm"
+                    onClick={() => setCurrentPage(1)}
+                    isDisabled={currentPage === 1}
+                >
+                    «
+                </Button>
+                <Button
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    isDisabled={currentPage === 1}
+                >
+                    ‹
+                </Button>
+
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                        pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                    } else {
+                        pageNum = currentPage - 2 + i;
+                    }
+
+                    return (
+                        <Button
+                            key={pageNum}
+                            size="sm"
+                            onClick={() => setCurrentPage(pageNum)}
+                            colorScheme={currentPage === pageNum ? 'blue' : 'gray'}
+                        >
+                            {pageNum}
+                        </Button>
+                    );
+                })}
+
+                <Button
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    isDisabled={currentPage === totalPages}
+                >
+                    ›
+                </Button>
+                <Button
+                    size="sm"
+                    onClick={() => setCurrentPage(totalPages)}
+                    isDisabled={currentPage === totalPages}
+                >
+                    »
+                </Button>
+            </Flex>
+        );
     };
-
-
-    const handleClearSearch = () => {
-        setSearchTerm('');
-        router.push('/users/list-users/searchUsers', undefined, { shallow: true });
-    };
-
+    if (isLoading) {
+        return (
+            <Flex justify="center" align="center" h="100vh">
+                <Text>Carregando...</Text>
+            </Flex>
+        );
+    }
     if (data?.users?.length === 0) {
         return (
-            <Stack>
-                <Alert status="info">
-                    <AlertIcon />
-                    Nenhum perfil encontrado.
-                </Alert>
-            </Stack>
+            <Flex direction="column" h="100vh">
+                <HeaderSearchProfiles 
+                    id={userId}
+                    searchValue={searchTerm}
+                    onSearch={handleSearch}
+                    onClearSearch={handleClearSearch}
+                    onSearchComplete={handleSearchComplete}
+                />
+                <Flex w="100%" my="8" maxWidth={1480} mx="auto" px="4">
+                    <Sidebar />
+                    <Stack flex="1" p="4">
+                        <Alert status="info">
+                            <AlertIcon />
+                            Nenhum perfil encontrado.
+                        </Alert>
+                    </Stack>
+                </Flex>
+            </Flex>
         );
     }
 
@@ -209,7 +367,7 @@ export default function ListAllDataUsers() {
                                 <CardHeader p="2">
                                     <Flex>
                                         <Flex flex="1" gap="4" alignItems="center">
-                                            <Avatar name={profile.name} src={profile.avatar} size="md" />
+                                            <Avatar name={profile.name} src={profile.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${profile.avatar}` : "../../../Img/icons/avatarLogin.png"} size="md" />
                                             <Box>
                                                 <Heading size="sm">
                                                     <Text fontSize="12" noOfLines={1}>
@@ -270,7 +428,7 @@ export default function ListAllDataUsers() {
                                 </CardBody>
 
                                 <CardFooter alignItems="center" p="2.5" pt="1">
-                                    <SimpleGrid gap="2" w="100%" flex="1" minChildWidth="90px">
+                                    <SimpleGrid gap="1" w="100%" flex="1" minChildWidth="90px">
                                         <Button
                                             variant="ghost"
                                             leftIcon={<GrFormView color="blue" />}
@@ -288,19 +446,22 @@ export default function ListAllDataUsers() {
                                                 variant="ghost"
                                                 leftIcon={<FaFileDownload color="green" />}
                                                 size="xs"
-                                                onClick={() => alert(`Download do currículo: ${profile.curriculum}`)}
+                                                as={Link}
+                                                href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${profile.curriculum}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                             >
                                                 Currículo
                                             </Button>
                                         )}
-                                        {/* <Button
+                                        <Button
                                             variant="ghost"
                                             leftIcon={<Icon as={GoCheckCircleFill} color="purple" />}
                                             size="xs"
-                                            onClick={() => handleContact(profile)}
+                                            onClick={() => handleOpenContact(profile)}
                                         >
                                             Contatar
-                                        </Button> */}
+                                        </Button>
                                     </SimpleGrid>
                                 </CardFooter>
                             </Card>
@@ -310,31 +471,16 @@ export default function ListAllDataUsers() {
             </Flex>
 
             {selectedProfile && (
-                <Modal
-                    isCentered
-                    onClose={() => {
-                        setSelectedProfile(null);
-                        onClose();
-                    }}
-                    isOpen={isOpen}
-                    motionPreset="slideInBottom"
-                    size="xl"
-                >
+                <Modal isOpen={isOpen} onClose={onClose} size="xl">
                     <ModalOverlay />
-                    <ModalContent borderRadius="lg" boxShadow="2xl">
+                    <ModalContent>
                         <ModalHeader>
-                            <Flex flex="1" gap="4" alignItems="center">
-                                <Avatar name={selectedProfile.name} src={selectedProfile.avatar} size="lg" />
+                            <Flex align="center">
+                                <Avatar name={selectedProfile.name} src={selectedProfile.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedProfile.avatar}` : "../../../Img/icons/avatarLogin.png"} mr="4" />
                                 <Box>
-                                    <Text fontWeight="bold" fontSize="xl">{selectedProfile.name}</Text>
+                                    <Heading size="md">{selectedProfile.name}</Heading>
                                     <Text fontSize="sm" color="gray.500">{selectedProfile.email}</Text>
                                 </Box>
-                                <Badge 
-                                    ml="auto"
-                                    colorScheme={selectedProfile.user_type === 'company' ? 'blue' : 'green'}
-                                >
-                                    {selectedProfile.user_type === 'company' ? 'Empresa' : 'Profissional'}
-                                </Badge>
                             </Flex>
                         </ModalHeader>
                         <ModalCloseButton />
@@ -407,7 +553,10 @@ export default function ListAllDataUsers() {
                                         <Button 
                                             leftIcon={<FaFileDownload />} 
                                             colorScheme="blue"
-                                            onClick={() => alert(`Download do currículo: ${selectedProfile.curriculum}`)}
+                                            as={Link}
+                                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${selectedProfile.curriculum}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                         >
                                             Baixar Currículo
                                         </Button>
@@ -416,29 +565,34 @@ export default function ListAllDataUsers() {
                             </VStack>
                         </ModalBody>
                         <ModalFooter>
-                            <Button
-                                colorScheme="purple"
-                                leftIcon={<Icon as={GoCheckCircleFill} />}
-                                onClick={() => {
-                                    handleContact(selectedProfile);
-                                    onClose();
-                                }}
-                                mr={3}
-                            >
-                                Contatar {selectedProfile.user_type === 'company' ? 'Empresa' : 'Profissional'}
-                            </Button>
-                            <Button
-                                colorScheme="blue"
-                                onClick={() => {
-                                    setSelectedProfile(null);
-                                    onClose();
-                                }}
-                            >
+                            <Button colorScheme="blue" mr={3} onClick={onClose}>
                                 Fechar
+                            </Button>
+                            <Button 
+                                colorScheme="green" 
+                                onClick={() => {
+                                    handleOpenContact(selectedProfile);
+                                    onClose();
+                                }}
+                            >
+                                Contatar
                             </Button>
                         </ModalFooter>
                     </ModalContent>
                 </Modal>
+            )}
+
+            {contactModalData.profile && contactModalData.contactData && (
+                <ContactModal
+                    isOpen={isContactModalOpen}
+                    onClose={() => {
+                        onContactModalClose();
+                        setContactModalData({ profile: null, contactData: null });
+                    }}
+                    profile={contactModalData.profile}
+                    initialData={contactModalData.contactData}
+                    onSendContact={handleContact}
+                />
             )}
         </Flex>
     );

@@ -19,6 +19,7 @@ import decode from "jwt-decode";
 import { useAllDataUsersSearch } from "@/services/hooks/Users/useListAllUsersSearch";
 import { api } from "@/services/apiClient";
 import { ContactModal } from "@/components/Contact/contactModal";
+import Link from "next/link";
 
 interface DecodedToken {
     accessLevel: string;
@@ -362,7 +363,7 @@ export default function SearchAllUsers() {
                                 <CardHeader p="2">
                                     <Flex>
                                         <Flex flex="1" gap="4" alignItems="center">
-                                            <Avatar name={profile.name} src={profile.avatar} size="md" />
+                                            <Avatar name={profile.name} src={profile.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${profile.avatar}` : "../../../Img/icons/avatarLogin.png"} size="md" />
                                             <Box>
                                                 <Heading size="sm">
                                                     <Text fontSize="12" noOfLines={1}>
@@ -423,7 +424,7 @@ export default function SearchAllUsers() {
                                 </CardBody>
 
                                 <CardFooter alignItems="center" p="2.5" pt="1">
-                                    <SimpleGrid gap="2" w="100%" flex="1" minChildWidth="90px">
+                                    <SimpleGrid gap="1" w="100%" flex="1" minChildWidth="90px">
                                         <Button
                                             variant="ghost"
                                             leftIcon={<GrFormView color="blue" />}
@@ -441,7 +442,10 @@ export default function SearchAllUsers() {
                                                 variant="ghost"
                                                 leftIcon={<FaFileDownload color="green" />}
                                                 size="xs"
-                                                onClick={() => alert(`Download do currículo: ${profile.curriculum}`)}
+                                                as={Link}
+                                                href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${profile.curriculum}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
                                             >
                                                 Currículo
                                             </Button>
@@ -469,7 +473,7 @@ export default function SearchAllUsers() {
                     <ModalContent>
                         <ModalHeader>
                             <Flex align="center">
-                                <Avatar name={selectedProfile.name} src={selectedProfile.avatar} mr="4" />
+                                <Avatar name={selectedProfile.name} src={selectedProfile.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedProfile.avatar}` : "../../../Img/icons/avatarLogin.png"} mr="4" />
                                 <Box>
                                     <Heading size="md">{selectedProfile.name}</Heading>
                                     <Text fontSize="sm" color="gray.500">{selectedProfile.email}</Text>
@@ -546,7 +550,10 @@ export default function SearchAllUsers() {
                                         <Button 
                                             leftIcon={<FaFileDownload />} 
                                             colorScheme="blue"
-                                            onClick={() => alert(`Download do currículo: ${selectedProfile.curriculum}`)}
+                                            as={Link}
+                                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${selectedProfile.curriculum}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
                                         >
                                             Baixar Currículo
                                         </Button>

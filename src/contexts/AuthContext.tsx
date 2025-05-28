@@ -20,7 +20,6 @@ interface IUser {
   telephone: string;
   email: string;
   avatar: string;
-  avatarUrl: string;
   isAdmin: boolean;
   user_type: string;
   sex?: string;
@@ -91,6 +90,7 @@ function AuthProvider({ children }: IAuthProviderProps) {
             is_employee: data.is_employee || undefined,
             curriculum: data.curriculum || undefined,
             business_area: data.business_area || undefined,
+            avatar: data.avatar || undefined
           });
         })
         .catch(() => {

@@ -15,6 +15,7 @@ interface IJobs {
     category_id: string;
     user_id: string;
     user_name: string;
+    user_avatar: string;
     valid_vacancy: boolean;
     amount_vacancy: number;
     closing_date: Date;
@@ -41,6 +42,7 @@ async function getJobs(): Promise<IGetJobsResponse> {
             category_id: job.category_id,
             user_id: job.user_id,
             user_name: job.user.name,
+            user_avatar: job.user.avatar,
             valid_vacancy: job.valid_vacancy,
             amount_vacancy: job.amount_vacancy,
             closing_date: job.closing_date

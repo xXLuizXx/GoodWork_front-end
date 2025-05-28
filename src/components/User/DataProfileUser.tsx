@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import { 
     Avatar, 
     Flex, 
@@ -12,10 +12,11 @@ import {
     Button, 
     useToast, 
     Spinner, 
-    Textarea
+    Textarea,
+    IconButton
 } from '@chakra-ui/react';
 import { LuSaveAll } from 'react-icons/lu';
-import { MdEdit } from 'react-icons/md';
+import { MdEdit, MdCameraAlt } from 'react-icons/md';
 import { Divider } from '@chakra-ui/react';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useMutation } from 'react-query';
@@ -37,9 +38,67 @@ interface IUpdateUser {
 
 export function MyProfile(): JSX.Element {
     const { user } = useContext(AuthContext);
+    console.log(user);
     const [isEditing, setIsEditing] = useState(false);
+    const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const { handleSubmit, register, setValue, reset } = useForm<IUpdateUser>();
     const toast = useToast();
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleAvatarClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                toast({
+                    description: "A imagem deve ter menos de 10MB",
+                    status: "error",
+                    position: "top",
+                    duration: 5000,
+                    isClosable: true,
+                });
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                setAvatarPreview(e.target?.result as string);
+            };
+            reader.readAsDataURL(file);
+
+            try {
+                const formData = new FormData();
+                formData.append('avatar', file);
+                
+                await api.patch('users/avatar', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+
+                toast({
+                    description: "Avatar atualizado com sucesso!",
+                    status: "success",
+                    position: "top",
+                    duration: 3000,
+                    isClosable: true,
+                });
+
+                queryClient.invalidateQueries("users");
+            } catch (error) {
+                toast({
+                    description: "Erro ao atualizar o avatar",
+                    status: "error",
+                    position: "top",
+                    duration: 5000,
+                    isClosable: true,
+                });
+            }
+        }
+    };
 
     useEffect(() => {
         if (user) {
@@ -61,7 +120,6 @@ export function MyProfile(): JSX.Element {
     const toggleEditing = () => setIsEditing(!isEditing);
 
     const updateUser = useMutation(
-        
         async (data: IUpdateUser) => {
             const response = await api.patch("users/profile/updateData", data);
             return response.data;
@@ -130,13 +188,32 @@ export function MyProfile(): JSX.Element {
             flexDirection="column"
         >
             <Flex align="center" mb={8}>
-                <Avatar
-                    size="2xl"
-                    src="../../../Img/icons/avatarLogin.png"
-                    boxShadow="lg"
-                    w="200px"
-                    h="200px"
-                />
+                <Box position="relative">
+                    <Avatar
+                        size="2xl"
+                        src={user.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${user.avatar}` : "../../../Img/icons/avatarLogin.png"}
+                        boxShadow="lg"
+                        w="200px"
+                        h="200px"
+                    />
+                    <IconButton
+                        aria-label="Upload avatar"
+                        icon={<MdCameraAlt />}
+                        position="absolute"
+                        bottom="0"
+                        right="0"
+                        colorScheme="blue"
+                        borderRadius="full"
+                        onClick={handleAvatarClick}
+                    />
+                    <Input
+                        type="file"
+                        ref={fileInputRef}
+                        onChange={handleAvatarUpload}
+                        accept="image/*"
+                        display="none"
+                    />
+                </Box>
                 <Box ml={4}>
                     <Text fontSize="4xl" fontWeight="bold" color="blue.800">
                         {user.name}

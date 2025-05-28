@@ -21,14 +21,14 @@ function Profile({ showProfileData = true }: IProfileProps): JSX.Element {
                             <Text color="white" fontSize="small">{user?.email}</Text>
                         </Box>
                     )}
-                    <Avatar border="1px" size="md" name={user?.name} />
+                    <Avatar border="1px" size="md" src={user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${user?.avatar}` : "../../../Img/icons/avatarLogin.png"} name={user?.name || ''}/>
                 </Flex>
             </PopoverTrigger>
             <PopoverContent color="white" bg="#00008B" borderColor="#00BFFF" maxW={["100%", "250px"]}>
                 <PopoverHeader pt={4} fontWeight="bold" border="0">
                     <Stack direction={['column', 'row']} spacing={['2', '4']}>
                         <Flex>
-                            <Avatar border="1px" size="md" name={user?.name} />
+                            <Avatar border="1px" size="md" src={user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${user?.avatar}` : "../../../Img/icons/avatarLogin.png"} name={user?.name} />
                         </Flex>
                         <Flex flexDirection="column" justifyContent="center" ml={["0", "2"]} mt={["2", "0"]}>
                             <Text color="white">{user?.name}</Text>
