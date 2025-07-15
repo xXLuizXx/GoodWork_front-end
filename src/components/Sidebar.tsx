@@ -11,6 +11,7 @@ import { useCountJobsNotValidated } from '@/services/hooks/Jobs/useCountJobsVali
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { queryClient } from "@/services/queryClient";
+import { useCountCategoriesNotValidated } from "@/services/hooks/Categories/useCountCategoriesNotValidated";
 
 interface DecodedToken {
     accessLevel: string;
@@ -30,7 +31,17 @@ export function Sidebar(){
     const { data, isLoading } = useCountJobsNotValidated({
         enabled: admin
     });
+    const { data: categoriesData, isLoading: isLoadingCategories } = useCountCategoriesNotValidated({
+        enabled: admin
+    });
 
+    const categoriesCount = Array.isArray(categoriesData) 
+        ? categoriesData.length 
+        : categoriesData?.categories?.length || 0;
+
+    console.log("Número de categorias:", categoriesCount);
+    
+    
     useEffect(() => {
         setMounted(true);
         
@@ -50,7 +61,6 @@ export function Sidebar(){
     }, []);
 
     if (!mounted) return null;
-
     const count = admin ? (isLoading ? 0 : (data?.count || 0)) : 0;
 
     return(
@@ -182,14 +192,82 @@ export function Sidebar(){
                         </AccordionItem>
 
                         <AccordionItem>
-                            <AccordionButton pb="7">
+                            <AccordionButton pb="7" position="relative">
                                 <Text textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
-                                    CATEGORIAS
+                                CATEGORIAS
                                 </Text>
+                                {admin && !isLoadingCategories && categoriesCount > 0 &&(
+                                    <Box
+                                        position="absolute"
+                                        right="2"
+                                        top="2"
+                                        bg="red.600"
+                                        borderRadius="full"
+                                        w="12px"
+                                        h="12px"
+                                        border="2px solid white"
+                                        boxShadow="md"
+                                        animation="pulse 1.5s infinite"
+                                        css={{
+                                            "@keyframes pulse": {
+                                                "0%": { transform: "scale(0.95)", opacity: 0.8 },
+                                                "70%": { transform: "scale(1.1)", opacity: 1 },
+                                                "100%": { transform: "scale(0.95)", opacity: 0.8 },
+                                            },
+                                        }}
+                                    />
+                                )}
                                 <AccordionIcon />
                             </AccordionButton>
                             <AccordionPanel>
                                 <Categories />
+                            </AccordionPanel>
+
+                            <AccordionPanel>
+                                <Box borderBottom="1px" borderColor="gray.200" my={2} />
+                                {admin && (
+                                    <NextLink href="/categories/categoriesNotValidated" legacyBehavior>
+                                        <ChakraLink
+                                            display="inline-flex"
+                                            alignItems="center"
+                                            color="gray.500"
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                            py={2}
+                                            px={4}
+                                            _hover={{
+                                            color: "gray.600",
+                                            transform: "scale(1.05)",
+                                            }}
+                                            transition="all 0.3s ease"
+                                            textDecoration="none"
+                                            position="relative"
+                                        >
+                                            Aprovar Categorias
+                                            {categoriesCount > 0 && (
+                                            <Badge
+                                                ml={2}
+                                                bg="red.600"
+                                                color="black"
+                                                borderRadius="full"
+                                                boxSize="20px"
+                                                display="flex"
+                                                alignItems="center"
+                                                justifyContent="center"
+                                                fontSize="xs"
+                                                fontWeight="extrabold"
+                                                lineHeight="none"
+                                                _hover={{
+                                                bg: "red.500",
+                                                }}
+                                                transition="background 0.2s"
+                                            >
+                                                {categoriesCount}
+                                            </Badge>
+                                            )}
+                                        </ChakraLink>
+                                    </NextLink>
+                                )}
                             </AccordionPanel>
                         </AccordionItem>
                     </Accordion>
