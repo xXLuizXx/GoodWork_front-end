@@ -4,80 +4,100 @@ import { GoXCircleFill, GoCheckCircleFill } from "react-icons/go";
 import { useState } from "react";
 import { useCountCategoriesNotValidated } from "@/services/hooks/Categories/useCountCategoriesNotValidated";
 
+interface CategoryWithUser {
+    id: string;
+    name: string;
+    description: string;
+    valid_category: boolean | null;
+    created_at: Date;
+    user: {
+        id: string;
+        name: string;
+        avatar: string;
+    } | null;
+}
+
 export function CategoriesNotValid() {
-    const { data } = useCountCategoriesNotValidated();
+    const { data, isLoading, isError } = useCountCategoriesNotValidated();
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState<CategoryWithUser | null>(null);
     const toast = useToast();
 
-    // Dados mockados para exemplo (substitua pelos seus dados reais)
-    const mockCategories = [
-        {
-            id: '1',
-            name: 'Design Gráfico',
-            description: 'Design de logos, banners e materiais promocionais',
-            created_at: '2023-10-15T10:30:00Z',
-            user: {
-                id: 'user1',
-                name: 'Ana Silva',
-                avatar: 'https://bit.ly/dan-abramov' // URL da imagem do usuário
-            }
-        },
-        {
-            id: '2',
-            name: 'Desenvolvimento Web',
-            description: 'Criação de sites e aplicações web responsivas',
-            created_at: '2023-10-16T14:45:00Z',
-            user: {
-                id: 'user2',
-                name: 'Carlos Oliveira',
-                avatar: 'https://bit.ly/kent-c-dodds' // URL da imagem do usuário
-            }
-        }
-    ];
-
-    const handleValidate = (categoryId, isValid) => {
-        // Lógica para validar/reprovar categoria
+    const handleValidate = (categoryId: string, isValid: boolean) => {
         toast({
             title: isValid ? 'Categoria aprovada' : 'Categoria reprovada',
             status: isValid ? 'success' : 'error',
             duration: 3000,
             isClosable: true,
         });
+        // Aqui você adicionaria a chamada à API para atualizar o status da categoria
     };
 
-    // if (!data?.categories || data?.categories.length === 0) {
-    //     return (
-    //         <Stack>
-    //             <Alert status="info">
-    //                 <AlertIcon />
-    //                 Nenhuma categoria para validação encontrada.
-    //             </Alert>
-    //         </Stack>
-    //     );
-    // }
+    const UserAvatar = ({ user }: { user: { id: string; name: string; avatar: string } | null }) => {
+        const avatarUrl = user?.avatar 
+            ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${user.avatar}`
+            : "../../../Img/icons/avatarLogin.png";
+        
+        return (
+            <Avatar 
+                border="1px" 
+                size="md" 
+                src={avatarUrl} 
+                name={user?.name || ''}
+                _hover={{ transform: 'scale(1.1)', transition: 'all 0.2s' }}
+                cursor="pointer"
+            />
+        );
+    };
+
+    if (isLoading) {
+        return (
+            <Stack>
+                <Alert status="info">
+                    <AlertIcon />
+                    Carregando categorias...
+                </Alert>
+            </Stack>
+        );
+    }
+
+    if (isError || !data) {
+        return (
+            <Stack>
+                <Alert status="error">
+                    <AlertIcon />
+                    Ocorreu um erro ao carregar as categorias.
+                </Alert>
+            </Stack>
+        );
+    }
+
+    if (data.length === 0) {
+        return (
+            <Stack>
+                <Alert status="info">
+                    <AlertIcon />
+                    Nenhuma categoria para validação encontrada.
+                </Alert>
+            </Stack>
+        );
+    }
 
     return (
         <SimpleGrid columns={[1, 2, 3]} spacing={6} p={4}>
-            {mockCategories.map(category => (
+            {data.map((category: CategoryWithUser) => (
                 <Card key={category.id} boxShadow="lg" maxW="sm">
                     <CardHeader>
                         <Flex alignItems="center" gap={3}>
-                            <Tooltip label={`Ver perfil de ${category.user.name}`} hasArrow>
-                                <Link href={`/perfil/${category.user.id}`} isExternal>
-                                    <Avatar 
-                                        name={category.user.name} 
-                                        src={category.user.avatar} 
-                                        size="md"
-                                        _hover={{ transform: 'scale(1.1)', transition: 'all 0.2s' }}
-                                        cursor="pointer"
-                                    />
+                            <Tooltip label={`Ver perfil de ${category.user?.name || 'Solicitante'}`} hasArrow>
+                                <Link href={`/perfil/${category.user?.id || 'unknown'}`} isExternal>
+                                    <UserAvatar user={category.user} />
                                 </Link>
                             </Tooltip>
                             <Box>
                                 <Heading size="sm">{category.name}</Heading>
                                 <Text fontSize="xs" color="gray.500">
-                                    Solicitado por: {category.user.name}
+                                    Solicitado por: {category.user?.name || 'Solicitante'}
                                 </Text>
                             </Box>
                         </Flex>
@@ -87,7 +107,7 @@ export function CategoriesNotValid() {
                         <VStack align="start" spacing={3}>
                             <Box>
                                 <Text fontWeight="semibold" fontSize="sm">Descrição:</Text>
-                                <Text fontSize="sm">{category.description}</Text>
+                                <Text fontSize="sm">{category.description || "Nenhuma descrição fornecida"}</Text>
                             </Box>
                             <Box>
                                 <Text fontWeight="semibold" fontSize="sm">Data de criação:</Text>
@@ -132,22 +152,17 @@ export function CategoriesNotValid() {
                 </Card>
             ))}
 
-            {/* Modal de Detalhes */}
             {selectedCategory && (
                 <Modal isOpen={isOpen} onClose={onClose} size="xl">
                     <ModalOverlay />
                     <ModalContent>
                         <ModalHeader>
                             <Flex alignItems="center" gap={3}>
-                                <Avatar 
-                                    name={selectedCategory.user.name} 
-                                    src={selectedCategory.user.avatar} 
-                                    size="md"
-                                />
+                                <UserAvatar user={selectedCategory.user} />
                                 <Box>
                                     <Text>{selectedCategory.name}</Text>
                                     <Text fontSize="sm" color="gray.500">
-                                        Solicitado por: {selectedCategory.user.name}
+                                        Solicitado por: {selectedCategory.user?.name || 'Solicitante'}
                                     </Text>
                                 </Box>
                             </Flex>
@@ -157,7 +172,7 @@ export function CategoriesNotValid() {
                             <VStack spacing={4} align="start">
                                 <Box>
                                     <Text fontWeight="bold">Descrição:</Text>
-                                    <Text>{selectedCategory.description}</Text>
+                                    <Text>{selectedCategory.description || "Nenhuma descrição fornecida"}</Text>
                                 </Box>
                                 <Box>
                                     <Text fontWeight="bold">Data de criação:</Text>
@@ -168,19 +183,15 @@ export function CategoriesNotValid() {
                                 <Box>
                                     <Text fontWeight="bold">Solicitante:</Text>
                                     <Flex alignItems="center" mt={2}>
-                                        <Avatar 
-                                            name={selectedCategory.user.name} 
-                                            src={selectedCategory.user.avatar} 
-                                            size="sm"
-                                            mr={2}
-                                        />
+                                        <UserAvatar user={selectedCategory.user} />
                                         <Link 
-                                            href={`/perfil/${selectedCategory.user.id}`} 
+                                            href={`/perfil/${selectedCategory.user?.id || 'unknown'}`} 
                                             isExternal
                                             color="blue.500"
                                             _hover={{ textDecoration: 'underline' }}
+                                            ml={2}
                                         >
-                                            {selectedCategory.user.name}
+                                            {selectedCategory.user?.name || 'Solicitante'}
                                         </Link>
                                     </Flex>
                                 </Box>

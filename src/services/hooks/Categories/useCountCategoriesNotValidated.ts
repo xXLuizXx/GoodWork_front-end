@@ -12,8 +12,6 @@ interface ICountCategoriesNotValidated extends Array<{
 async function getCountCategoriesNotValidated(): Promise<ICountCategoriesNotValidated> {
     const { data } = await api.get(`categories/categoriesNotValidated`);
 
-    console.log("Dados");
-    console.log(data);
     return data;
 }
 

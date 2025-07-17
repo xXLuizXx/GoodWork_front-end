@@ -38,9 +38,6 @@ export function Sidebar(){
     const categoriesCount = Array.isArray(categoriesData) 
         ? categoriesData.length 
         : categoriesData?.categories?.length || 0;
-
-    console.log("Número de categorias:", categoriesCount);
-    
     
     useEffect(() => {
         setMounted(true);
