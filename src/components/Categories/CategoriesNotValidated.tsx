@@ -3,6 +3,7 @@ import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill } from "react-icons/go";
 import { useState } from "react";
 import { useCountCategoriesNotValidated } from "@/services/hooks/Categories/useCountCategoriesNotValidated";
+import { useValidateCategory } from "@/services/hooks/Categories/useValidateCategory";
 
 interface CategoryWithUser {
     id: string;
@@ -22,15 +23,15 @@ export function CategoriesNotValid() {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedCategory, setSelectedCategory] = useState<CategoryWithUser | null>(null);
     const toast = useToast();
+    const { validateCategory, isLoadingCategory } = useValidateCategory();
 
-    const handleValidate = (categoryId: string, isValid: boolean) => {
-        toast({
-            title: isValid ? 'Categoria aprovada' : 'Categoria reprovada',
-            status: isValid ? 'success' : 'error',
-            duration: 3000,
-            isClosable: true,
-        });
-        // Aqui você adicionaria a chamada à API para atualizar o status da categoria
+    const handleValidate = async (categoryId: string, isValid: boolean) => {
+        const success = await validateCategory(categoryId, isValid);
+        if (success) {
+            if (selectedCategory?.id === categoryId) {
+                onClose();
+            }
+        }
     };
 
     const UserAvatar = ({ user }: { user: { id: string; name: string; avatar: string } | null }) => {
