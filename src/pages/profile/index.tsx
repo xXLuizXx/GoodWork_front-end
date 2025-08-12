@@ -2,20 +2,21 @@ import {Flex, SimpleGrid, Text} from "@chakra-ui/react";
 import {Sidebar} from "@/components/Sidebar";
 import {Header} from "@/components/Header/Header";
 import { Helmet } from "react-helmet";
+import { UserProfileView } from "@/components/User/AdmProfileUser";
 import {useRouter} from "next/router";
-import { CategoriesNotValid } from "@/components/Categories/CategoriesNotValidated";
 
-interface ICategoriId{
-    category_id: string;
+interface IUser{
+    user: string;
 }
 
-export default function CategoriesNotValidated(): JSX.Element {
+export default function Profile({user: string}: IUser): JSX.Element {
     const router = useRouter();
+    const { user } = router.query;
 
     return(
         <Flex direction="column" h="100vh">
             <Helmet>
-                <title>Categoria</title>
+                <title>Perfil de Usuário</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>
             </Helmet>
             <Header/>
@@ -28,7 +29,7 @@ export default function CategoriesNotValidated(): JSX.Element {
                     flex="1"
                     minChildWidth={[200, 250]}
                 >
-                    <CategoriesNotValid/>
+                    <UserProfileView userId={user}/>
                 </SimpleGrid>
             </Flex>
         </Flex>

@@ -91,7 +91,7 @@ export function CategoriesNotValid() {
                     <CardHeader>
                         <Flex alignItems="center" gap={3}>
                             <Tooltip label={`Ver perfil de ${category.user?.name || 'Solicitante'}`} hasArrow>
-                                <Link href={`/perfil/${category.user?.id || 'unknown'}`} isExternal>
+                                <Link href={`/profile?user=${category.user_id || 'unknown'}`} isExternal>
                                     <UserAvatar user={category.user} />
                                 </Link>
                             </Tooltip>
@@ -186,7 +186,7 @@ export function CategoriesNotValid() {
                                     <Flex alignItems="center" mt={2}>
                                         <UserAvatar user={selectedCategory.user} />
                                         <Link 
-                                            href={`/perfil/${selectedCategory.user?.id || 'unknown'}`} 
+                                            href={`/profile?user=${selectedCategory.user_id || 'unknown'}`} 
                                             isExternal
                                             color="blue.500"
                                             _hover={{ textDecoration: 'underline' }}

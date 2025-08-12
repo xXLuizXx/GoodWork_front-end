@@ -49,7 +49,9 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
                 reset();
                 
                 toast({
-                    description: "Categoria criada com sucesso.",
+                    description: admin 
+                        ? "Categoria criada com sucesso." 
+                        : "Solicitação de categoria enviada com sucesso. Aguarde validação do administrador.",
                     status: "success",
                     position: "top",
                     duration: 8000,
@@ -72,7 +74,7 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
 
     const createHandle: SubmitHandler<ICreateCategory> = async (data) => {
         try {
-            await createCategory.mutateAsync(data);
+            await createCategory.mutateAsync(data, admin);
         } catch (error) {
             console.error("Erro no envio do formulário:", error);
         }
@@ -108,13 +110,11 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
                             <Avatar name="avatar" src="/Img/logos/GoodworkSSlogan.png" />
                             <Box>
                                 <Text fontWeight="bold" fontSize="xl" color="gray.500">
-                                {
-                                    admin ? (
-                                        <>Criação de nova categoria</>
-                                    ) : !admin && typeUser?.toString() === "company" ? (
-                                        <>Solicitar criação de categoria</>
-                                    ) : null
-                                }
+                                    {admin 
+                                        ? "Criação de nova categoria"
+                                        : typeUser?.toString() === "company" 
+                                            ? "Solicitar criação de categoria"
+                                            : "Acesso não autorizado"}
                                 </Text>
                             </Box>
                         </Flex>
@@ -161,16 +161,17 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
                         <Button colorScheme="red" mr={3} onClick={onClose}>
                             Fechar
                         </Button>
-                        <Button type="submit" colorScheme="blue" isLoading={formState.isSubmitting}>
-                            {
-                                admin ? (
-                                    <>Cadastrar</>
-                                    
-                                ) : !admin && typeUser?.toString() === "company" ? (
-                                    
-                                        <>Solicitar</>
-                                ) : null
-                            }
+                        <Button 
+                            type="submit" 
+                            colorScheme="blue" 
+                            isLoading={formState.isSubmitting}
+                            isDisabled={!admin && typeUser?.toString() !== "company"}
+                        >
+                            {admin 
+                                ? "Cadastrar"
+                                : typeUser?.toString() === "company"
+                                    ? "Solicitar"
+                                    : "Não autorizado"}
                         </Button>
                     </ModalFooter>
                 </ModalContent>

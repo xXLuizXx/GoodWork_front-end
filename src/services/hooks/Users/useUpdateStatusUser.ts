@@ -2,19 +2,19 @@ import { useState } from "react";
 import  { api } from "@/services/apiClient";
 import { useToast } from "@chakra-ui/react";
 
-export const useValidateCategory = () => {
+export const useUpdateStatusUser = () => {
     const [isLoading, setIsLoading] = useState(false);
     const toast = useToast();
 
-    const validateCategory = async (categoryId: string, validated: boolean) => {
+    const updateStatusUser = async (userId: string, active: boolean) => {
         setIsLoading(true);
         try {
-            await api.patch(`/categories/validateCategory`, { 
-                id: categoryId,
-                aprove: validated
+            await api.patch(`/users/updateStatusUser`, { 
+                id: userId,
+                active: active
             });
             toast({
-                title: validated ? "Categoria aprovada com sucesso" : "Categoria reprovada com sucesso",
+                title: active ? "Usuário ativado sucesso" : "Usuário desativado com sucesso",
                 status: "success",
                 duration: 2000,
                 position: "top",
@@ -26,7 +26,7 @@ export const useValidateCategory = () => {
             return true;
         } catch (error) {
             toast({
-                title: `Erro ao ${validated ? "aprovar" : "reprovar"} vaga`,
+                title: `Erro ao ${active ? "ativa" : "desativar"} usuário`,
                 description: error.response?.data?.message || "Ocorreu um erro",
                 status: "error",
                 duration: 2000,
@@ -39,5 +39,5 @@ export const useValidateCategory = () => {
         }
     };
 
-    return { validateCategory, isLoading };
+    return { updateStatusUser, isLoading };
 };
