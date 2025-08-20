@@ -5,6 +5,7 @@ import { HomeIndividual } from '../Home/TypesUsers/HomeIndividual';
 import { HomeCompany } from '../Home/TypesUsers/HomeCompany';
 import decode from "jwt-decode";
 import { parseCookies } from 'nookies';
+import { HomeAdmin } from './TypesUsers/HomeAdmin';
 
 interface DecodedToken {
     accessLevel: string;
@@ -33,7 +34,8 @@ export function Home() {
 
   return (
     <>
-      {typeUser === 'individual' && <HomeIndividual />}
+      {typeUser === 'individual' && !admin && <HomeIndividual />}
+      {typeUser === 'individual' && admin && <HomeAdmin />}
       {typeUser === 'company' && <HomeCompany />}
     </>
   );

@@ -15,7 +15,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { HeaderSearchProfiles } from "@/components/Header/HeaderSearchProfiles";
 import { Helmet } from "react-helmet";
 import { useRouter } from "next/router";
-import { useAllDataUsers } from '@/services/hooks/Users/useListAllUsersForCompany';
+import { useAllDataUsers } from '@/services/hooks/Users/useListAllUsers';
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { Header } from "@/components/Header/Header";
@@ -25,6 +25,7 @@ import Link from "next/link";
 
 interface DecodedToken {
     accessLevel: string;
+    admin: boolean;
     sub: string;
 }
 
@@ -72,7 +73,7 @@ export default function ListAllDataUsers() {
     const [filter, setFilter] = useState("all");
     const toast = useToast();
     const [ userId, setUserId ] = useState("");
-
+    const [admin, setAdmin] = useState(false); 
     const { search } = router.query;
     
     const [searchTerm, setSearchTerm] = useState(typeof search === 'string' ? search : '');
@@ -88,6 +89,7 @@ export default function ListAllDataUsers() {
             try {
                 const decoded = decode<DecodedToken>(token);
                 setUserId(decoded.sub);
+                setAdmin(decoded.admin);
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
             }
@@ -113,7 +115,7 @@ export default function ListAllDataUsers() {
         router.push('/users/list-users/searchUsers', undefined, { shallow: true });
     };
 
-    const { data, isLoading } = useAllDataUsers(userId);
+    const { data, isLoading } = useAllDataUsers(userId, admin);
     const users = data?.users ?? [];
 
     const filteredProfiles = data?.users?.filter(profile => {
@@ -140,8 +142,6 @@ export default function ListAllDataUsers() {
             throw new Error('Perfil não selecionado');
         }
 
-        console.log("DADOS E-MAIL");
-        console.log(contactModalData);
         try {
             const response = await api.post('/mail/', {
                 to: contactModalData.profile.email,

@@ -11,18 +11,24 @@ interface IDataUsers {
     number: string;
     neighborhood: string;
     user_type: "individual" | "company";
+    active?: boolean;
     functionn?: string;
     ability?: string;
     is_employee?: boolean;
     curriculum?: string;
     business_area?: string;
+    created_at: Date;
 }
 
 interface IGetDataUsersResponse {
     users: IDataUsers[];
 }
 
-async function getDataUsers(id: string): Promise<IGetDataUsersResponse> {
+interface GetDataUsersParams {
+    id: string;
+    admin: boolean;
+}
+async function getDataUsers({ id, admin }: GetDataUsersParams): Promise<IGetDataUsersResponse> {
     const { data } = await api.post("users/getAllUsers", { id });
 
     const users = data.map(user => {
@@ -36,6 +42,8 @@ async function getDataUsers(id: string): Promise<IGetDataUsersResponse> {
             number: user.number,
             neighborhood: user.neighborhood,
             user_type: user.user_type,
+            ...(admin && { active: user.active }),
+            created_at: user.created_at
         };
 
         if (user.user_type === 'individual' && user.individualData) {
@@ -64,10 +72,10 @@ async function getDataUsers(id: string): Promise<IGetDataUsersResponse> {
     return { users };
 }
 
-function useAllDataUsers(id: string) {
+function useAllDataUsers(id: string, admin: boolean) {
     return useQuery(
-        ["users/getAllUsers", id],
-        () => getDataUsers(id),
+        ["users/getAllUsers", id, admin],
+        () => getDataUsers({id, admin}),
         {
             staleTime: 1000 * 60 * 10,
             enabled: !!id
