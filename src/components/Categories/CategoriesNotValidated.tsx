@@ -26,7 +26,7 @@ export function CategoriesNotValid() {
     const { validateCategory, isLoadingCategory } = useValidateCategory();
 
     const handleValidate = async (categoryId: string, isValid: boolean) => {
-        const success = await validateCategory(categoryId, isValid);
+        const success = await validateCategory(categoryId, isValid, "validate");
         if (success) {
             if (selectedCategory?.id === categoryId) {
                 onClose();

@@ -193,7 +193,6 @@ export default function UserManagementList() {
                         </HStack>
                     </Flex>
 
-                    {/* Filtros avançados */}
                     <Box 
                         p="4" 
                         mb="6" 
