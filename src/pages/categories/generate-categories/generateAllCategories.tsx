@@ -1,4 +1,4 @@
-import { Avatar, Badge, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast, Tooltip, Link, Input, Select, HStack, IconButton } from "@chakra-ui/react";
+import { Avatar, Badge, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast, Tooltip, Link, Input, Select, HStack, IconButton, Stat, StatLabel, StatNumber, StatGroup } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoSearch, GoArrowLeft, GoArrowRight } from "react-icons/go";
 import { FiFilter, FiX } from "react-icons/fi";
@@ -12,6 +12,7 @@ import { Header } from "@/components/Header/Header";
 import { Helmet } from "react-helmet";
 import { useGenerateCategories } from "@/services/hooks/Categories/useAllCategories";
 import { useRouter } from "next/router";
+import { HeaderAdminCategories } from "@/components/Header/HeaderAdminCategories";
 
 interface DecodedToken {
     accessLevel: string;
@@ -30,6 +31,7 @@ interface CategoryWithUser {
         name: string;
         avatar: string;
     } | null;
+    user_id: string;
 }
 
 export default function GenerateAllCategories() {
@@ -42,6 +44,14 @@ export default function GenerateAllCategories() {
     const [sortBy, setSortBy] = useState<"all" | "newest" | "oldest">("all");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
+
+    // Captura o parâmetro de busca da URL
+    useEffect(() => {
+        const { search } = router.query;
+        if (search && typeof search === 'string') {
+            setSearchTerm(search);
+        }
+    }, [router.query]);
 
     useEffect(() => {
         const cookies = parseCookies();
@@ -67,6 +77,19 @@ export default function GenerateAllCategories() {
     const toast = useToast();
     const { validateCategory, isLoadingCategory } = useValidateCategory();
 
+    // Calcular estatísticas
+    const getStats = () => {
+        if (!data) return { total: 0, active: 0, inactive: 0 };
+        
+        const total = data.length;
+        const active = data.filter(category => category.valid_category).length;
+        const inactive = data.filter(category => !category.valid_category).length;
+        
+        return { total, active, inactive };
+    };
+
+    const stats = getStats();
+
     const filteredAndSortedCategories = () => {
         if (!data) return [];
         
@@ -80,7 +103,9 @@ export default function GenerateAllCategories() {
         
         if (searchTerm) {
             filtered = filtered.filter(category => 
-                category.user?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+                category.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                category.description.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
         
@@ -146,24 +171,12 @@ export default function GenerateAllCategories() {
 
     if (isError || !data) {
         return (
-            <Flex direction="column" minH="100vh">
-                <Helmet>
-                    <title>Gerenciamento de Categorias</title>
-                    <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />
-                </Helmet>
-                
-                <Header />
-                
-                <Flex w="100%" my="8" maxWidth={1480} mx="auto" px="4">
-                    <Sidebar />
-                    <Stack>
-                        <Alert status="error">
-                            <AlertIcon />
-                            Ocorreu um erro ao carregar as categorias.
-                        </Alert>
-                    </Stack>
-                </Flex>
-            </Flex>
+            <Stack>
+                <Alert status="error">
+                    <AlertIcon />
+                    Ocorreu um erro ao carregar as categorias.
+                </Alert>
+            </Stack>
         );
     }
 
@@ -174,11 +187,31 @@ export default function GenerateAllCategories() {
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />
             </Helmet>
             
-            <Header />
+            <HeaderAdminCategories onSearch={(term) => setSearchTerm(term)} />
             
             <Flex w="100%" my="8" maxWidth={1480} mx="auto" px="4">
                 <Sidebar />
                 <Box flex="1" ml={{ base: 0, md: 6 }}>
+                    {/* Barra de Estatísticas */}
+                    <Card mb={6} boxShadow="md">
+                        <CardBody>
+                            <StatGroup textAlign="center">
+                                <Stat>
+                                    <StatLabel>Total de Categorias</StatLabel>
+                                    <StatNumber>{stats.total}</StatNumber>
+                                </Stat>
+                                <Stat>
+                                    <StatLabel>Categorias Ativas</StatLabel>
+                                    <StatNumber color="green.500">{stats.active}</StatNumber>
+                                </Stat>
+                                <Stat>
+                                    <StatLabel>Categorias Inativas</StatLabel>
+                                    <StatNumber color="red.500">{stats.inactive}</StatNumber>
+                                </Stat>
+                            </StatGroup>
+                        </CardBody>
+                    </Card>
+
                     <Card mb={6} boxShadow="md">
                         <CardHeader pb={3}>
                             <Flex justify="space-between" align="center">
@@ -196,8 +229,8 @@ export default function GenerateAllCategories() {
                         </CardHeader>
                         <CardBody pt={0}>
                             <Flex direction={{ base: "column", md: "row" }} gap={4}>
-                                <Box flex="1">
-                                    <Text fontSize="sm" fontWeight="medium" mb={2}>Buscar por solicitante</Text>
+                                {/* Filtro de busca oculto mas funcional */}
+                                <Box flex="1" display="none">
                                     <Input
                                         placeholder="Digite o nome do solicitante"
                                         value={searchTerm}
@@ -234,6 +267,24 @@ export default function GenerateAllCategories() {
                             </Flex>
                         </CardBody>
                     </Card>
+
+                    {/* Mostrar termo de busca atual quando houver */}
+                    {searchTerm && (
+                        <Box mb={4}>
+                            <Alert status="info" fontSize="sm">
+                                <AlertIcon />
+                                Mostrando resultados para: "{searchTerm}"
+                                <Button 
+                                    size="xs" 
+                                    ml={3} 
+                                    variant="ghost" 
+                                    onClick={() => setSearchTerm("")}
+                                >
+                                    Limpar
+                                </Button>
+                            </Alert>
+                        </Box>
+                    )}
 
                     <SimpleGrid columns={[1, 2, 3]} spacing={6} mb={6}>
                         {paginatedCategories.map((category: CategoryWithUser) => (
