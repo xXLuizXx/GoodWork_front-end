@@ -12,9 +12,7 @@ export default function GenerateSearchCategories(): JSX.Element {
     const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
-        if (search) {
-            setSearchTerm(search as string);
-        }
+        setSearchTerm(search ? (search as string) : "");
     }, [search]);
 
     return (
@@ -29,7 +27,13 @@ export default function GenerateSearchCategories(): JSX.Element {
                 searchValue={searchTerm}
                 onSearchChange={(value) => setSearchTerm(value)}
                 onSearch={(searchValue) => {
-                    router.push(`/categories/generate-categories-search?search=${encodeURIComponent(searchValue)}`);
+                    const hasRealContent = searchValue.trim().length > 0;
+                    
+                    if (!hasRealContent) {
+                        router.push('/categories/generate-categories-search');
+                    } else {
+                        router.push(`/categories/generate-categories-search?search=${encodeURIComponent(searchValue)}`);
+                    }
                 }}
             />
 

@@ -51,7 +51,7 @@ export function HomeAdmin(): JSX.Element {
             borderColor: 'blue',
             bgColor: '#FFFFFF',
             hoverColor: '#FFFFFF',
-            route: 'categories/generate-categories/generateAllCategories'
+            route: 'categories/generate-categories'
         },
         {
             title: 'Vagas',

@@ -36,22 +36,18 @@ interface CategoryWithUser {
 interface SearchCategoryAdminProps {
     search: string;
 }
+
 export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
 
     const router = useRouter();
     const [admin, setAdmin] = useState(false); 
     const [userId, setUserId] = useState("");
-    const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
     const [sortBy, setSortBy] = useState<"all" | "newest" | "oldest">("all");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 6;
-
-    useEffect(() => {
-        if (search) {
-            setSearchTerm(search);
-        }
-    }, [search]);
+    const searchTerm = search || "";
+    const hasRealSearchTerm = searchTerm.trim().length > 0;
 
     useEffect(() => {
         const cookies = parseCookies();
@@ -70,12 +66,20 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
         }
     }, []);
 
-    console.log("Chamando o hook<<<<<<<<<<");
-    const { data, isLoading, isError } = useGenerateSearchCategories(search);
-    console.log(data);
+    const { data: searchData, isLoading: searchLoading, isError: searchError } = 
+        useGenerateSearchCategories(hasRealSearchTerm ? searchTerm : "");
+    const { data: allData, isLoading: allLoading, isError: allError } = useGenerateCategories();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedCategory, setSelectedCategory] = useState<CategoryWithUser | null>(null);
     const toast = useToast();
+    const data = hasRealSearchTerm ? searchData : allData;
+    const isLoading = hasRealSearchTerm ? searchLoading : allLoading;
+    const isError = hasRealSearchTerm ? searchError : allError;
+
+    // Calcular estatísticas
+    const totalCategories = data?.length || 0;
+    const activeCategories = data?.filter(category => category.valid_category).length || 0;
+    const inactiveCategories = data?.filter(category => !category.valid_category).length || 0;
 
     const filteredAndSortedCategories = () => {
         if (!data) return [];
@@ -88,10 +92,10 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
             );
         }
         
-        if (searchTerm) {
+        if (hasRealSearchTerm) {
             filtered = filtered.filter(category => 
                 category.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                category.name.toLowerCase().includes(searchTerm.toLowerCase()) // Busca também pelo nome da categoria
+                category.name.toLowerCase().includes(searchTerm.toLowerCase())
             );
         }
         
@@ -139,10 +143,13 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
     };
 
     const resetFilters = () => {
-        setSearchTerm("");
         setStatusFilter("all");
         setSortBy("all");
         setCurrentPage(1);
+
+        if (searchTerm) {
+            router.push('/categories/generate-categories-search');
+        }
     };
 
     if (isLoading) {
@@ -158,14 +165,12 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
 
     if (isError || !data) {
         return (
-
             <Stack>
                 <Alert status="error">
                     <AlertIcon />
                     Ocorreu um erro ao carregar as categorias.
                 </Alert>
             </Stack>
-
         );
     }
 
@@ -178,8 +183,13 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
             <Box flex="1" ml={{ base: 0, md: 6 }}>
                 <Card mb={6} boxShadow="md">
                     <CardHeader pb={3}>
+                        <Text fontWeight="bold" fontSize="sm">
+                            Total: {totalCategories} | 
+                            Ativas: {activeCategories} | 
+                            Inativas: {inactiveCategories}
+                        </Text>
                         <Flex justify="space-between" align="center">
-                            <Heading size="md">Filtros</Heading>
+                            <Heading size="md"> </Heading>
                             <Button 
                                 size="sm" 
                                 variant="outline" 
@@ -192,17 +202,7 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
                         </Flex>
                     </CardHeader>
                     <CardBody pt={0}>
-                        <Flex direction={{ base: "column", md: "row" }} gap={4}>
-                            <Box flex="1">
-                                <Text fontSize="sm" fontWeight="medium" mb={2}>Buscar por solicitante</Text>
-                                <Input
-                                    placeholder="Digite o nome do solicitante"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    size="md"
-                                />
-                            </Box>
-                            
+                        <Flex direction={{ base: "column", md: "row" }} gap={4}>                       
                             <Box flex="1">
                                 <Text fontSize="sm" fontWeight="medium" mb={2}>Status</Text>
                                 <Select
@@ -281,7 +281,6 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
                                     <Button 
                                         leftIcon={category.valid_category ? <GoXCircleFill /> : <GoCheckCircleFill />}
                                         colorScheme={category.valid_category ? "red" : "green"}
-                                        variant="outline"
                                         size="sm"
                                         onClick={() => handleToggleCategoryStatus(category.id, category.valid_category)}
                                         width="100%"
@@ -292,6 +291,7 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
                                     <Button
                                         size="sm"
                                         variant="outline"
+                                        bg="#1E90FF"
                                         leftIcon={<GrFormView />}
                                         onClick={() => {
                                             setSelectedCategory(category);

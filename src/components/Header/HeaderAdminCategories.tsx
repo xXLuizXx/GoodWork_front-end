@@ -6,7 +6,6 @@ import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { useRouter } from "next/router";
 
-
 interface DecodedToken {
     isAdmin: boolean;
 }
@@ -46,7 +45,18 @@ function HeaderAdminCategories({ onSearch, searchValue, onSearchChange, redirect
 
     const handleSearch = () => {
         const currentCategory = searchValue !== undefined ? searchValue : localCategory;
-        if (!currentCategory.trim()) return;
+        
+        const hasRealContent = currentCategory.trim().length > 0;
+        
+        if (!hasRealContent) {
+            if (redirectOnSearch) {
+                router.push('/categories/generate-categories-search');
+            }
+            if (onSearch) {
+                onSearch('');
+            }
+            return;
+        }
         
         if (onSearch) {
             onSearch(currentCategory);
