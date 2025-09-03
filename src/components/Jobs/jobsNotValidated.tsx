@@ -5,8 +5,10 @@ import { useJobsNotValidated } from "@/services/hooks/Jobs/useJobsNotValidated";
 import { useState } from "react";
 import { useValidateJob } from "@/services/hooks/Jobs/useValidateJob";
 import { queryClient } from "@/services/queryClient";
+import { useRouter } from "next/router";
 
 export function JobsNotValidated() {
+    const router = useRouter();
     const { data, refetch } = useJobsNotValidated();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedJob, setSelectedJob] = useState(null);
@@ -14,7 +16,8 @@ export function JobsNotValidated() {
     const toast = useToast();
 
     const handleValidate = async (jobId: string, validated: boolean) => {
-        const success = await validateJob(jobId, validated);
+        const aprovateVacancy = true;
+        const success = await validateJob(jobId, validated, aprovateVacancy);
         if (success) {
             if (selectedJob?.id === jobId) {
                 onClose();
@@ -45,7 +48,17 @@ export function JobsNotValidated() {
                     <CardHeader p="2.5">
                         <Flex>
                             <Flex flex="1" gap="4" alignItems="center">
-                                <Avatar name="avatar" src="../Img/icons/empresaTeste.jpg" />
+                                <Avatar 
+                                    name="avatar" 
+                                    src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"} 
+                                    _hover={{
+                                        transform: 'scale(1.1)',
+                                        transition: 'transform 0.2s ease-in-out',
+                                        boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
+                                        cursor: 'pointer'
+                                    }}
+                                    onClick={() => router.push(`/profile?user=${job.user_id}`)}
+                                />
                                 <Box>
                                     <Heading size="sm">
                                         <Text fontSize="14">
@@ -120,7 +133,17 @@ export function JobsNotValidated() {
                             <ModalContent maxW="700px" borderRadius="lg" boxShadow="2xl">
                                 <ModalHeader alignItems="center">
                                     <Flex flex="1" gap="4" alignItems="center">
-                                        <Avatar name="avatar" src="../Img/icons/empresaTeste.jpg" />
+                                        <Avatar 
+                                            name="avatar" 
+                                            src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"} 
+                                            _hover={{
+                                                transform: 'scale(1.1)',
+                                                transition: 'transform 0.2s ease-in-out',
+                                                boxShadow: '0 0 10px rgba(0, 0, 0, 0.3)',
+                                                cursor: 'pointer'
+                                            }}
+                                            onClick={() => router.push(`/profile?user=${job.user_id}`)}
+                                        />
                                         <Box>
                                             <Text fontWeight="bold" fontSize="xl">{selectedJob.vacancy}</Text>
                                             <Text fontSize="sm" color="gray.500">

@@ -2,10 +2,37 @@ import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Head
 import {BsThreeDotsVertical} from "react-icons/bs";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
 import {useAllJobs} from "@/services/hooks/Jobs/useAllJobs";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import decode from "jwt-decode";
+import { parseCookies } from "nookies";
+
+interface DecodedToken {
+    isAdmin: boolean;
+    sub: string;
+}
 
 export function Jobs() {
-    const {data} = useAllJobs();
+    const [admin, setAdmin] = useState(false); 
+    const [userId, setUserId] = useState("");
+
+    useEffect(() => {
+        const cookies = parseCookies();
+        const token = cookies["token.token"];
+
+        if (token) {
+            try {
+                const decoded = decode<DecodedToken>(token);
+                if (decoded.isAdmin) {
+                    setAdmin(decoded.isAdmin);
+                    setUserId(decoded.sub);
+                }
+            } catch (error) {
+                console.error("Erro ao decodificar o token:", error);
+            }
+        }
+    }, []);
+
+    const {data} = useAllJobs(admin);
     const { isOpen, onOpen, onClose } = useDisclosure()
     const [selectedJob, setSelectedJob] = useState(null);
     

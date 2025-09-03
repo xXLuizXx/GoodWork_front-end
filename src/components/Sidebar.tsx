@@ -1,4 +1,4 @@
-import { Badge, Box, Button, ChakraProvider, Icon, Link, Stack, StackDivider, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, ChakraProvider, Icon, Link, Stack, StackDivider, Text, useDisclosure } from "@chakra-ui/react";
 import { RiDashboardLine } from "react-icons/ri";
 import { Image } from '@chakra-ui/react';
 import { TbReportAnalytics } from "react-icons/tb";
@@ -12,6 +12,7 @@ import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { queryClient } from "@/services/queryClient";
 import { useCountCategoriesNotValidated } from "@/services/hooks/Categories/useCountCategoriesNotValidated";
+import { CreateCategory } from "./Categories/CreateCategory";
 
 interface DecodedToken {
     accessLevel: string;
@@ -34,7 +35,7 @@ export function Sidebar(){
     const { data: categoriesData, isLoading: isLoadingCategories } = useCountCategoriesNotValidated({
         enabled: admin
     });
-
+    const { isOpen, onOpen, onClose } = useDisclosure();
     const categoriesCount = Array.isArray(categoriesData) 
         ? categoriesData.length 
         : categoriesData?.categories?.length || 0;
@@ -80,6 +81,42 @@ export function Sidebar(){
                 </Box>
                 <Box>
                     <Accordion allowMultiple marginBottom={50}>
+                        {admin &&(
+                            <AccordionItem>
+                                {({ isOpen }) => (
+                                <>
+                                <AccordionButton pb="7" position="relative">
+                                    <Text textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
+                                        USUÁRIOS
+                                    </Text>
+                                    <AccordionIcon />
+                                </AccordionButton>
+                                <AccordionPanel>
+                                    <NextLink href="/users/generate-users" legacyBehavior>
+                                        <ChakraLink
+                                            display="inline-flex"
+                                            alignItems="center"
+                                            color="gray.500"
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                            py={2}
+                                            px={4}
+                                            _hover={{
+                                            color: "gray.600",
+                                            transform: "scale(1.05)",
+                                            }}
+                                            transition="all 0.3s ease"
+                                            textDecoration="none"
+                                            position="relative"
+                                        >
+                                            Gerenciar Usuários
+                                        </ChakraLink>
+                                    </NextLink>
+                                </AccordionPanel>
+                                </>
+                            )}
+                            </AccordionItem>
+                        )}
                         <AccordionItem>
                             {({ isOpen }) => (
                             <>
@@ -184,6 +221,30 @@ export function Sidebar(){
                                     </NextLink>
                                 )}
                             </AccordionPanel>
+                            <AccordionPanel>
+                                {admin && (
+                                    <NextLink href="/jobs/generate-jobs" legacyBehavior>
+                                        <ChakraLink
+                                            display="inline-flex"
+                                            alignItems="center"
+                                            color="gray.500"
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                            py={2}
+                                            px={4}
+                                            _hover={{
+                                            color: "gray.600",
+                                            transform: "scale(1.05)",
+                                            }}
+                                            transition="all 0.3s ease"
+                                            textDecoration="none"
+                                            position="relative"
+                                        >
+                                            Gerenciar Vagas
+                                        </ChakraLink>
+                                    </NextLink>
+                                )}
+                            </AccordionPanel>
                             </>
                         )}
                         </AccordionItem>
@@ -216,12 +277,43 @@ export function Sidebar(){
                                 )}
                                 <AccordionIcon />
                             </AccordionButton>
-                            <AccordionPanel>
-                                <Categories />
-                            </AccordionPanel>
+                            {!admin && (
+                                <AccordionPanel>
+                                    <Categories />
+                                </AccordionPanel>
+                            )}
+                            
 
                             <AccordionPanel>
-                                <Box borderBottom="1px" borderColor="gray.200" my={2} />
+                                {!admin &&(
+                                    <Box borderBottom="1px" borderColor="gray.200" my={2} />
+                                )}
+                                
+                                {admin && (
+                                    <NextLink href="/categories/generate-categories" legacyBehavior>
+                                        <ChakraLink
+                                            display="inline-flex"
+                                            alignItems="center"
+                                            color="gray.500"
+                                            fontSize="sm"
+                                            fontWeight="bold"
+                                            py={2}
+                                            px={4}
+                                            _hover={{
+                                            color: "gray.600",
+                                            transform: "scale(1.05)",
+                                            }}
+                                            transition="all 0.3s ease"
+                                            textDecoration="none"
+                                            position="relative"
+                                        >
+                                            Gerenciar Categorias
+                                        </ChakraLink>
+                                    </NextLink>
+                                    
+                                )}
+                            </AccordionPanel>
+                            <AccordionPanel>
                                 {admin && (
                                     <NextLink href="/categories/categoriesNotValidated" legacyBehavior>
                                         <ChakraLink
@@ -264,6 +356,31 @@ export function Sidebar(){
                                             )}
                                         </ChakraLink>
                                     </NextLink>
+                                )}
+                            </AccordionPanel>
+                            <AccordionPanel>
+                                {admin && (
+                                    <Button 
+                                        onClick={onOpen}
+                                        display="inline-flex"
+                                        alignItems="center"
+                                        color="gray.500"
+                                        fontSize="sm"
+                                        bgColor="white"
+                                        fontWeight="bold"
+                                        py={2}
+                                        px={4}
+                                        _hover={{
+                                        color: "gray.600",
+                                        transform: "scale(1.05)",
+                                        }}
+                                        transition="all 0.3s ease"
+                                        textDecoration="none"
+                                        position="relative"
+                                    >
+                                        Cadastrar Categoria
+                                        <CreateCategory isOpen={isOpen} onClose={onClose} />
+                                    </Button>
                                 )}
                             </AccordionPanel>
                         </AccordionItem>

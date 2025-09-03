@@ -20,8 +20,6 @@ async function getGenerateSearchCategories({search}: ISearch): Promise<ICategory
 }
 
 function useGenerateSearchCategories(search: string) {
-    console.log("Chegou no hook");
-    console.log("Valor da busca: ", search)
     return useQuery<ICategory>(
         ["categories/searchCategories", search],
         () => getGenerateSearchCategories({search}),

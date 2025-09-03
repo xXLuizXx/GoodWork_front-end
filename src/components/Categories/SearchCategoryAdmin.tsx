@@ -7,12 +7,9 @@ import { useCountCategoriesNotValidated } from "@/services/hooks/Categories/useC
 import { useValidateCategory } from "@/services/hooks/Categories/useValidateCategory";
 import { parseCookies } from 'nookies';
 import decode from "jwt-decode";
-import { Sidebar } from "@/components/Sidebar";
-import { Header } from "@/components/Header/Header";
 import { Helmet } from "react-helmet";
 import { useGenerateCategories } from "@/services/hooks/Categories/useAllCategories";
 import { useRouter } from "next/router";
-import { HeaderAdminCategories } from "@/components/Header/HeaderAdminCategories";
 import { useGenerateSearchCategories } from "@/services/hooks/Categories/useSearchCategories";
 
 interface DecodedToken {
@@ -76,7 +73,6 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
     const isLoading = hasRealSearchTerm ? searchLoading : allLoading;
     const isError = hasRealSearchTerm ? searchError : allError;
 
-    // Calcular estatísticas
     const totalCategories = data?.length || 0;
     const activeCategories = data?.filter(category => category.valid_category).length || 0;
     const inactiveCategories = data?.filter(category => !category.valid_category).length || 0;

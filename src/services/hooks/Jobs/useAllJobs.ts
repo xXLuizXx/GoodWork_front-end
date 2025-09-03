@@ -1,7 +1,7 @@
 import { useQuery } from "react-query";
-import  { api } from "@/services/apiClient";
+import { api } from "@/services/apiClient";
 
-interface IJobs {
+interface IJob {
     id: string;
     vacancy: string;
     contractor: string;
@@ -19,16 +19,25 @@ interface IJobs {
     valid_vacancy: boolean;
     amount_vacancy: number;
     closing_date: Date;
+    created_at: Date;
 }
 
 interface IGetJobsResponse {
-    jobs: IJobs[];
+    jobs: IJob[];
 }
 
-async function getJobs(): Promise<IGetJobsResponse> {
-    const { data } = await api.get("jobs/list");
-
-    const jobs = data.map(job => {
+// Mude o parâmetro search para ser opcional aqui também
+async function getJobs(isAdmin: boolean, search?: string): Promise<IGetJobsResponse> {
+    let response;
+    
+    if (isAdmin) {
+        const searchParam = search || "";
+        response = await api.get(`jobs/listAllJobs?search=${searchParam}`);
+    } else {
+        response = await api.get("jobs/list");
+    }
+    
+    const jobs = response.data.map((job: any) => {
         return {
             id: job.id,
             vacancy: job.vacancy,
@@ -41,21 +50,22 @@ async function getJobs(): Promise<IGetJobsResponse> {
             banner: job.banner,
             category_id: job.category_id,
             user_id: job.user_id,
-            user_name: job.user.name,
-            user_avatar: job.user.avatar,
+            user_name: job.user?.name || '',
+            user_avatar: job.user?.avatar || '',
             valid_vacancy: job.valid_vacancy,
             amount_vacancy: job.amount_vacancy,
-            closing_date: job.closing_date
+            closing_date: job.closing_date,
+            created_at: job.created_at
         };
     });
 
     return { jobs };
 }
 
-function useAllJobs() {
+function useAllJobs(admin: boolean, search?: string) {
     return useQuery(
-        ["jobs/list"],
-        () => getJobs(),
+        ["jobs/list", { admin, search }],
+        () => getJobs(admin, search),
         {
             staleTime: 1000 * 60 * 10,
         }
@@ -63,4 +73,4 @@ function useAllJobs() {
 }
 
 export { useAllJobs, getJobs };
-export type { IJobs };
+export type { IJob };

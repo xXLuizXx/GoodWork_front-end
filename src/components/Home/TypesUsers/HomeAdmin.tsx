@@ -44,7 +44,7 @@ export function HomeAdmin(): JSX.Element {
             borderColor: 'blue',
             bgColor: '#FFFFFF',
             hoverColor: '#FFFFFF',
-            route: `/users/generate-users/generateAllUsers`
+            route: `users/generate-users`
         },
         {
             title: 'Categorias',
@@ -58,7 +58,7 @@ export function HomeAdmin(): JSX.Element {
             borderColor: 'blue',
             bgColor: '#FFFFFF',
             hoverColor: '#FFFFFF',
-            route: '/users/list-users/listAllUsers'
+            route: '/jobs/generate-jobs'
         }
     ];
 
