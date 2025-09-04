@@ -56,7 +56,7 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
             onSearch(currentVacancy);
         } else {
             if (admin) {
-                router.push(`/jobs-vacancy?vacancy=${encodeURIComponent(currentVacancy)}`);
+                router.push(`/jobs/generate-jobs?search=${encodeURIComponent(currentVacancy)}`);
             } else if (typeUser === "company") {
                 router.push(`/jobs-vacancy/jobs-company-vacancy?vacancy=${encodeURIComponent(currentVacancy)}`);
             } else if (typeUser === "individual") {
@@ -123,7 +123,7 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
                     variant="unstyled"
                     px="4"
                     mr="4"
-                    placeholder="Buscar"
+                    placeholder="Buscar Vagas"
                     _placeholder={{
                         color: "gray.500"
                     }}

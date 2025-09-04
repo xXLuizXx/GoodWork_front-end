@@ -3,7 +3,7 @@ import {
     Icon, Link, Modal, ModalBody, ModalCloseButton, ModalContent, 
     ModalFooter, ModalHeader, ModalOverlay, Spinner, Tag, TagLabel, 
     Text, useDisclosure, useToast, VStack, Alert, AlertIcon, Menu, 
-    MenuButton, MenuList, MenuItem, Badge, SimpleGrid 
+    MenuButton, MenuList, MenuItem, Badge, SimpleGrid, Grid, GridItem
 } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
@@ -15,7 +15,6 @@ import { useAllApplicationsVacancy } from "@/services/hooks/applications/useAllA
 import { IApplicationsVacancyCompany } from "@/services/hooks/applications/useAllApplicationsVacancyCompany";
 import { api } from "@/services/apiClient";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
-import { position } from "@chakra-ui/react";
 
 interface IApplicationMyVacancyProps {
    id: string;
@@ -59,6 +58,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
     const toast = useToast();
 
     const [approvalList, setApprovalList] = useState<ApprovalList>({});
+    const [draggedItem, setDraggedItem] = useState<string | null>(null);
 
     const [approvedCount, setApprovedCount] = useState(0);
     const [rejectedCount, setRejectedCount] = useState(0);
@@ -99,6 +99,73 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
 
     const allPositionsFilled = approvedCount >= totalVacancyJob;
 
+    const handleDragStart = (e: React.DragEvent, applicationId: string) => {
+        e.dataTransfer.setData("applicationId", applicationId);
+        setDraggedItem(applicationId);
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+    };
+
+    const handleDrop = (e: React.DragEvent, targetStatus: boolean | null) => {
+        e.preventDefault();
+        const applicationId = e.dataTransfer.getData("applicationId");
+        
+        if (applicationId) {
+            const isApproving = targetStatus === true;
+            
+            if (isApproving && allPositionsFilled) {
+                toast({
+                    title: "Todas as vagas já foram preenchidas",
+                    description: "Não é possível aprovar mais candidatos.",
+                    status: "warning",
+                    duration: 3000,
+                    isClosable: true,
+                });
+                return;
+            }
+            
+            setApprovalList(prev => ({
+                ...prev,
+                [applicationId]: {
+                    id: applicationId,
+                    approved: targetStatus
+                }
+            }));
+
+            // Atualizar contadores
+            const currentStatus = approvalList[applicationId]?.approved;
+            
+            if (targetStatus === true) {
+                setApprovedCount(prev => prev + 1);
+                if (currentStatus === false) {
+                    setRejectedCount(prev => prev - 1);
+                }
+            } else if (targetStatus === false) {
+                setRejectedCount(prev => prev + 1);
+                if (currentStatus === true) {
+                    setApprovedCount(prev => prev - 1);
+                }
+            } else {
+                // Se voltou para pendente
+                if (currentStatus === true) {
+                    setApprovedCount(prev => prev - 1);
+                } else if (currentStatus === false) {
+                    setRejectedCount(prev => prev - 1);
+                }
+            }
+
+            toast({
+                title: isApproving ? "Candidato selecionado" : targetStatus === false ? "Candidato rejeitado" : "Candidato movido para pendentes",
+                status: "success",
+                duration: 2000,
+                isClosable: true,
+            });
+        }
+        setDraggedItem(null);
+    };
+
     const handleConfirmAction = () => {
         if (!approvalAction) return;
         
@@ -136,6 +203,17 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
     };
 
     const handleApproveClick = (id: string) => {
+        if (allPositionsFilled) {
+            toast({
+                title: "Todas as vagas já foram preenchidas",
+                description: "Não é possível aprovar mais candidatos.",
+                status: "warning",
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        }
+        
         setApprovalAction({ type: 'approve', id });
         onConfirmOpen();
     };
@@ -207,20 +285,10 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         onDetailsOpen();
     };
 
-    const filteredApplications = applications.filter(app => {
-        const status = approvalList[app.id]?.approved;
-        if (filter === "approved" && status !== true) return false;
-        if (filter === "rejected" && status !== false) return false;
-        if (filter === "pending" && status !== null) return false;
-
-        return true;
-    });
-
-    const totalPages = Math.ceil(filteredApplications.length / ITEMS_PER_PAGE);
-    const paginatedApplications = filteredApplications.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
+    // Separar aplicações por status
+    const pendingApplications = applications.filter(app => approvalList[app.id]?.approved === null);
+    const approvedApplications = applications.filter(app => approvalList[app.id]?.approved === true);
+    const rejectedApplications = applications.filter(app => approvalList[app.id]?.approved === false);
 
     if (isLoading) {
         return (
@@ -248,23 +316,164 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         );
     }
 
+    // Componente de card de aplicação (reutilizável)
+    const ApplicationCard = ({ application }: { application: IApplicationsVacancyCompany }) => {
+        const isApproved = approvalList[application.id]?.approved === true;
+        const isRejected = approvalList[application.id]?.approved === false;
+        
+        return (
+            <Card 
+                key={application.id} 
+                draggable
+                onDragStart={(e) => handleDragStart(e, application.id)}
+                boxShadow="0 2px 4px rgba(0, 0, 0, 0.1)" 
+                transition="all 0.2s ease" 
+                _hover={{ 
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+                    transform: "translateY(-2px)", 
+                }} 
+                width="100%" 
+                borderRadius="md" 
+                borderWidth="1px" 
+                borderColor="gray.200" 
+                position="relative" 
+                overflow="hidden" 
+                cursor="grab" 
+                bg="white" 
+                zIndex="1" 
+                mb={3}
+                p={3}
+            >
+                <Flex direction="row" justify="space-between" align="center">
+                    <Flex align="center" flex="1">
+                        <Avatar 
+                            name={application.user?.name} 
+                            src={application.user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${application.user?.avatar}` : "../../../Img/icons/avatarLogin.png"}
+                            size="sm"
+                            mr="3"
+                        />
+                        <Box flex="1">
+                            <Text fontSize="sm" fontWeight="medium" noOfLines={1}>
+                                {application.user?.name || 'Candidato'}
+                            </Text>
+                            <Text fontSize="xs" color="gray.500" noOfLines={1}>
+                                {application.user?.individualData?.functionn || 'Função não especificada'}
+                            </Text>
+                            <HStack spacing={2} mt={1}>
+                                <Icon as={FiMail} color="gray.400" boxSize={3} />
+                                <Text fontSize="xs" color="gray.600" noOfLines={1}>
+                                    {application.user?.email || 'Email não disponível'}
+                                </Text>
+                            </HStack>
+                            <HStack spacing={2}>
+                                <Icon as={FiPhone} color="gray.400" boxSize={3} />
+                                <Text fontSize="xs" color="gray.600">
+                                    {application.user?.telephone || 'Telefone não disponível'}
+                                </Text>
+                            </HStack>
+                        </Box>
+                    </Flex>
+                
+                    <VStack spacing={1} align="stretch" ml={2}>
+                        <Tag 
+                            size="sm" 
+                            variant="subtle" 
+                            colorScheme={
+                                isApproved ? "green" : 
+                                isRejected ? "red" : "gray"
+                            }
+                            alignSelf="center"
+                            width="100%"
+                            justifyContent="center"
+                        >
+                            <TagLabel fontSize="xs">
+                                {isApproved ? "Selecionado" : 
+                                isRejected ? "Rejeitado" : "Pendente"}
+                            </TagLabel>
+                        </Tag>
+                
+                        {!applications[0]?.job?.vacancy_available === false &&(
+                            <Button 
+                                leftIcon={<GoCheckCircleFill size={12} />}
+                                colorScheme={isApproved ? "green" : "gray"} 
+                                variant={isApproved ? "solid" : "outline"}
+                                size="xs"
+                                height="6"
+                                onClick={() => handleApproveClick(application.id)}
+                                isDisabled={isApproved || applications[0]?.job?.vacancy_available === false || allPositionsFilled}
+                                width="100%"
+                                fontSize="xs"
+                                px={2}
+                            >
+                                {isApproved ? "Selecionado" : `Selecionar`}
+                            </Button>
+                        )}
+                        {!applications[0]?.job?.vacancy_available === false &&(
+                            <Button 
+                                leftIcon={<GoXCircleFill size={12} />} 
+                                colorScheme={isRejected ? "red" : "gray"} 
+                                variant={isRejected ? "solid" : "outline"} 
+                                size="xs"
+                                height="6"
+                                onClick={() => handleRejectClick(application.id)}
+                                isDisabled={isRejected}
+                                width="100%"
+                                fontSize="xs"
+                                px={2}
+                            >
+                                {isRejected ? "Rejeitado" : "Rejeitar"}
+                            </Button>
+                        )}
+                        <Button 
+                            leftIcon={<GrFormView size={12} />} 
+                            variant="outline" 
+                            size="xs"
+                            height="6"
+                            onClick={() => handleViewDetails(application)}
+                            width="100%"
+                            fontSize="xs"
+                            px={2}
+                        >
+                            Detalhes
+                        </Button>
+                      
+                        <Button 
+                            leftIcon={<FaFilePdf size={12} />} 
+                            variant="outline" 
+                            size="xs"
+                            height="6"
+                            as={Link}
+                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_application/${application.curriculum_user}`}
+                            isExternal
+                            width="100%"
+                            fontSize="xs"
+                            px={2}
+                        >
+                            Currículo
+                        </Button>
+                    </VStack>
+                </Flex>
+            </Card>
+        );
+    };
+
     return (
         <Box p="4" width="100%" position="relative">
             <Flex 
                 justify="space-between" 
                 align="center" 
-                mb="6" 
-                p="4" 
+                mb="4" 
+                p="3" 
                 bg="white" 
                 borderRadius="md" 
-                boxShadow="lg" 
+                boxShadow="md" 
                 flexWrap="wrap"
-                gap="4"
+                gap="3"
                 position="sticky"
                 top="4"
                 zIndex="9"
             >
-              <HStack spacing="4">
+              <HStack spacing="3">
                   <Text fontWeight="bold" fontSize="sm">
                       Vagas: {approvedCount}/{totalVacancyJob} | 
                       Candidaturas: {totalApplicationVacancy} | 
@@ -275,50 +484,54 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                   <Menu>
                       <MenuButton 
                           as={Button} 
-                          leftIcon={<Icon as={GoFilter} />} 
+                          leftIcon={<Icon as={GoFilter} boxSize={4} />} 
                           variant="outline"
                           size="sm"
+                          fontSize="xs"
+                          height="8"
                       >
                           Filtrar
                       </MenuButton>
-                      <MenuList>
-                          <MenuItem onClick={() => { setFilter("all"); setCurrentPage(1); }}>
+                      <MenuList fontSize="sm">
+                          <MenuItem onClick={() => { setFilter("all"); setCurrentPage(1); }} fontSize="sm">
                               Todas as Candidaturas
                           </MenuItem>
-                          <MenuItem onClick={() => { setFilter("approved"); setCurrentPage(1); }}>
+                          <MenuItem onClick={() => { setFilter("approved"); setCurrentPage(1); }} fontSize="sm">
                               Aprovadas
-                              <Badge ml="2" colorScheme="green">
-                                  {applications.filter(a => approvalList[a.id]?.approved === true).length}
+                              <Badge ml="2" colorScheme="green" fontSize="xs">
+                                  {approvedApplications.length}
                               </Badge>
                           </MenuItem>
-                          <MenuItem onClick={() => { setFilter("rejected"); setCurrentPage(1); }}>
+                          <MenuItem onClick={() => { setFilter("rejected"); setCurrentPage(1); }} fontSize="sm">
                               Rejeitadas
-                              <Badge ml="2" colorScheme="red">
-                                  {applications.filter(a => approvalList[a.id]?.approved === false).length}
+                              <Badge ml="2" colorScheme="red" fontSize="xs">
+                                  {rejectedApplications.length}
                               </Badge>
                           </MenuItem>
-                          <MenuItem onClick={() => { setFilter("pending"); setCurrentPage(1); }}>
+                          <MenuItem onClick={() => { setFilter("pending"); setCurrentPage(1); }} fontSize="sm">
                               Pendentes
-                              <Badge ml="2" colorScheme="orange">
-                                  {applications.filter(a => approvalList[a.id]?.approved === null).length}
+                              <Badge ml="2" colorScheme="orange" fontSize="xs">
+                                  {pendingApplications.length}
                               </Badge>
                           </MenuItem>
                       </MenuList>
                   </Menu>
                 </HStack>
 
-                <Box position="fixed" bottom="6" right="6" zIndex="10">
+                <Box position="fixed" bottom="4" right="4" zIndex="10">
                     {approvedCount >= 1 && applications[0]?.job?.vacancy_available !== false && (
                         <Button
                             colorScheme="green"
                             onClick={handleFinalizeApprovals}
                             isLoading={isFinalizing}
-                            size="md"
-                            boxShadow="lg"
-                            rightIcon={<Icon as={GoCheckCircleFill} />}
+                            size="sm"
+                            boxShadow="md"
+                            rightIcon={<Icon as={GoCheckCircleFill} boxSize={4} />}
+                            fontSize="sm"
+                            height="8"
                         >
                             {approvedCount < totalVacancyJob 
-                                ? `Aprovar candidatos selecionados`
+                                ? `Aprovar selecionados`
                                 : `Finalizar Processo`
                             }
                         </Button>
@@ -327,226 +540,154 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             </Flex>
 
             {allPositionsFilled && (
-                <Alert status="info" mb="4">
-                    <AlertIcon />
+                <Alert status="info" mb="3" fontSize="sm" py={2}>
+                    <AlertIcon boxSize={4} />
                     Todas as vagas foram preenchidas. Agora você só pode rejeitar candidatos.
                 </Alert>
             )}
 
-            <VStack spacing="4" align="stretch">
-                {paginatedApplications.map(application => {
-                    const isApproved = approvalList[application.id]?.approved === true;
-                    const isRejected = approvalList[application.id]?.approved === false;
+            <Grid templateColumns="repeat(3, 1fr)" gap={4} mt={4}>
+                {/* Coluna 1: Candidaturas Pendentes */}
+                <GridItem 
+                    colSpan={1} 
+                    p={3} 
+                    bg="gray.50" 
+                    borderRadius="md"
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, null)}
+                    minH="500px"
+                    maxH="80vh"
+                    overflowY="auto"
+                >
+                    <Heading size="sm" mb={2} color="orange.500" display="flex" alignItems="center">
+                        Candidaturas Pendentes
+                        <Badge ml={2} colorScheme="orange" fontSize="xs">
+                            {pendingApplications.length}
+                        </Badge>
+                    </Heading>
+                    <Text fontSize="xs" color="gray.600" mb={3}>
+                        Arraste os candidatos para as colunas de selecionados ou rejeitados
+                    </Text>
                     
-                    return (
-                        <Card 
-                            key={application.id} 
-                            boxShadow="0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" 
-                            transition="all 0.3s cubic-bezier(0.4, 0, 0.2, 1)" 
-                            _hover={{ 
-                                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
-                                transform: "translateY(-2px) scale(1.01)", 
-                                borderColor: "blue.200", 
-                            }} 
-                            _active={{ 
-                                transform: "scale(0.99)", 
-                            }} 
-                            width="100%" 
-                            borderRadius="xl" 
-                            borderWidth="1px" 
-                            borderColor="gray.100" 
-                            position="relative" 
-                            overflow="hidden" 
-                            cursor="pointer" 
-                            bg="white" 
-                            zIndex="1" 
-                            _before={{ 
-                                content: '""', 
-                                position: "absolute", 
-                                top: 0, 
-                                left: 0, 
-                                right: 0, 
-                                height: "3px", 
-                                bg: "blue.500", 
-                                transform: "scaleX(0)", 
-                                transformOrigin: "left", 
-                                transition: "transform 0.3s ease", 
-                            }} 
-                        >
-                            <Flex direction={{ base: "column", md: "row" }} justify="space-between">
-                                <Box flex="1" p="4" borderRight={{ md: "1px" }} borderColor={{ md: "gray.200" }}>
-                                    <Flex align="center" mb="4">
-                                        <Avatar 
-                                            name={application.user?.name} 
-                                            src={application.user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${application.user?.avatar}` : "../../../Img/icons/avatarLogin.png"}
-                                            size="lg"
-                                            mr="4"
-                                        />
-                                        <Box>
-                                            <Heading size="md">{application.user?.name || 'Candidato'}</Heading>
-                                            <Text fontSize="sm" color="gray.500">
-                                                {application.user?.individualData?.functionn || 'Função não especificada'}
-                                            </Text>
-                                        </Box>
-                                    </Flex>
-                                
-                                    <VStack align="start" spacing="2">
-                                        <HStack>
-                                            <Icon as={FiMail} color="gray.500" />
-                                            <Text fontSize="sm">{application.user?.email || 'Email não disponível'}</Text>
-                                        </HStack>
-                                        <HStack>
-                                            <Icon as={FiPhone} color="gray.500" />
-                                            <Text fontSize="sm">{application.user?.telephone || 'Telefone não disponível'}</Text>
-                                        </HStack>
-                                        <HStack>
-                                            <Icon as={FiBriefcase} color="gray.500" />
-                                            <Text fontSize="sm">
-                                                {application.created_at ? new Date(application.created_at).toLocaleDateString() : 'Data não disponível'}
-                                            </Text>
-                                        </HStack>
-                                    </VStack>
-                                </Box>
-                            
-                                <Box p="4" display="flex" alignItems="center">
-                                    <VStack spacing="3" align="stretch" minWidth="fit-content">
-                                        <Tag 
-                                            size="md" 
-                                            variant="subtle" 
-                                            colorScheme={
-                                                isApproved ? "green" : 
-                                                isRejected ? "red" : "gray"
-                                            }
-                                            alignSelf="center"
-                                        >
-                                            <TagLabel>
-                                                {isApproved ? "Selecionado" : 
-                                                isRejected ? "Rejeitado" : "Pendente"}
-                                            </TagLabel>
-                                        </Tag>
-                                
-                                        {!applications[0]?.job?.vacancy_available === false &&(
-                                            <Button 
-                                                leftIcon={<GoCheckCircleFill />}
-                                                bgColor="green.300"
-                                                colorScheme={isApproved ? "green" : "gray"} 
-                                                variant={isApproved ? "solid" : "outline"}
-                                                size="xs"
-                                                onClick={() => handleApproveClick(application.id)}
-                                                isDisabled={isApproved || applications[0]?.job?.vacancy_available === false || allPositionsFilled}
-                                                width="100%"
-                                            >
-                                                {isApproved ? "Candidato Selecionado" : `Selecionar`}
-                                            </Button>
-                                        )}
-                                        {!applications[0]?.job?.vacancy_available === false &&(
-                                            <Button 
-                                                leftIcon={<GoXCircleFill />} 
-                                                bgColor="red.400"
-                                                colorScheme={isRejected ? "red" : "gray"} 
-                                                variant={isRejected ? "solid" : "outline"} 
-                                                size="xs"
-                                                onClick={() => handleRejectClick(application.id)}
-                                                isDisabled={isRejected}
-                                                width="100%"
-                                            >
-                                                {isRejected ? "Rejeição confirmada" : "Rejeitar"}
-                                            </Button>
-                                        )}
-                                        <Button 
-                                            leftIcon={<GrFormView />} 
-                                            variant="outline" 
-                                            bgColor="blue.500"
-                                            size="xs"
-                                            onClick={() => handleViewDetails(application)}
-                                            width="100%"
-                                        >
-                                            Ver Detalhes
-                                        </Button>
-                                      
-                                        <Button 
-                                            leftIcon={<Icon color="red" as={FaFilePdf} />} 
-                                            variant="outline" 
-                                            size="xs"
-                                            as={Link}
-                                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_application/${application.curriculum_user}`}
-                                            isExternal
-                                            width="100%"
-                                        >
-                                            Baixar Currículo
-                                        </Button>
-                                    </VStack>
-                                </Box>
-                            </Flex>
-                        </Card>
-                    );
-                })}
-            </VStack>
+                    <VStack align="stretch" spacing={2}>
+                        {pendingApplications.map(application => (
+                            <ApplicationCard key={application.id} application={application} />
+                        ))}
+                        
+                        {pendingApplications.length === 0 && (
+                            <Center h="100px" border="2px dashed" borderColor="gray.300" borderRadius="md">
+                                <Text color="gray.500" fontSize="sm">Solte candidatos aqui</Text>
+                            </Center>
+                        )}
+                    </VStack>
+                </GridItem>
 
-            {totalPages > 1 && (
-                <Flex justify="center" mt="6" gap="2">
-                    <Button 
-                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
-                        isDisabled={currentPage === 1}
-                        size="sm"
-                    >
-                        Anterior
-                    </Button>
+                {/* Coluna 2: Candidatos Selecionados */}
+                <GridItem 
+                    colSpan={1} 
+                    p={3} 
+                    bg="green.50" 
+                    borderRadius="md"
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, true)}
+                    minH="500px"
+                    maxH="80vh"
+                    overflowY="auto"
+                >
+                    <Heading size="sm" mb={2} color="green.500" display="flex" alignItems="center">
+                        Candidatos Selecionados
+                        <Badge ml={2} colorScheme="green" fontSize="xs">
+                            {approvedApplications.length}/{totalVacancyJob}
+                        </Badge>
+                    </Heading>
+                    <Text fontSize="xs" color="gray.600" mb={3}>
+                        {allPositionsFilled 
+                            ? "Todas as vagas preenchidas" 
+                            : `${remainingPositions} vaga(s) restante(s)`}
+                    </Text>
                     
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                        <Button
-                            key={page}
-                            onClick={() => setCurrentPage(page)}
-                            colorScheme={currentPage === page ? "blue" : "gray"}
-                            size="sm"
-                        >
-                            {page}
-                        </Button>
-                    ))}
+                    <VStack align="stretch" spacing={2}>
+                        {approvedApplications.map(application => (
+                            <ApplicationCard key={application.id} application={application} />
+                        ))}
+                        
+                        {approvedApplications.length === 0 && (
+                            <Center h="100px" border="2px dashed" borderColor="green.300" borderRadius="md">
+                                <Text color="gray.500" fontSize="sm">Solte candidatos selecionados aqui</Text>
+                            </Center>
+                        )}
+                    </VStack>
+                </GridItem>
+
+                {/* Coluna 3: Candidatos Não Selecionados */}
+                <GridItem 
+                    colSpan={1} 
+                    p={3} 
+                    bg="red.50" 
+                    borderRadius="md"
+                    onDragOver={handleDragOver}
+                    onDrop={(e) => handleDrop(e, false)}
+                    minH="500px"
+                    maxH="80vh"
+                    overflowY="auto"
+                >
+                    <Heading size="sm" mb={2} color="red.500" display="flex" alignItems="center">
+                        Candidatos Não Selecionados
+                        <Badge ml={2} colorScheme="red" fontSize="xs">
+                            {rejectedApplications.length}
+                        </Badge>
+                    </Heading>
+                    <Text fontSize="xs" color="gray.600" mb={3}>
+                        Candidatos que não foram selecionados para a vaga
+                    </Text>
                     
-                    <Button 
-                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
-                        isDisabled={currentPage === totalPages}
-                        size="sm"
-                    >
-                        Próxima
-                    </Button>
-                </Flex>
-            )}
+                    <VStack align="stretch" spacing={2}>
+                        {rejectedApplications.map(application => (
+                            <ApplicationCard key={application.id} application={application} />
+                        ))}
+                        
+                        {rejectedApplications.length === 0 && (
+                            <Center h="100px" border="2px dashed" borderColor="red.300" borderRadius="md">
+                                <Text color="gray.500" fontSize="sm">Solte candidatos rejeitados aqui</Text>
+                            </Center>
+                        )}
+                    </VStack>
+                </GridItem>
+            </Grid>
 
             {selectedApplication && (
-                <Modal isOpen={isDetailsOpen} onClose={onDetailsClose} size="xl">
+                <Modal isOpen={isDetailsOpen} onClose={onDetailsClose} size="lg">
                     <ModalOverlay />
                     <ModalContent>
-                        <ModalHeader>
+                        <ModalHeader py={3}>
                           <Flex align="center">
                             <Avatar 
                               name={selectedApplication.user?.name} 
                               src={selectedApplication.user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedApplication.user?.avatar}` : "../../../Img/icons/avatarLogin.png"} 
-                              size="lg"
-                              mr="4"
+                              size="md"
+                              mr="3"
                             />
                             <Box>
-                              <Heading size="md">{selectedApplication.user?.name}</Heading>
-                              <Text fontSize="sm" color="gray.500">
+                              <Heading size="sm">{selectedApplication.user?.name}</Heading>
+                              <Text fontSize="xs" color="gray.500">
                                 {selectedApplication.user?.individualData?.functionn}
                               </Text>
                             </Box>
                           </Flex>
                         </ModalHeader>
-                        <ModalCloseButton />
-                        <ModalBody>
-                            <VStack spacing="4" align="stretch">
+                        <ModalCloseButton size="sm" />
+                        <ModalBody py={3}>
+                            <VStack spacing="3" align="stretch">
                                 <Box>
-                                    <Heading size="sm" mb="2">Informações de Contato</Heading>
-                                    <SimpleGrid columns={2} spacing={4}>
+                                    <Heading size="xs" mb="2">Informações de Contato</Heading>
+                                    <SimpleGrid columns={2} spacing={3}>
                                         <HStack>
-                                            <Icon as={FiMail} color="gray.500" />
-                                            <Text>{selectedApplication.user?.email}</Text>
+                                            <Icon as={FiMail} color="gray.500" boxSize={3} />
+                                            <Text fontSize="sm">{selectedApplication.user?.email}</Text>
                                         </HStack>
                                         <HStack>
-                                            <Icon as={FiPhone} color="gray.500" />
-                                            <Text>{selectedApplication.user?.telephone}</Text>
+                                            <Icon as={FiPhone} color="gray.500" boxSize={3} />
+                                            <Text fontSize="sm">{selectedApplication.user?.telephone}</Text>
                                         </HStack>
                                     </SimpleGrid>
                                 </Box>
@@ -554,18 +695,19 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                 <Divider />
 
                                 <Box>
-                                  <Heading size="sm" mb="2">Candidatura</Heading>
-                                  <SimpleGrid columns={2} spacing={4}>
+                                  <Heading size="xs" mb="2">Candidatura</Heading>
+                                  <SimpleGrid columns={2} spacing={3}>
                                     <HStack>
-                                      <Icon as={FiBriefcase} color="gray.500" />
-                                      <Text>Data: {new Date(selectedApplication.created_at).toLocaleDateString()}</Text>
+                                      <Icon as={FiBriefcase} color="gray.500" boxSize={3} />
+                                      <Text fontSize="sm">Data: {new Date(selectedApplication.created_at).toLocaleDateString()}</Text>
                                     </HStack>
                                     <HStack>
-                                      <Icon as={FaFilePdf} color="gray.500" />
+                                      <Icon as={FaFilePdf} color="gray.500" boxSize={3} />
                                       <Link 
                                         href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_application/${selectedApplication.curriculum_user}`}
                                         isExternal
                                         color="blue.500"
+                                        fontSize="sm"
                                       >
                                         Baixar Currículo
                                       </Link>
@@ -576,16 +718,16 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                 <Divider />
 
                                 <Box>
-                                  <Heading size="sm" mb="2">Status</Heading>
+                                  <Heading size="xs" mb="2">Status</Heading>
                                   <Tag 
-                                    size="lg" 
+                                    size="md" 
                                     variant="subtle" 
                                     colorScheme={
                                       approvalList[selectedApplication.id]?.approved === true ? "green" : 
                                       approvalList[selectedApplication.id]?.approved === false ? "red" : "gray"
                                     }
                                   >
-                                    <TagLabel>
+                                    <TagLabel fontSize="sm">
                                       {approvalList[selectedApplication.id]?.approved === true ? "Aprovado" : 
                                       approvalList[selectedApplication.id]?.approved === false ? "Rejeitado" : "Pendente"}
                                     </TagLabel>
@@ -593,8 +735,8 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                 </Box>
                             </VStack>
                         </ModalBody>
-                        <ModalFooter>
-                            <Button colorScheme="blue" onClick={onDetailsClose}>
+                        <ModalFooter py={2}>
+                            <Button colorScheme="blue" size="sm" onClick={onDetailsClose}>
                                 Fechar
                             </Button>
                         </ModalFooter>
@@ -602,29 +744,30 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                 </Modal>
             )}
 
-            <Modal isOpen={isConfirmOpen} onClose={onConfirmClose} size="md">
+            <Modal isOpen={isConfirmOpen} onClose={onConfirmClose} size="sm">
                 <ModalOverlay />
                 <ModalContent>
-                    <ModalHeader>
+                    <ModalHeader py={3} fontSize="md">
                         {approvalAction?.type === 'approve' ? 'Confirmar seleção' : 'Confirmar rejeição'}
                     </ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <Text>
+                    <ModalCloseButton size="sm" />
+                    <ModalBody py={3}>
+                        <Text fontSize="sm">
                             {approvalAction?.type === 'approve' 
                               ? 'Tem certeza que deseja selecionar este candidato?' 
                               : 'Tem certeza que deseja rejeitar este candidato?'}
                         </Text>
                     </ModalBody>
-                    <ModalFooter>
-                        <Button variant="outline" mr={3} onClick={onConfirmClose}>
+                    <ModalFooter py={2}>
+                        <Button variant="outline" mr={2} onClick={onConfirmClose} size="sm">
                             Cancelar
                         </Button>
                         <Button 
                             colorScheme={approvalAction?.type === 'approve' ? 'green' : 'red'} 
                             onClick={handleConfirmAction}
+                            size="sm"
                         >
-                            {approvalAction?.type === 'approve' ? 'Confirmar seleção' : 'Confirmar rejeição'}
+                            {approvalAction?.type === 'approve' ? 'Confirmar' : 'Rejeitar'}
                         </Button>
                     </ModalFooter>
                 </ModalContent>
