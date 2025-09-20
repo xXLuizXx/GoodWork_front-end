@@ -9,7 +9,7 @@ import {
 } from "@chakra-ui/react";
 import {BsThreeDotsVertical} from "react-icons/bs";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
-import {useAllJobs} from "@/services/hooks/Jobs/useAllJobs";
+import { useAllJobsForUserLogged } from "@/services/hooks/Jobs/useAllJobsForUserLogged";
 import { useEffect, useState } from "react";
 import decode from "jwt-decode";
 import { parseCookies } from "nookies";
@@ -19,7 +19,7 @@ interface DecodedToken {
     sub: string;
 }
 
-export function Jobs() {
+export function JobsForUser() {
     const [admin, setAdmin] = useState(false); 
     const [userId, setUserId] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -42,7 +42,7 @@ export function Jobs() {
         }
     }, []);
 
-    const {data} = useAllJobs(admin);
+    const {data} = useAllJobsForUserLogged();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedJob, setSelectedJob] = useState(null);
     

@@ -26,15 +26,8 @@ interface IGetJobsResponse {
     jobs: IJob[];
 }
 
-async function getJobs(isAdmin: boolean, search?: string): Promise<IGetJobsResponse> {
-    let response;
-    
-    if (isAdmin) {
-        const searchParam = search || "";
-        response = await api.get(`jobs/listAllJobs?search=${searchParam}`);
-    } else {
-        response = await api.get("jobs/list");
-    }
+async function getJobs(): Promise<IGetJobsResponse> {
+    const response = await api.get("jobs/listForUserLogged");
     
     const jobs = response.data.map((job: any) => {
         return {
@@ -61,15 +54,15 @@ async function getJobs(isAdmin: boolean, search?: string): Promise<IGetJobsRespo
     return { jobs };
 }
 
-function useAllJobs(admin: boolean, search?: string) {
+function useAllJobsForUserLogged() {
     return useQuery(
-        ["jobs/list", { admin, search }],
-        () => getJobs(admin, search),
+        ["jobs/listForUserLogged"],
+        () => getJobs(),
         {
             staleTime: 1000 * 60 * 10,
         }
     );
 }
 
-export { useAllJobs, getJobs };
+export { useAllJobsForUserLogged, getJobs };
 export type { IJob };

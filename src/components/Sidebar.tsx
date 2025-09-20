@@ -1,4 +1,4 @@
-import { Badge, Box, Button, ChakraProvider, Icon, Link, Stack, StackDivider, Text, useDisclosure } from "@chakra-ui/react";
+import { Badge, Box, Button, ChakraProvider, Icon, Link, Stack, StackDivider, Text, useDisclosure, VStack } from "@chakra-ui/react";
 import { RiDashboardLine } from "react-icons/ri";
 import { Image } from '@chakra-ui/react';
 import { TbReportAnalytics } from "react-icons/tb";
@@ -177,6 +177,40 @@ export function Sidebar(){
                                         </ChakraLink>
                                     </NextLink>
                                 ))}
+                                {(typeUser?.toString() === "individual") && (!admin) && (
+                                    <VStack align="start" spacing={2}>
+                                        {[
+                                            {
+                                                href: "/jobs/jobsRecommended",
+                                                text: "Recomendadas"
+                                            },
+                                            {
+                                                href: `/jobs/allJobs`,
+                                                text: "Todas"
+                                            }
+                                        ].map((link) => (
+                                            <NextLink key={link.href} href={link.href} legacyBehavior passHref>
+                                                <ChakraLink
+                                                    color="gray.500"
+                                                    fontSize="sm"
+                                                    fontWeight="bold"
+                                                    py={2}
+                                                    px={4}
+                                                    _hover={{
+                                                        color: "gray.600",
+                                                        transform: "scale(1.05)",
+                                                    }}
+                                                    transition="all 0.3s ease"
+                                                    textDecoration="none"
+                                                    display="block"
+                                                    width="100%"
+                                                >
+                                                    {link.text}
+                                                </ChakraLink>
+                                            </NextLink>
+                                        ))}
+                                    </VStack>
+                                )}
                                 {admin && (
                                     <NextLink href="/jobs/jobsNotValidated" legacyBehavior>
                                         <ChakraLink

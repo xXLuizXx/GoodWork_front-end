@@ -1,165 +1,182 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  Flex,
-  SimpleGrid,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Heading,
-  Text,
-  Button,
-  Badge,
-  Box,
-  Stack,
-  Divider,
-  useToast
+    Flex,
+    Card,
+    CardHeader,
+    CardBody,
+    Heading,
+    Text,
+    Button,
+    Box,
+    Stack,
+    Divider,
+    useToast,
+    VStack,
+    HStack,
+    Icon,
+    useDisclosure,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalCloseButton,
+    Input,
+    InputGroup,
+    InputLeftElement,
+    Tag,
+    TagLabel,
+    Grid
 } from '@chakra-ui/react';
 import { Jobs } from '../../Jobs/JobsIndividual/jobs';
+import { JobsForUser } from '@/components/Jobs/JobsIndividual/jobsForUserLogged';
+import { 
+    FiSearch, 
+    FiFilter, 
+    FiMapPin, 
+    FiBriefcase, 
+    FiDollarSign, 
+    FiClock,
+    FiArrowRight,
+    FiStar,
+    FiTrendingUp,
+    FiArrowUp
+} from 'react-icons/fi';
 
 export function HomeIndividual() {
-  const toast = useToast();
+    const toast = useToast();
+    const [showAllJobs, setShowAllJobs] = useState(false);
 
-  // Dados mockados - substitua por dados reais da sua API
-  const openJobs = [
-    {
-      id: 1,
-      title: 'Desenvolvedor Front-end',
-      company: 'Tech Solutions',
-      type: 'Remoto',
-      skills: ['React', 'TypeScript', 'CSS'],
-      applied: false
-    },
-    {
-      id: 2,
-      title: 'Designer UX/UI',
-      company: 'Creative Agency',
-      type: 'Híbrido',
-      skills: ['Figma', 'User Research', 'Prototyping'],
-      applied: true
-    }
-  ];
+    const handleShowAllJobs = () => {
+        setShowAllJobs(true);
+        setTimeout(() => {
+            document.getElementById('todas-vagas')?.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    };
 
-  const myApplications = [
-    {
-      id: 2,
-      title: 'Designer UX/UI',
-      company: 'Creative Agency',
-      status: 'Em análise',
-      appliedDate: '15/05/2023'
-    },
-    {
-      id: 3,
-      title: 'Product Manager',
-      company: 'Digital Products',
-      status: 'Entrevista agendada',
-      appliedDate: '10/05/2023'
-    }
-  ];
+    const handleHideAllJobs = () => {
+        setShowAllJobs(false);
+        setTimeout(() => {
+            document.getElementById('todas-vagas')?.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }, 100);
+    };
 
-  const handleApply = (jobId: number) => {
-    // Lógica para candidatura
-    toast({
-      title: 'Candidatura enviada!',
-      status: 'success',
-      duration: 3000,
-      isClosable: true,
-    });
-  };
+    return (
+        <Box p={4} maxWidth="1200px" mx="auto">
+            <Box 
+                bgGradient="linear(to-r, blue.600, blue.400)"
+                borderRadius="xl"
+                p={8}
+                mb={10}
+                color="white"
+                position="relative"
+                overflow="hidden"
+            >
+                <Box position="absolute" top="-50px" right="-50px" opacity={0.1}>
+                    <Icon as={FiBriefcase} boxSize="200px" />
+                </Box>
+                
+                <VStack spacing={4} align="start" position="relative" zIndex={1}>
+                    <Heading size="2xl" fontWeight="bold">
+                        Encontre sua vaga{" "}
+                        <Text as="span" color="yellow.300">perfeita</Text>
+                    </Heading>
+                    
+                    <Text fontSize="lg" opacity={0.9}>
+                        Conectamos talentos às melhores oportunidades do mercado
+                    </Text>
+                </VStack>
+            </Box>
 
-  return (
-    <Box p={4} maxWidth="1200px" mx="auto">
-      {/* Seção de Vagas Abertas */}
-      <Heading size="lg" mb={6} color="blue.800">
-        Vagas Disponíveis
-      </Heading>
-      
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={10}>
-        {openJobs.map((job) => (
-          <Card key={job.id} variant="outline" borderColor="gray.200">
-            <CardHeader>
-              <Flex justify="space-between" align="center">
-                <Heading size="md">{job.title}</Heading>
-                <Badge colorScheme="blue">{job.type}</Badge>
-              </Flex>
-              <Text fontSize="sm" color="gray.600">{job.company}</Text>
-            </CardHeader>
-            
-            <CardBody>
-              <Stack direction="row" wrap="wrap" spacing={2} mb={4}>
-                {job.skills.map((skill, index) => (
-                  <Badge key={index} colorScheme="green">{skill}</Badge>
-                ))}
-              </Stack>
-            </CardBody>
-            
-            <CardFooter>
-              {job.applied ? (
-                <Button colorScheme="green" size="sm" isDisabled>
-                  Já candidatado
-                </Button>
-              ) : (
-                <Button 
-                  colorScheme="blue" 
-                  size="sm"
-                  onClick={() => handleApply(job.id)}
-                >
-                  Candidatar-se
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
-        ))}
-      </SimpleGrid>
+            <Box mb={10}>
+                <Flex justify="space-between" align="center" mb={6}>
+                    <VStack align="start" spacing={1}>
+                        <Heading size="lg" color="blue.800">
+                            <Icon as={FiStar} color="yellow.400" mr={2} />
+                            Vagas Recomendadas
+                        </Heading>
+                        <Text color="gray.600" fontSize="sm">
+                            Selecionadas especialmente para seu perfil
+                        </Text>
+                    </VStack>
+                </Flex>
+                <JobsForUser />
+            </Box>
 
-      {/* Seção de Minhas Candidaturas */}
-      <Heading size="lg" mb={6} color="blue.800">
-        Minhas Candidaturas
-      </Heading>
-      
-      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={6} mb={10}>
-        {myApplications.map((application) => (
-          <Card key={application.id} variant="filled" bg="blue.50">
-            <CardHeader>
-              <Heading size="md">{application.title}</Heading>
-              <Text fontSize="sm" color="gray.600">{application.company}</Text>
-            </CardHeader>
-            
-            <CardBody>
-              <Flex align="center" justify="space-between">
-                <Text fontWeight="bold">Status:</Text>
-                <Badge 
-                  colorScheme={
-                    application.status === 'Em análise' ? 'yellow' : 
-                    application.status.includes('Entrevista') ? 'green' : 'gray'
-                  }
-                >
-                  {application.status}
-                </Badge>
-              </Flex>
-              <Text mt={2} fontSize="sm">
-                Data: {application.appliedDate}
-              </Text>
-            </CardBody>
-            
-            <CardFooter>
-              <Button size="sm" variant="outline">
-                Ver Detalhes
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </SimpleGrid>
+            <Divider my={8} />
 
-      <Divider my={8} />
-
-      {/* Componente Jobs */}
-      <Box mb={10}>
-        <Heading size="lg" mb={6} color="blue.800">
-          Mais Vagas para Você
-        </Heading>
-        <Jobs />
-      </Box>
-    </Box>
-  );
+            <Box mb={10} id="todas-vagas">
+                {!showAllJobs ? (
+                    <Card 
+                        bg="gray.50" 
+                        borderWidth="2px" 
+                        borderStyle="dashed" 
+                        borderColor="gray.200"
+                        _hover={{ borderColor: 'blue.300', transform: 'translateY(-2px)' }}
+                        transition="all 0.3s ease"
+                        cursor="pointer"
+                        onClick={handleShowAllJobs}
+                    >
+                        <CardBody>
+                            <VStack spacing={4} py={8} textAlign="center">
+                                <Icon as={FiTrendingUp} boxSize={10} color="blue.500" />
+                                <Heading size="md" color="blue.800">
+                                    Explore Todas as Vagas
+                                </Heading>
+                                <Text color="gray.600">
+                                    Descubra diversas oportunidades disponíveis no mercado
+                                </Text>
+                                <Button 
+                                    colorScheme="blue" 
+                                    size="lg"
+                                    rightIcon={<FiArrowRight />}
+                                >
+                                    Ver Todas as Vagas
+                                </Button>
+                            </VStack>
+                        </CardBody>
+                    </Card>
+                ) : (
+                    <>
+                        <Flex justify="space-between" align="center" mb={6}>
+                            <VStack align="start" spacing={1}>
+                                <Heading size="lg" color="blue.800">
+                                    Todas as Vagas
+                                </Heading>
+                                <Text color="gray.600" fontSize="sm">
+                                    Explore todas as oportunidades disponíveis
+                                </Text>
+                            </VStack>
+                            <Button 
+                                colorScheme="gray" 
+                                variant="outline"
+                                size="sm"
+                                leftIcon={<FiArrowUp />}
+                                onClick={handleHideAllJobs}
+                            >
+                                Recolher
+                            </Button>
+                        </Flex>
+                        <Jobs />
+                        <Flex justify="center" mt={6}>
+                            <Button 
+                                colorScheme="gray" 
+                                variant="outline"
+                                leftIcon={<FiArrowUp />}
+                                onClick={handleHideAllJobs}
+                            >
+                                Recolher Vagas
+                            </Button>
+                        </Flex>
+                    </>
+                )}
+            </Box>
+        </Box>
+    );
 }

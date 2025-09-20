@@ -1,32 +1,17 @@
-import {Flex, SimpleGrid, Text, VStack, Heading, Icon, Box} from "@chakra-ui/react";
+import {Box, Flex, Heading, Icon, SimpleGrid, Text, VStack} from "@chakra-ui/react";
 import {Sidebar} from "@/components/Sidebar";
 import {Header} from "@/components/Header/Header";
 import { Helmet } from "react-helmet";
-import {JobsCategory} from "@/components/Jobs/JobsIndividual/jobsCategories";
 import {useRouter} from "next/router";
+import { Jobs } from "@/components/Jobs/JobsIndividual/jobs";
 import { FiStar } from "react-icons/fi";
 
 interface ICategoriId{
     category_id: string;
 }
 
-export default function Jobs({category_id: string}: ICategoriId): JSX.Element {
+export default function AllJobs(): JSX.Element {
     const router = useRouter();
-    const { category_id } = router.query;
-
-    const getCategoryName = (id: string) => {
-        const categories: {[key: string]: string} = {
-            '1': 'Tecnologia',
-            '2': 'Design',
-            '3': 'Marketing',
-            '4': 'Vendas',
-            '5': 'Administrativo',
-            '6': 'Atendimento',
-            '7': 'Saúde',
-            '8': 'Educação',
-        };
-        return categories[id] || 'Vagas';
-    };
 
     return(
         <Flex direction="column" h="100vh">
@@ -36,31 +21,30 @@ export default function Jobs({category_id: string}: ICategoriId): JSX.Element {
             </Helmet>
             <Header/>
 
-            <Flex w="100%" my="6" maxWidth={1480} mx="auto" px="6">
+            <Flex w="100%" my="8" maxWidth={1480} mx="auto" px="4">
                 <Box mr="8">
                     <Sidebar/>
                 </Box>
-
+                
                 <Box flex="1">
                     <Flex justify="space-between" align="center" mb={6}>
                         <VStack align="start" spacing={1}>
                             <Heading size="lg" color="blue.800">
                                 <Icon as={FiStar} color="yellow.400" mr={2} />
-                                Vagas em Destaque
+                                Todas as vagas
                             </Heading>
                             <Text color="gray.600" fontSize="sm">
-                                As melhores oportunidades de vagas encontradas para a categoria selecionada
+                                Encontre a vaga desejada
                             </Text>
                         </VStack>
                     </Flex>
-
-                    {/* Grid de vagas */}
                     <SimpleGrid
-                        gap="6"
+                        gap="2"
                         w="100%"
-                        minChildWidth="300px"
+                        flex="1"
+                        minChildWidth={[200, 250]}
                     >
-                        <JobsCategory category_id={category_id}/>
+                        <Jobs/>
                     </SimpleGrid>
                 </Box>
             </Flex>

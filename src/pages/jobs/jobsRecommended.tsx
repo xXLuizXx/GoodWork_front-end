@@ -1,32 +1,17 @@
-import {Flex, SimpleGrid, Text, VStack, Heading, Icon, Box} from "@chakra-ui/react";
+import {Flex, Heading, Icon, SimpleGrid, Text, VStack, Box} from "@chakra-ui/react";
 import {Sidebar} from "@/components/Sidebar";
 import {Header} from "@/components/Header/Header";
 import { Helmet } from "react-helmet";
-import {JobsCategory} from "@/components/Jobs/JobsIndividual/jobsCategories";
 import {useRouter} from "next/router";
+import { JobsForUser } from "@/components/Jobs/JobsIndividual/jobsForUserLogged";
 import { FiStar } from "react-icons/fi";
 
 interface ICategoriId{
     category_id: string;
 }
 
-export default function Jobs({category_id: string}: ICategoriId): JSX.Element {
+export default function ListJobsRecommended(): JSX.Element {
     const router = useRouter();
-    const { category_id } = router.query;
-
-    const getCategoryName = (id: string) => {
-        const categories: {[key: string]: string} = {
-            '1': 'Tecnologia',
-            '2': 'Design',
-            '3': 'Marketing',
-            '4': 'Vendas',
-            '5': 'Administrativo',
-            '6': 'Atendimento',
-            '7': 'Saúde',
-            '8': 'Educação',
-        };
-        return categories[id] || 'Vagas';
-    };
 
     return(
         <Flex direction="column" h="100vh">
@@ -46,21 +31,20 @@ export default function Jobs({category_id: string}: ICategoriId): JSX.Element {
                         <VStack align="start" spacing={1}>
                             <Heading size="lg" color="blue.800">
                                 <Icon as={FiStar} color="yellow.400" mr={2} />
-                                Vagas em Destaque
+                                Vagas Recomendadas
                             </Heading>
                             <Text color="gray.600" fontSize="sm">
-                                As melhores oportunidades de vagas encontradas para a categoria selecionada
+                                Vagas selecionadas especialmente para o seu perfil
                             </Text>
                         </VStack>
                     </Flex>
-
-                    {/* Grid de vagas */}
+                    
                     <SimpleGrid
                         gap="6"
                         w="100%"
                         minChildWidth="300px"
                     >
-                        <JobsCategory category_id={category_id}/>
+                        <JobsForUser/>
                     </SimpleGrid>
                 </Box>
             </Flex>
