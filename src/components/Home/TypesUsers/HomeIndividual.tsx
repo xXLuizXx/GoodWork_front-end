@@ -109,7 +109,7 @@ export function HomeIndividual() {
                 <JobsForUser />
             </Box>
 
-            <Divider my={8} />
+            <Divider my={1} />
 
             <Box mb={10} id="todas-vagas">
                 {!showAllJobs ? (

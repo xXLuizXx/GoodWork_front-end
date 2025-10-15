@@ -5,7 +5,12 @@ import {
   ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon,
   Grid,
   useBreakpointValue,
-  HStack
+  HStack,
+  FormControl,
+  FormLabel,
+  Input,
+  FormErrorMessage,
+  useToast
 } from "@chakra-ui/react";
 import {BsThreeDotsVertical} from "react-icons/bs";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
@@ -13,10 +18,24 @@ import {useAllJobs} from "@/services/hooks/Jobs/useAllJobs";
 import { useEffect, useState } from "react";
 import decode from "jwt-decode";
 import { parseCookies } from "nookies";
+import { useForm } from "react-hook-form";
+import { api } from "@/services/apiClient";
+import { useMutation, useQueryClient } from "react-query";
+import Router from "next/router";
 
 interface DecodedToken {
     isAdmin: boolean;
     sub: string;
+}
+
+interface JobApplicationForm {
+  curriculum_user: FileList;
+}
+
+interface IApplicationVancacy{
+    user_id: string;
+    job_id: string;
+    curriculum_user: File;
 }
 
 export function Jobs() {
@@ -24,6 +43,8 @@ export function Jobs() {
     const [userId, setUserId] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
+    const toast = useToast();
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         const cookies = parseCookies();
@@ -32,9 +53,9 @@ export function Jobs() {
         if (token) {
             try {
                 const decoded = decode<DecodedToken>(token);
+                setUserId(decoded.sub);
                 if (decoded.isAdmin) {
                     setAdmin(decoded.isAdmin);
-                    setUserId(decoded.sub);
                 }
             } catch (error) {
                 console.error("Erro ao decodificar o token:", error);
@@ -44,8 +65,58 @@ export function Jobs() {
 
     const {data} = useAllJobs(admin);
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const [selectedJob, setSelectedJob] = useState(null);
+    const { 
+        isOpen: isApplyOpen, 
+        onOpen: onApplyOpen, 
+        onClose: onApplyClose 
+    } = useDisclosure();
     
+    const [selectedJob, setSelectedJob] = useState(null);
+    const [selectedJobForApplication, setSelectedJobForApplication] = useState(null);
+    
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+        reset,
+        watch
+    } = useForm<JobApplicationForm>();
+
+    const applicationMutation = useMutation(
+        async (formData: FormData) => {
+            const response = await api.post("application", formData, {
+                headers: { 
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            return response.data;
+        },
+        {
+            onSuccess: () => {
+                toast({
+                    title: "Candidatura enviada!",
+                    description: "Sua candidatura foi enviada com sucesso. Agora só aguardar o processo de seleção da empresa.",
+                    status: "success",
+                    position: "top",
+                    duration: 8000,
+                    isClosable: true,
+                });
+                queryClient.invalidateQueries("application");
+                Router.push("/");
+            },
+            onError: (error: any) => {
+                toast({
+                    title: "Erro ao enviar",
+                    description: error.response?.data?.message || "Erro ao realizar candidatura",
+                    status: "error",
+                    position: "top",
+                    duration: 8000,
+                    isClosable: true,
+                });
+            }
+        }
+    );
+
     const getGridTemplateColumns = () => {
         if (!data?.jobs) return "1fr";
         
@@ -80,6 +151,71 @@ export function Jobs() {
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleApplyClick = (job) => {
+        setSelectedJobForApplication(job);
+        onApplyOpen();
+    };
+
+    const onSubmitApplication = async (data: JobApplicationForm) => {
+        try {
+            const file = data.curriculum_user[0];
+            
+            if (file.type !== 'application/pdf') {
+                toast({
+                    title: "Formato inválido",
+                    description: "Por favor, envie um arquivo no formato PDF.",
+                    status: "error",
+                    duration: 5000,
+                    isClosable: true,
+                });
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                toast({
+                    title: "Arquivo muito grande",
+                    description: "O arquivo deve ter no máximo 5MB.",
+                    status: "error",
+                    duration: 5000,
+                    isClosable: true,
+                });
+                return;
+            }
+
+            if (!userId) {
+                toast({
+                    title: "Usuário não autenticado",
+                    description: "Por favor, faça login para concorrer à vaga.",
+                    status: "error",
+                    duration: 5000,
+                    isClosable: true,
+                });
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("curriculum_user", file);
+            formData.append("job_id", selectedJobForApplication.id);
+            formData.append("user_id", userId);
+
+            console.log("Enviando candidatura:", {
+                jobId: selectedJobForApplication.id,
+                userId: userId,
+                fileName: file.name,
+                fileSize: file.size
+            });
+
+            await applicationMutation.mutateAsync(formData);
+
+            onApplyClose();
+            reset();
+            setSelectedJobForApplication(null);
+
+        } catch (error) {
+            console.error("Erro ao enviar aplicação:", error);
+        }
     };
 
     const paginatedJobs = getPaginatedJobs();
@@ -179,6 +315,7 @@ export function Jobs() {
                                             boxShadow: "sm"
                                         }}
                                         transition="all 0.2s ease"
+                                        onClick={() => handleApplyClick(job)}
                                     >
                                         Concorrer
                                     </Button>
@@ -206,8 +343,6 @@ export function Jobs() {
                         </Card>
                     ))}
                 </Grid>
-
-                {/* Paginação */}
                 {totalPages > 1 && (
                     <HStack spacing={2} mt={8} justify="center" flexWrap="wrap">
                         <Button
@@ -238,8 +373,6 @@ export function Jobs() {
                         </Button>
                     </HStack>
                 )}
-                
-                {/* Modal (mantido fora do grid) */}
                 <Modal
                     isCentered
                     onClose={() => {
@@ -359,6 +492,132 @@ export function Jobs() {
                                 Fechar
                             </Button>
                         </ModalFooter>
+                    </ModalContent>
+                </Modal>
+                <Modal
+                    isCentered
+                    onClose={() => {
+                        setSelectedJobForApplication(null);
+                        onApplyClose();
+                        reset();
+                    }}
+                    isOpen={isApplyOpen}
+                    motionPreset="slideInBottom"
+                    size="lg"
+                >
+                    <ModalOverlay />
+                    <ModalContent borderRadius="lg" boxShadow="2xl">
+                        <ModalHeader 
+                            bg="green.50" 
+                            borderTopRadius="lg"
+                            alignItems="center"
+                        >
+                            <Flex flex="1" gap="4" alignItems="center">
+                                <Avatar 
+                                    size="sm" 
+                                    name="avatar" 
+                                    src={selectedJobForApplication?.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJobForApplication?.user_avatar}` : "./Img/icons/empresaTeste.jpg"}
+                                />
+                                <Box>
+                                    <Text fontWeight="bold" fontSize="lg">
+                                        Concorrer à Vaga
+                                    </Text>
+                                    <Text fontSize="sm" color="gray.600">
+                                        {selectedJobForApplication?.vacancy}
+                                    </Text>
+                                </Box>
+                            </Flex>
+                        </ModalHeader>
+                        <ModalCloseButton />
+                        
+                        <form onSubmit={handleSubmit(onSubmitApplication)}>
+                            <ModalBody p="6">
+                                <VStack spacing="6" align="stretch">
+                                    <Alert status="info" borderRadius="md">
+                                        <AlertIcon />
+                                        <Text fontSize="sm">
+                                            Para concorrer a esta vaga, é obrigatório enviar seu currículo em formato PDF.
+                                        </Text>
+                                    </Alert>
+
+                                    <FormControl isInvalid={!!errors.curriculum_user} isRequired>
+                                        <FormLabel fontSize="sm" fontWeight="bold">
+                                            Currículo (PDF)
+                                        </FormLabel>
+                                        <Input
+                                            type="file"
+                                            accept=".pdf"
+                                            {...register("curriculum_user", {
+                                                required: "O currículo é obrigatório",
+                                                validate: {
+                                                    isPDF: (files) => {
+                                                        if (files && files[0]) {
+                                                            return files[0].type === 'application/pdf' || 
+                                                                   files[0].name.toLowerCase().endsWith('.pdf') ||
+                                                                   "Apenas arquivos PDF são aceitos";
+                                                        }
+                                                        return true;
+                                                    },
+                                                    fileSize: (files) => {
+                                                        if (files && files[0]) {
+                                                            return files[0].size <= 5 * 1024 * 1024 || 
+                                                                   "O arquivo deve ter no máximo 5MB";
+                                                        }
+                                                        return true;
+                                                    }
+                                                }
+                                            })}
+                                            p="1"
+                                        />
+                                        <FormErrorMessage>
+                                            {errors.curriculum_user?.message}
+                                        </FormErrorMessage>
+                                        <Text fontSize="xs" color="gray.600" mt="2">
+                                            Tamanho máximo: 5MB • Formato aceito: PDF
+                                        </Text>
+                                    </FormControl>
+
+                                    {watch("curriculum_user")?.[0] && (
+                                        <Alert status="success" borderRadius="md" size="sm">
+                                            <AlertIcon />
+                                            <Box>
+                                                <Text fontSize="sm" fontWeight="medium">
+                                                    Arquivo selecionado:
+                                                </Text>
+                                                <Text fontSize="xs">
+                                                    {watch("curriculum_user")[0].name} 
+                                                    ({(watch("curriculum_user")[0].size / 1024 / 1024).toFixed(2)} MB)
+                                                </Text>
+                                            </Box>
+                                        </Alert>
+                                    )}
+                                </VStack>
+                            </ModalBody>
+
+                            <ModalFooter>
+                                <Button 
+                                    variant="outline" 
+                                    mr={3} 
+                                    onClick={() => {
+                                        setSelectedJobForApplication(null);
+                                        onApplyClose();
+                                        reset();
+                                    }}
+                                    isDisabled={isSubmitting}
+                                >
+                                    Cancelar
+                                </Button>
+                                <Button 
+                                    colorScheme="green" 
+                                    type="submit"
+                                    isLoading={isSubmitting || applicationMutation.isLoading}
+                                    loadingText="Enviando..."
+                                    isDisabled={!watch("curriculum_user")?.[0]}
+                                >
+                                    Enviar Candidatura
+                                </Button>
+                            </ModalFooter>
+                        </form>
                     </ModalContent>
                 </Modal>
             </>
