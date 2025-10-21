@@ -40,7 +40,7 @@ export function HomeCompany(): JSX.Element {
     }, []);
     const cards = [
         {
-            title: 'Vagas',
+            title: 'Minhas Vagas',
             borderColor: 'blue',
             bgColor: '#FFFFFF',
             hoverColor: '#FFFFFF',

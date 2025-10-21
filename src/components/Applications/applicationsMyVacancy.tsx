@@ -7,7 +7,7 @@ import {
 } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { FaFilePdf } from "react-icons/fa";
 import { FiMail, FiPhone, FiBriefcase } from "react-icons/fi";
 import { useRouter } from "next/router";
@@ -15,6 +15,7 @@ import { useAllApplicationsVacancy } from "@/services/hooks/applications/useAllA
 import { IApplicationsVacancyCompany } from "@/services/hooks/applications/useAllApplicationsVacancyCompany";
 import { api } from "@/services/apiClient";
 import { ChevronLeftIcon } from "@chakra-ui/icons";
+import { AuthContext } from "@/contexts/AuthContext";
 
 interface IApplicationMyVacancyProps {
    id: string;
@@ -37,9 +38,32 @@ interface FinalApprovalPayload {
     selected_count: number;
 }
 
+interface BatchRejectionEmail {
+    to: string;
+    candidate_name: string;
+    company_name: string;
+    vacancy_name: string;
+}
+
+interface BatchRejectionResponse {
+    success: boolean;
+    sent: number;
+    failed: number;
+    total: number;
+}
+
+interface JobData {
+    vacancy: string;
+    amount_vacancy: number;
+    company?: {
+        name: string;
+    };
+}
+
 const ITEMS_PER_PAGE = 10;
 
 export function MyApplications({ id }: IApplicationMyVacancyProps) {
+    const { user } = useContext(AuthContext);
     const router = useRouter();
     const { 
         isOpen: isDetailsOpen, 
@@ -59,6 +83,8 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
 
     const [approvalList, setApprovalList] = useState<ApprovalList>({});
     const [draggedItem, setDraggedItem] = useState<string | null>(null);
+    const [job, setJob] = useState<JobData | null>(null);
+    const [isLoadingJob, setIsLoadingJob] = useState(true);
 
     const [approvedCount, setApprovedCount] = useState(0);
     const [rejectedCount, setRejectedCount] = useState(0);
@@ -66,8 +92,26 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
 
     const { data: applications = [], isLoading, isError } = useAllApplicationsVacancy(id);
     const totalApplicationVacancy = applications.length;
-    const totalVacancyJob = applications[0]?.job?.amount_vacancy || 0;
+    const totalVacancyJob = job?.amount_vacancy || applications[0]?.job?.amount_vacancy || 0;
     const remainingPositions = totalVacancyJob - approvedCount;
+
+    useEffect(() => {
+        const fetchJob = async () => {
+            try {
+                setIsLoadingJob(true);
+                const response = await api.get(`/jobs/getJob?id=${id}`);
+                setJob(response.data);
+            } catch (error) {
+                console.error("Erro ao buscar dados da vaga:", error);
+            } finally {
+                setIsLoadingJob(false);
+            }
+        };
+
+        if (id) {
+            fetchJob();
+        }
+    }, [id]);
 
     useEffect(() => {
         if (applications.length > 0) {
@@ -134,7 +178,6 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                 }
             }));
 
-            // Atualizar contadores
             const currentStatus = approvalList[applicationId]?.approved;
             
             if (targetStatus === true) {
@@ -148,7 +191,6 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                     setApprovedCount(prev => prev - 1);
                 }
             } else {
-                // Se voltou para pendente
                 if (currentStatus === true) {
                     setApprovedCount(prev => prev - 1);
                 } else if (currentStatus === false) {
@@ -228,7 +270,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         
         try {
             const payload = {
-                decisions: {} as FinalApprovalPayload,
+                decisions: {} as any,
                 selected_count: approvedCount
             };
             
@@ -240,7 +282,49 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             });
 
             await api.patch(`/application/finalizeApplications`, payload);
-            
+
+            const rejectedApplications = applications.filter(app => 
+                approvalList[app.id]?.approved === false
+            );
+
+            if (rejectedApplications.length > 0) {
+                try {
+                    const batchRejectionData: BatchRejectionEmail[] = rejectedApplications.map(app => ({
+                        to: app.user?.email || '',
+                        candidate_name: app.user?.name || 'Candidato',
+                        company_name: user?.name || job?.company?.name || "Nossa empresa",
+                        vacancy_name: job?.vacancy || "a vaga"
+                    }));
+
+                    const response = await api.post<BatchRejectionResponse>('/mail/batch-rejections', {
+                        rejections: batchRejectionData,
+                        template_type: "rejection"
+                    });
+
+                    console.log(`Lote de ${rejectedApplications.length} e-mails enviado com sucesso`);
+                    
+                    if (response.data.failed > 0) {
+                        toast({
+                            title: "Aviso",
+                            description: `Processo finalizado, mas ${response.data.failed} e-mail(s) não foram enviados`,
+                            status: "warning",
+                            duration: 5000,
+                            isClosable: true,
+                        });
+                    }
+                    
+                } catch (batchError) {
+                    console.error("Erro no envio em lote:", batchError);
+                    toast({
+                        title: "Aviso",
+                        description: "Processo finalizado, mas os e-mails de rejeição não foram enviados",
+                        status: "warning",
+                        duration: 4000,
+                        isClosable: true,
+                    });
+                }
+            }
+
             const pendingApplications = applications.filter(app => approvalList[app.id]?.approved === null);
             const newApprovalList = { ...approvalList };
             
@@ -261,22 +345,25 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             
             toast({
                 title: "Processo finalizado!",
-                description: "Todas as candidaturas foram avaliadas com sucesso.",
+                description: rejectedApplications.length > 0 
+                    ? `${rejectedApplications.length} candidatos rejeitados foram notificados.`
+                    : "Processo de seleção concluído.",
                 status: "success",
                 duration: 5000,
                 isClosable: true,
             });
 
         } catch (error) {
+            console.error("Erro ao finalizar processo:", error);
             toast({
                 title: "Erro ao finalizar",
-                description: error.message || "Ocorreu um erro ao finalizar o processo",
+                description: error.response?.data?.message || "Ocorreu um erro ao finalizar o processo",
                 status: "error",
                 duration: 3000,
                 isClosable: true,
             });
         } finally {
-          setIsFinalizing(false);
+            setIsFinalizing(false);
         }
     };
 
@@ -285,12 +372,11 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         onDetailsOpen();
     };
 
-    // Separar aplicações por status
     const pendingApplications = applications.filter(app => approvalList[app.id]?.approved === null);
     const approvedApplications = applications.filter(app => approvalList[app.id]?.approved === true);
     const rejectedApplications = applications.filter(app => approvalList[app.id]?.approved === false);
 
-    if (isLoading) {
+    if (isLoading || isLoadingJob) {
         return (
             <Center h="200px">
                 <Spinner size="xl" />
@@ -316,7 +402,6 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         );
     }
 
-    // Componente de card de aplicação (reutilizável)
     const ApplicationCard = ({ application }: { application: IApplicationsVacancyCompany }) => {
         const isApproved = approvalList[application.id]?.approved === true;
         const isRejected = approvalList[application.id]?.approved === false;
@@ -475,6 +560,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             >
               <HStack spacing="3">
                   <Text fontWeight="bold" fontSize="sm">
+                      Vaga: {job?.vacancy} | 
                       Vagas: {approvedCount}/{totalVacancyJob} | 
                       Candidaturas: {totalApplicationVacancy} | 
                       Selecionadas: {approvedCount} | 
@@ -547,7 +633,6 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             )}
 
             <Grid templateColumns="repeat(3, 1fr)" gap={4} mt={4}>
-                {/* Coluna 1: Candidaturas Pendentes */}
                 <GridItem 
                     colSpan={1} 
                     p={3} 
@@ -581,8 +666,6 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                         )}
                     </VStack>
                 </GridItem>
-
-                {/* Coluna 2: Candidatos Selecionados */}
                 <GridItem 
                     colSpan={1} 
                     p={3} 
@@ -618,8 +701,6 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                         )}
                     </VStack>
                 </GridItem>
-
-                {/* Coluna 3: Candidatos Não Selecionados */}
                 <GridItem 
                     colSpan={1} 
                     p={3} 
