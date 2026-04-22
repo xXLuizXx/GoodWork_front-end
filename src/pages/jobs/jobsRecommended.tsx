@@ -14,7 +14,7 @@ export default function ListJobsRecommended(): JSX.Element {
     const router = useRouter();
 
     return(
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Vagas</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>
@@ -39,13 +39,7 @@ export default function ListJobsRecommended(): JSX.Element {
                         </VStack>
                     </Flex>
                     
-                    <SimpleGrid
-                        gap="6"
-                        w="100%"
-                        minChildWidth="300px"
-                    >
-                        <JobsForUser/>
-                    </SimpleGrid>
+                    <JobsForUser/>
                 </Box>
             </Flex>
         </Flex>

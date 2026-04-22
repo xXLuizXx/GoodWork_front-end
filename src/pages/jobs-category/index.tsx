@@ -29,7 +29,7 @@ export default function Jobs({category_id: string}: ICategoriId): JSX.Element {
     };
 
     return(
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Vagas</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>

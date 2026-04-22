@@ -7,13 +7,21 @@ interface IApplicationsVacancyCompany {
     job_id: string;
     curriculum_user: string;
     user_id: string;
-    user_name: string;
-    user_email: string;
-    user_telephone: string;
-    user_avatar: string;
-    individualUser_functionn: string;
-    job_amount_vacancy: number;
     created_at: Date;
+    user?: {
+        name: string;
+        email: string;
+        telephone: string;
+        avatar: string;
+        individualData?: {
+            functionn: string;
+        };
+    };
+    job?: {
+        vacancy: string;
+        amount_vacancy: number;
+        vacancy_available: boolean;
+    };
 }
 
 async function getApplications(id: string): Promise<IApplicationsVacancyCompany[]> {

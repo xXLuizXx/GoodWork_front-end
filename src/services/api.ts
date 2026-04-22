@@ -76,6 +76,7 @@ function setupAPIClient(ctx = undefined){
                     });
                 }
                 if (process.browser) {
+                    delete api.defaults.headers["Authorization"];
                     signOut();
                 } else {
                     return Promise.reject(new AuthTokenError());

@@ -149,8 +149,8 @@ export default function CreateJob(): JSX.Element {
     return (
         <Flex 
             as="form"
-            direction="column" 
-            h="100vh"
+            direction="column"
+            minH="100vh"
             onSubmit={handleSubmit(createHandle)}
         >
             <Helmet>

@@ -115,7 +115,7 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
                 alignSelf="center"
                 color="gray.50"
                 position="relative"
-                bg="gray.200"
+                bg="white"
                 borderRadius="full"
             >
                 <Input

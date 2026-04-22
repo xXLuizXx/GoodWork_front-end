@@ -15,12 +15,13 @@ async function getCountCategoriesNotValidated(): Promise<ICountCategoriesNotVali
     return data;
 }
 
-function useCountCategoriesNotValidated() {
+function useCountCategoriesNotValidated(options?: { enabled?: boolean }) {
     return useQuery<ICountCategoriesNotValidated>(
         ["categories/categoriesNotValidated"],
         getCountCategoriesNotValidated,
         {
             staleTime: 1000 * 60 * 10,
+            enabled: options?.enabled ?? true,
         }
     );
 }

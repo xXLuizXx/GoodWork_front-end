@@ -237,20 +237,24 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                 transition: "all 0.2s ease"
                             }}
                         >
-                            <CardHeader p="2.5">
-                                <Flex>
-                                    <Flex flex="1" gap="4" alignItems="center">
-                                        <Avatar name="avatar" src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"}/>
-                                        <Box>
+                            <CardHeader p="2">
+                                <Flex align="center" justify="space-between" wrap="wrap" gap="1">
+                                    <Flex flex="1" gap="3" alignItems="center" minW="0">
+                                        <Avatar 
+                                            size="sm"
+                                            name="avatar" 
+                                            src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"}
+                                        />
+                                        <Box minW="0" flex="1">
                                             <Heading size="sm">
-                                                <Text fontSize="14">
+                                                <Text fontSize="13" noOfLines={1} fontWeight="semibold">
                                                     {job.vacancy}
                                                 </Text>
                                             </Heading>
-                                            <Text fontSize="12">
+                                            <Text fontSize="11" noOfLines={1}>
                                                 {(job.contractor == null || job.contractor == "") ? job.user_name : job.contractor}
                                             </Text>
-                                            <Text fontSize="10" color="gray.500" mt="1">
+                                            <Text fontSize="9" color="gray.500" mt="0.5">
                                                 Encerra em: {closingDateFormatted}
                                             </Text>
                                         </Box>
@@ -258,8 +262,10 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                     <Tooltip label={`Data de encerramento: ${closingDateFormatted}`}>
                                         <Badge 
                                             colorScheme={isClosed ? "red" : "green"}
-                                            alignSelf="flex-start"
-                                            ml="2"
+                                            fontSize="9px"
+                                            px={1.5}
+                                            py={0.5}
+                                            flexShrink={0}
                                         >
                                             {isClosed ? "Fechada" : "Aberta"}
                                         </Badge>

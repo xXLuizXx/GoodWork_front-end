@@ -44,10 +44,12 @@ const AuthContext = createContext({} as IAuthContextData);
 let authChannel: BroadcastChannel;
 
 function signOut(): void {
-  destroyCookie(undefined, "token.token");
-  destroyCookie(undefined, "token.refreshToken");
+  destroyCookie(undefined, "token.token", { path: "/" });
+  destroyCookie(undefined, "token.refreshToken", { path: "/" });
 
-  authChannel.postMessage("signOut");
+  if (authChannel) {
+    authChannel.postMessage("signOut");
+  }
 
   Router.push("/");
 }

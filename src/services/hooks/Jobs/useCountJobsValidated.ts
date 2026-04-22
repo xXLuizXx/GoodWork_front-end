@@ -13,12 +13,13 @@ async function getCountJobsVacancyNotValidated(): Promise<ICountJobsNotValidated
     };
 }
 
-function useCountJobsNotValidated() {
+function useCountJobsNotValidated(options?: { enabled?: boolean }) {
     return useQuery<ICountJobsNotValidated>(
         ["jobs/countVacancyNotValidated"],
         getCountJobsVacancyNotValidated,
         {
             staleTime: 1000 * 60 * 10,
+            enabled: options?.enabled ?? true,
         }
     );
 }

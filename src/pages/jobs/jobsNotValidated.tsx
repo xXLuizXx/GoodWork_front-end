@@ -13,7 +13,7 @@ export default function JobsNotValidatedd(): JSX.Element {
     const router = useRouter();
 
     return(
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Vagas</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>

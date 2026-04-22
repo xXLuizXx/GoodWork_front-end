@@ -117,7 +117,7 @@ function HeaderAdminCategories({ onSearch, searchValue, onSearchChange, redirect
                 alignSelf="center"
                 color="gray.50"
                 position="relative"
-                bg="gray.200"
+                bg="white"
                 borderRadius="full"
             >
                 <Input

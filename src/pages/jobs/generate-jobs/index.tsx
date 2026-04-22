@@ -1,4 +1,4 @@
-import { Flex, SimpleGrid } from "@chakra-ui/react";
+import { Flex, Box } from "@chakra-ui/react";
 import { Sidebar } from "@/components/Sidebar";
 import { Helmet } from "react-helmet";
 import { useRouter } from "next/router";
@@ -45,14 +45,9 @@ export default function GenerateJobs(): JSX.Element {
 
             <Flex w="100%" my="8" maxWidth={1480} mx="auto" px="4">
                 <Sidebar/>
-                <SimpleGrid
-                    gap="2"
-                    w="100%"
-                    flex="1"
-                    minChildWidth={[200, 250]}
-                >
+                <Box w="100%" flex="1">
                     <GenerateAllJobs search={searchTerm}/>
-                </SimpleGrid>
+                </Box>
             </Flex>
         </Flex>
     );

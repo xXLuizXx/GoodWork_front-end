@@ -267,10 +267,6 @@ export default function CreateUser(): JSX.Element {
 
     const createHandle: SubmitHandler<ICreateUser> = async (data) => {
         const formDataToSend = new FormData();
-        
-        console.log(">>>>>>>>>>>>DADOS<<<<<<<<<<<<<");
-        console.log(data);
-
         for (const [key, value] of Object.entries(data)) {
             if (key === "curriculum" && value instanceof File) {
                 formDataToSend.append(key, value);
@@ -599,7 +595,7 @@ export default function CreateUser(): JSX.Element {
                                                         </InputGroup>
                                                     )}
                                                     
-                                                    <SimpleGrid columns={[2, 3, 4]} spacing={2} mb={filteredCategories.length > 12 ? 3 : 0}>
+                                                    <SimpleGrid columns={[2, 2, 3, 4]} spacing={2} mb={filteredCategories.length > 12 ? 3 : 0}>
                                                         {paginatedCategories.map(category => (
                                                             <Button
                                                                 key={category.id}
@@ -608,6 +604,14 @@ export default function CreateUser(): JSX.Element {
                                                                 colorScheme="blue"
                                                                 onClick={() => handleCategorySelect(category.id)}
                                                                 isDisabled={selectedCategories.length >= 3 && !selectedCategories.includes(category.id)}
+                                                                whiteSpace="normal"
+                                                                wordBreak="break-word"
+                                                                textAlign="center"
+                                                                height="auto"
+                                                                minHeight="40px"
+                                                                py={2}
+                                                                px={3}
+                                                                lineHeight="short"
                                                             >
                                                                 {category.name}
                                                             </Button>

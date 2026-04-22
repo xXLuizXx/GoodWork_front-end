@@ -14,7 +14,7 @@ export default function AllJobs(): JSX.Element {
     const router = useRouter();
 
     return(
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Vagas</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>
@@ -38,14 +38,7 @@ export default function AllJobs(): JSX.Element {
                             </Text>
                         </VStack>
                     </Flex>
-                    <SimpleGrid
-                        gap="2"
-                        w="100%"
-                        flex="1"
-                        minChildWidth={[200, 250]}
-                    >
-                        <Jobs/>
-                    </SimpleGrid>
+                    <Jobs/>
                 </Box>
             </Flex>
         </Flex>

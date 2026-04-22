@@ -209,14 +209,14 @@ export default function EditJob(): JSX.Element {
 
     if (isLoading) {
         return (
-            <Flex justify="center" align="center" h="100vh">
+            <Flex justify="center" align="center" minH="100vh">
                 <Spinner size="xl" color="blue.500" />
             </Flex>
         );
     }
 
     return (
-        <Flex direction="column" h="100vh" as="form" onSubmit={handleSubmit(handleSubmitForm)}>
+        <Flex direction="column" minH="100vh" as="form" onSubmit={handleSubmit(handleSubmitForm)}>
             <Helmet>
                 <title>Dashboard</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>

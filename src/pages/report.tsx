@@ -57,7 +57,7 @@ const series = [
 
 export default function Report(){
     return (
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Header/>
 
             <Flex w="100%" my="6" maxWidth={1480} mx="auto" px="6">

@@ -8,7 +8,7 @@ export default function Dashboard(){
     return (
 
 
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Dashboard</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>

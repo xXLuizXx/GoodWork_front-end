@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
-import CardImage from '../../../../public/Img/icons/vagasCard.png';
+import CardImage from '../../../../public/Img/icons/vagasCard2.jpg';
 import { parseCookies } from 'nookies';
 import decode from "jwt-decode";
 
@@ -58,7 +58,7 @@ export function HomeCompany(): JSX.Element {
     const MotionCard = motion(Card);
 
     const cardImages = {
-        Perfis: "/Img/icons/perfisCard.jpeg",
+        Perfis: "/Img/icons/perfisCard2.jpg",
         default: CardImage.src
     };
     return (

@@ -14,7 +14,7 @@ export default function Profile({user: string}: IUser): JSX.Element {
     const { user } = router.query;
 
     return(
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Perfil de Usuário</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>

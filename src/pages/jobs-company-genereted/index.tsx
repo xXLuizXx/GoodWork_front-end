@@ -18,8 +18,8 @@ export default function GeneretedVancancys({id: string}: IUser): JSX.Element {
     return (
         <Flex 
             as="form"
-            direction="column" 
-            h="100vh"
+            direction="column"
+            minH="100vh"
         >
             <Helmet>
                 <title>Gerenciar vagas</title>

@@ -15,7 +15,7 @@ export default function Jobs({vacancy: string}: IVacancy): JSX.Element {
     const { vacancy } = router.query;
 
     return(
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Vagas</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>
@@ -47,13 +47,7 @@ export default function Jobs({vacancy: string}: IVacancy): JSX.Element {
                     </Flex>
 
                     {/* Grid de vagas */}
-                    <SimpleGrid
-                        gap="6"
-                        w="100%"
-                        minChildWidth="300px"
-                    >
-                        <JobsVacancy vacancy={vacancy}/>
-                    </SimpleGrid>
+                    <JobsVacancy vacancy={vacancy}/>
                 </Box>
             </Flex>
         </Flex>

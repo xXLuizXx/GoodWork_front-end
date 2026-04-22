@@ -104,7 +104,7 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
                 alignSelf="center"
                 color="gray.50"
                 position="relative"
-                bg="gray.200"
+                bg="white"
                 borderRadius="full"
             >
                 <Input

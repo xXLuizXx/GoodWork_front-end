@@ -248,7 +248,7 @@ export default function SearchAllUsers() {
 
     if (isLoading) {
         return (
-            <Flex justify="center" align="center" h="100vh">
+            <Flex justify="center" align="center" minH="100vh">
                 <Text>Carregando...</Text>
             </Flex>
         );
@@ -256,7 +256,7 @@ export default function SearchAllUsers() {
 
     if (searchTerm && users.length === 0) {
         return (
-            <Flex direction="column" h="100vh">
+            <Flex direction="column" minH="100vh">
                 <HeaderSearchProfiles 
                     id={userId}
                     searchValue={searchTerm}
@@ -278,7 +278,7 @@ export default function SearchAllUsers() {
     }
 
     return (
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Buscar Perfis</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />

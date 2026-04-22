@@ -255,14 +255,14 @@ export default function ListAllDataUsers() {
     };
     if (isLoading) {
         return (
-            <Flex justify="center" align="center" h="100vh">
+            <Flex justify="center" align="center" minH="100vh">
                 <Text>Carregando...</Text>
             </Flex>
         );
     }
     if (data?.users?.length === 0) {
         return (
-            <Flex direction="column" h="100vh">
+            <Flex direction="column" minH="100vh">
                 <HeaderSearchProfiles 
                     id={userId}
                     searchValue={searchTerm}
@@ -284,7 +284,7 @@ export default function ListAllDataUsers() {
     }
 
     return (
-        <Flex as="form" direction="column" h="100vh">
+        <Flex as="form" direction="column" minH="100vh">
             <Helmet>
                 <title>Buscar Perfis</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />
@@ -367,7 +367,15 @@ export default function ListAllDataUsers() {
                                 <CardHeader p="2">
                                     <Flex>
                                         <Flex flex="1" gap="4" alignItems="center">
-                                            <Avatar name={profile.name} src={profile.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${profile.avatar}` : "../../../Img/icons/avatarLogin.png"} size="md" />
+                                            <Link href={`/profile?user=${profile.id}`}>
+                                                <div className="cursor-pointer hover:opacity-80 transition-opacity">
+                                                    <Avatar 
+                                                        name={profile.name} 
+                                                        src={profile.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${profile.avatar}` : "../../../Img/icons/avatarLogin.png"} 
+                                                        size="md" 
+                                                    />
+                                                </div>
+                                            </Link>
                                             <Box>
                                                 <Heading size="sm">
                                                     <Text fontSize="12" noOfLines={1}>
@@ -476,7 +484,12 @@ export default function ListAllDataUsers() {
                     <ModalContent>
                         <ModalHeader>
                             <Flex align="center">
-                                <Avatar name={selectedProfile.name} src={selectedProfile.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedProfile.avatar}` : "../../../Img/icons/avatarLogin.png"} mr="4" />
+                                
+                                <Link href={`/profile?user=${selectedProfile.id}`}>
+                                    <div className="cursor-pointer hover:opacity-80 transition-opacity">
+                                        <Avatar name={selectedProfile.name} src={selectedProfile.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedProfile.avatar}` : "../../../Img/icons/avatarLogin.png"} mr="4" />
+                                    </div>
+                                </Link>
                                 <Box>
                                     <Heading size="md">{selectedProfile.name}</Heading>
                                     <Text fontSize="sm" color="gray.500">{selectedProfile.email}</Text>

@@ -6,7 +6,7 @@ import { Helmet } from "react-helmet";
 
 export default function Profile(){
     return (
-        <Flex direction="column" h="100vh">
+        <Flex direction="column" minH="100vh">
             <Helmet>
                 <title>Perfil</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png"/>

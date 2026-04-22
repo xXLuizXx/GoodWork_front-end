@@ -96,7 +96,7 @@ export default function Login(): JSX.Element {
     const { errors } = formState;
 
     return (
-        <Flex w="100vw" h="100vh" align="center" justify="center">
+        <Flex w="100vw" h="100vh" align="center" justify="center" bgGradient="linear(to-l, #FFFFFF, #000080)">
             <Helmet>
                 <title>GoodWork - Bem Vindo!</title>
             </Helmet>
