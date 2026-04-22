@@ -3,7 +3,7 @@ import {
     useToast, Menu, MenuButton, MenuList, 
     MenuItem, Tag, TagLabel, Icon, Avatar, Button, 
     Alert, AlertIcon, Spinner, Center, Input,
-    InputGroup, InputLeftElement, Select, Stack
+    InputGroup, InputLeftElement, Select, Stack, useColorModeValue
 } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoCheckCircleFill, GoXCircleFill, GoFilter } from "react-icons/go";
@@ -49,6 +49,9 @@ interface SearchUserAdminProps {
 export function GenerateAllUsers({ search }: SearchUserAdminProps) {
     const router = useRouter();
     const toast = useToast();
+    const cardBg = useColorModeValue("white", "gray.800");
+    const subtleBg = useColorModeValue("white", "gray.750");
+    const borderColor = useColorModeValue("gray.100", "gray.600");
     const [ typeUser, setTypeUser] = useState("");
     const [admin, setAdmin] = useState(false); 
     const [ userId, setUserId ] = useState("");
@@ -164,10 +167,10 @@ export function GenerateAllUsers({ search }: SearchUserAdminProps) {
     return (              
         <Box flex="1" p="4" width="100%">
             <Box 
-                p="4" 
-                mb="6" 
-                bg="white" 
-                borderRadius="md" 
+                p="4"
+                mb="6"
+                bg={subtleBg}
+                borderRadius="md"
                 boxShadow="md"
             >
                 <Text fontWeight="bold" fontSize="sm">
@@ -226,7 +229,8 @@ export function GenerateAllUsers({ search }: SearchUserAdminProps) {
                         borderRadius="xl"
                         borderWidth="1px"
                         borderColor="gray.100"
-                        bg="white"
+                        bg={cardBg}
+                        borderColor={borderColor}
                         position="relative"
                         overflow="hidden"
                     >

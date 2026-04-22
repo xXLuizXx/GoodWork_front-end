@@ -17,6 +17,7 @@ import {
     AlertIcon,
     Text,
     Tooltip,
+    useColorModeValue,
 } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header/Header";
@@ -38,6 +39,7 @@ interface DecodedToken {
 }
 
 export default function MyInterviews(): JSX.Element {
+    const cardBg = useColorModeValue("white", "gray.800");
     const [userId, setUserId] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
@@ -73,7 +75,7 @@ export default function MyInterviews(): JSX.Element {
                         align="center"
                         mb="6"
                         p="4"
-                        bg="white"
+                        bg={cardBg}
                         borderRadius="md"
                         boxShadow="sm"
                         flexWrap="wrap"

@@ -3,7 +3,7 @@ import {
     Flex, Heading, Image, SimpleGrid, Text, VStack, useDisclosure, 
     Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, 
     ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast,
-    Select, HStack, Badge, Center, Spinner
+    Select, HStack, Badge, Center, Spinner, useColorModeValue
 } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill } from "react-icons/go";
@@ -46,6 +46,8 @@ interface SearchJobAdminProps {
 
 export function GenerateAllJobs({ search }: SearchJobAdminProps) {
     const router = useRouter();
+    const filterBg = useColorModeValue("white", "gray.800");
+    const modalBodyBg = useColorModeValue("gray.50", "gray.700");
     const [admin, setAdmin] = useState(false); 
     const [userId, setUserId] = useState("");
     const { data, refetch, isLoading: jobsLoading } = useAllJobs(admin, search);
@@ -183,10 +185,10 @@ export function GenerateAllJobs({ search }: SearchJobAdminProps) {
             </Helmet>
 
             <Box width="100%">
-                <Box 
-                    p="4" 
-                    mb="6" 
-                    bg="white" 
+                <Box
+                    p="4"
+                    mb="6"
+                    bg={filterBg}
                     borderRadius="md" 
                     boxShadow="md"
                     width="100%"
@@ -434,7 +436,7 @@ export function GenerateAllJobs({ search }: SearchJobAdminProps) {
                             </Flex>
                         </ModalHeader>
                         <ModalCloseButton />
-                        <ModalBody overflowY="auto" maxH="500px" bg="gray.50" p="6" borderRadius="md">
+                        <ModalBody overflowY="auto" maxH="500px" bg={modalBodyBg} p="6" borderRadius="md">
                             <VStack align="start" spacing="6">
                                 <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
                                     <Image

@@ -5,7 +5,8 @@ import {
     CardBody,
     Text,
     Box,
-    Image
+    Image,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
@@ -19,6 +20,8 @@ interface DecodedToken {
 }
 export function HomeAdmin(): JSX.Element {
     const router = useRouter();
+    const cardBg = useColorModeValue('#FFFFFF', 'gray.800');
+    const cardText = useColorModeValue('gray.800', 'whiteAlpha.900');
     const [ typeUser, setTypeUser] = useState("");
     const [ userId, setUserId ] = useState("");
 
@@ -39,27 +42,9 @@ export function HomeAdmin(): JSX.Element {
         }
     }, []);
     const cards = [
-        {
-            title: 'Usuários',
-            borderColor: 'blue',
-            bgColor: '#FFFFFF',
-            hoverColor: '#FFFFFF',
-            route: `users/generate-users`
-        },
-        {
-            title: 'Categorias',
-            borderColor: 'blue',
-            bgColor: '#FFFFFF',
-            hoverColor: '#FFFFFF',
-            route: 'categories/generate-categories'
-        },
-        {
-            title: 'Vagas',
-            borderColor: 'blue',
-            bgColor: '#FFFFFF',
-            hoverColor: '#FFFFFF',
-            route: '/jobs/generate-jobs'
-        }
+        { title: 'Usuários',   borderColor: 'blue', route: `users/generate-users` },
+        { title: 'Categorias', borderColor: 'blue', route: 'categories/generate-categories' },
+        { title: 'Vagas',      borderColor: 'blue', route: '/jobs/generate-jobs' },
     ];
 
     const MotionCard = motion(Card);
@@ -86,14 +71,12 @@ export function HomeAdmin(): JSX.Element {
                             justifyContent="center"
                             cursor="pointer"
                             boxShadow="dark-lg"
-                            bg={card.bgColor}
+                            bg={cardBg}
                             initial={{ scale: 1 }}
-                            whileHover={{ 
+                            whileHover={{
                                 scale: 1.1,
                                 y: -10,
                                 boxShadow: '0px 15px 30px rgba(0, 0, 0, 0.2)',
-                                borderColor: card.hoverColor,
-                                backgroundColor: card.hoverColor,
                                 zIndex: 10
                             }}
                             transition={{ 
@@ -105,10 +88,10 @@ export function HomeAdmin(): JSX.Element {
                             onClick={() => router.push(card.route)}
                         >
                             <CardBody textAlign="center">
-                                <Text 
-                                    fontSize="xl" 
-                                    fontWeight="bold" 
-                                    color="gray.800"
+                                <Text
+                                    fontSize="xl"
+                                    fontWeight="bold"
+                                    color={cardText}
                                     mb={6}
                                 >
                                     {card.title}

@@ -21,6 +21,7 @@ import {
     Text,
     useDisclosure,
     useToast,
+    useColorModeValue,
     Alert,
     AlertIcon,
 } from "@chakra-ui/react";
@@ -267,6 +268,7 @@ interface InterviewCardProps {
 function InterviewCard({ interview }: InterviewCardProps) {
     const router = useRouter();
     const toast = useToast();
+    const cardBg = useColorModeValue("gray.50", "gray.800");
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const updateStatus = useMutation(
@@ -308,7 +310,7 @@ function InterviewCard({ interview }: InterviewCardProps) {
                 opacity={interview.status === "cancelled" ? 0.6 : 1}
                 borderLeft="3px solid"
                 borderLeftColor={`${statusColor[interview.status] ?? "gray"}.400`}
-                bg="gray.50"
+                bg={cardBg}
             >
                 <Flex justify="space-between" align="flex-start" flexWrap="wrap" gap="4">
                     <Box flex="1">
@@ -422,6 +424,7 @@ function InterviewCard({ interview }: InterviewCardProps) {
 
 export default function ManageInterviews(): JSX.Element {
     const router = useRouter();
+    const cardBg = useColorModeValue("gray.50", "gray.800");
     const { job_id } = router.query;
     const [activeFilter, setActiveFilter] = useState<FilterStatus>("all");
 

@@ -9,6 +9,7 @@ import {
     FormErrorMessage,
     InputGroup,
     InputLeftElement,
+    useColorModeValue,
 } from "@chakra-ui/react";
 
 export interface ISelectOption {
@@ -28,6 +29,9 @@ const SelectBase: ForwardRefRenderFunction<HTMLSelectElement, ISelectProps> = (
     { name, placeholder, options, label, error = null, ...rest },
     ref,
 ): JSX.Element => {
+    const inputBg = useColorModeValue("gray.100", "gray.700");
+    const inputHover = useColorModeValue("gray.200", "gray.600");
+
     return (
         <FormControl isInvalid={!!error}>
         {!!label && (
@@ -45,10 +49,10 @@ const SelectBase: ForwardRefRenderFunction<HTMLSelectElement, ISelectProps> = (
                     placeholder={placeholder}
                     boxShadow="2xl"
                     borderRadius="full"
-                    focusBorderColor="blue.400" 
-                    bgColor="gray.100" 
-                    variant="filled" 
-                    _hover={{ bgColor: 'gray.200' }} 
+                    focusBorderColor="blue.400"
+                    bgColor={inputBg}
+                    variant="filled"
+                    _hover={{ bgColor: inputHover }} 
                     size="lg"
                     ref={ref}
                     {...rest}

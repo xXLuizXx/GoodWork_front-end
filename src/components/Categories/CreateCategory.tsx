@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Flex, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Text, useToast } from "@chakra-ui/react";
+import { Avatar, Box, Button, Flex, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Text, useToast, useColorModeValue } from "@chakra-ui/react";
 import { Input } from "../Form/Input";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -36,8 +36,11 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
     });
     const { errors } = formState;
     const toast = useToast();
-    const [admin, setAdmin] = useState(false); 
+    const [admin, setAdmin] = useState(false);
     const [ typeUser, setTypeUser ] = useState("");
+    const modalBodyBg = useColorModeValue('gray.50', 'gray.700');
+    const inputBg = useColorModeValue('gray.100', 'gray.600');
+    const inputHover = useColorModeValue('gray.200', 'gray.500');
     const createCategory = useMutation(
         async (category: ICreateCategory) => {
             const response = await api.post("categories", category);
@@ -120,7 +123,7 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
                         </Flex>
                     </ModalHeader>
 
-                    <ModalBody overflowY="auto" maxH="500px" bg="gray.50" p="6" borderRadius="md">
+                    <ModalBody overflowY="auto" maxH="500px" bg={modalBodyBg} p="6" borderRadius="md">
                         <Stack>
                             <Input
                                 name="name"
@@ -130,9 +133,9 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
                                 borderColor="blue.200"
                                 borderRadius="full"
                                 focusBorderColor="blue.400"
-                                bgColor="gray.100"
+                                bgColor={inputBg}
                                 variant="filled"
-                                _hover={{ bgColor: "gray.200" }}
+                                _hover={{ bgColor: inputHover }}
                                 size="lg"
                                 placeholder="Nome Categoria"
                                 {...register("name")}
@@ -147,9 +150,9 @@ export function CreateCategory({ isOpen, onClose }: CreateCategoryProps) {
                                 borderColor="blue.200"
                                 borderRadius="full"
                                 focusBorderColor="blue.400"
-                                bgColor="gray.100"
+                                bgColor={inputBg}
                                 variant="filled"
-                                _hover={{ bgColor: "gray.200" }}
+                                _hover={{ bgColor: inputHover }}
                                 size="lg"
                                 placeholder="Descrição"
                                 {...register("description")}

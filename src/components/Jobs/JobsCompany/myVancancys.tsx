@@ -3,8 +3,8 @@ import {
     Heading, Image, SimpleGrid, Text, VStack, useDisclosure, Modal, 
     ModalBody, ModalContent, ModalFooter, ModalHeader, 
     ModalOverlay, Stack, Alert, AlertIcon, useToast, HStack, Icon, 
-    Menu, MenuButton, MenuList, MenuItem, Badge, 
-    ModalCloseButton, Tooltip
+    Menu, MenuButton, MenuList, MenuItem, Badge,
+    ModalCloseButton, Tooltip, useColorModeValue
 } from "@chakra-ui/react";
 import { GrFormView, GrAdd } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
@@ -38,6 +38,8 @@ interface Job {
 
 export function MyVacancy({id}: IJobsCompanyProps) {
     const router = useRouter();
+    const filterBg = useColorModeValue("white", "gray.800");
+    const modalBodyBg = useColorModeValue("gray.50", "gray.700");
     const { data, refetch } = useAllJobsCompany(id);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -145,10 +147,10 @@ export function MyVacancy({id}: IJobsCompanyProps) {
         <Box p="4">
             <Flex 
                 justify="space-between" 
-                align="center" 
-                mb="6" 
-                p="4" 
-                bg="white" 
+                align="center"
+                mb="6"
+                p="4"
+                bg={filterBg}
                 borderRadius="md" 
                 boxShadow="sm"
                 flexWrap="wrap"
@@ -374,7 +376,7 @@ export function MyVacancy({id}: IJobsCompanyProps) {
                             </Flex>
                         </ModalHeader>
                         <ModalCloseButton />
-                        <ModalBody overflowY="auto" maxH="500px" bg="gray.50" p="6" borderRadius="md">
+                        <ModalBody overflowY="auto" maxH="500px" bg={modalBodyBg} p="6" borderRadius="md">
                             <VStack align="start" spacing="6">
                                 <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
                                     <Flex justifyContent="space-between" gap="4">

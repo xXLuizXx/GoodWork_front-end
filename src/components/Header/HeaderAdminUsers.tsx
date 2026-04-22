@@ -1,4 +1,4 @@
-import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image } from "@chakra-ui/react";
+import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image, useColorModeValue } from "@chakra-ui/react";
 import { RiSearchLine } from "react-icons/ri";
 import { Profile } from "./Profile";
 import { useEffect, useState } from "react";
@@ -18,6 +18,8 @@ interface HeaderProps {
 }
 
 function HeaderAdminUsers({ onSearch, searchValue, onSearchChange, redirectOnSearch = true }: HeaderProps): JSX.Element {
+    const searchBg = useColorModeValue("white", "whiteAlpha.200");
+    const searchColor = useColorModeValue("black", "whiteAlpha.900");
     const [admin, setAdmin] = useState(false); 
     const [typeUser, setTypeUser] = useState("");
     const [localUser, setLocalUser] = useState('');
@@ -117,11 +119,11 @@ function HeaderAdminUsers({ onSearch, searchValue, onSearchChange, redirectOnSea
                 alignSelf="center"
                 color="gray.50"
                 position="relative"
-                bg="white"
+                bg={searchBg}
                 borderRadius="full"
             >
                 <Input
-                    color="black"
+                    color={searchColor}
                     variant="unstyled"
                     px="4"
                     mr="4"

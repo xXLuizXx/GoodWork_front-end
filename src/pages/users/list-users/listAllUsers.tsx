@@ -4,8 +4,7 @@ import {
     useDisclosure, Modal, ModalBody, ModalContent, ModalFooter,
     ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast,
     Menu, MenuButton, MenuList, MenuItem, Tooltip, ModalCloseButton,
-    Tag, TagLabel,
-    Icon
+    Tag, TagLabel, Icon, useColorModeValue
 } from "@chakra-ui/react";
 import { GrFormView, GrAdd } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
@@ -47,6 +46,7 @@ interface UserProfile {
 }
 
 export default function ListAllDataUsers() {
+    const cardBg = useColorModeValue("white", "gray.800");
     const {
         isOpen: isContactModalOpen,
         onOpen: onContactModalOpen,
@@ -302,11 +302,11 @@ export default function ListAllDataUsers() {
                 <Box flex="1">
                     <Flex 
                         justify="space-between" 
-                        align="center" 
-                        mb="6" 
-                        p="4" 
-                        bg="white" 
-                        borderRadius="md" 
+                        align="center"
+                        mb="6"
+                        p="4"
+                        bg={cardBg}
+                        borderRadius="md"
                         boxShadow="sm"
                         flexWrap="wrap"
                         gap="4"

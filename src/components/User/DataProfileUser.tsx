@@ -1,19 +1,20 @@
 import React, { useContext, useEffect, useState, useRef } from 'react';
-import { 
-    Avatar, 
-    Flex, 
-    FormControl, 
-    FormLabel, 
-    Input, 
-    Stack, 
-    SimpleGrid, 
-    Text, 
-    Box, 
-    Button, 
-    useToast, 
-    Spinner, 
+import {
+    Avatar,
+    Flex,
+    FormControl,
+    FormLabel,
+    Input,
+    Stack,
+    SimpleGrid,
+    Text,
+    Box,
+    Button,
+    useToast,
+    Spinner,
     Textarea,
-    IconButton
+    IconButton,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { LuSaveAll } from 'react-icons/lu';
 import { MdEdit, MdCameraAlt } from 'react-icons/md';
@@ -40,6 +41,11 @@ export function MyProfile(): JSX.Element {
     const { user } = useContext(AuthContext);
     console.log(user);
     const [isEditing, setIsEditing] = useState(false);
+    const containerBg = useColorModeValue('white', 'gray.800');
+    const inputBg = useColorModeValue('white', 'gray.700');
+    const fieldBg = useColorModeValue('gray.100', 'gray.700');
+    const fieldColor = useColorModeValue('blue.800', 'whiteAlpha.900');
+    const selectBg = useColorModeValue('white', '#2D3748');
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
     const { handleSubmit, register, setValue, reset } = useForm<IUpdateUser>();
     const toast = useToast();
@@ -181,7 +187,7 @@ export function MyProfile(): JSX.Element {
             onSubmit={handleSubmit(handleUpdate)}
             width="100%"
             maxWidth={1050}
-            bg="white"
+            bg={containerBg}
             p="8"
             borderRadius={10}
             boxShadow="dark-lg"
@@ -222,7 +228,7 @@ export function MyProfile(): JSX.Element {
                         {isEditing && user.user_type === "individual" ? (
                             <Textarea
                                 {...register("ability")}
-                                bg="white"
+                                bg={inputBg}
                                 borderColor="blue.300"
                                 focusBorderColor="blue.500"
                                 _hover={{ borderColor: "blue.400" }}
@@ -257,19 +263,19 @@ export function MyProfile(): JSX.Element {
                             <Input
                                 {...register(field as keyof IUpdateUser)}
                                 defaultValue={user[field as keyof typeof user]}
-                                bg="white"
+                                bg={inputBg}
                                 borderColor="blue.300"
                                 focusBorderColor="blue.500"
                                 _hover={{ borderColor: "blue.400" }}
                             />
                         ) : (
                             <Text
-                                bg="gray.100"
+                                bg={fieldBg}
                                 p={2}
                                 borderRadius="md"
                                 border="1px solid"
                                 borderColor="blue.300"
-                                color="blue.800"
+                                color={fieldColor}
                             >
                                 {
                                     user.user_type === "individual" && isIndividual
@@ -290,9 +296,8 @@ export function MyProfile(): JSX.Element {
                             <select
                                 {...register("is_employee", { setValueAs: (v) => v === "true" })}
                                 style={{
-                                    background: "white",
-                                    border: "1px solid",
-                                    borderColor: "blue.300",
+                                    background: selectBg,
+                                    border: "1px solid #63B3ED",
                                     padding: "8px",
                                     borderRadius: "8px",
                                     width: "100%",
@@ -303,12 +308,12 @@ export function MyProfile(): JSX.Element {
                             </select>
                         ) : (
                             <Text
-                                bg="gray.100"
+                                bg={fieldBg}
                                 p={2}
                                 borderRadius="md"
                                 border="1px solid"
                                 borderColor="blue.300"
-                                color="blue.800"
+                                color={fieldColor}
                             >
                                 {user.individualData?.is_employee ? "Sim" : "Não"}
                             </Text>

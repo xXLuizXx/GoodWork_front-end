@@ -578,7 +578,7 @@ export default function CreateUser(): JSX.Element {
                                                 <Text>Carregando categorias...</Text>
                                             ) : (
                                                 <>
-                                                    {filteredCategories.length > 12 && (
+                                                    {(categoriesData?.categories?.length ?? 0) > 12 && (
                                                         <InputGroup mb={3}>
                                                             <InputLeftElement pointerEvents="none">
                                                                 <SearchIcon color="gray.300" />

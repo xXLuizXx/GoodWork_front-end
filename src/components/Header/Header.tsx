@@ -1,4 +1,4 @@
-import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image } from "@chakra-ui/react";
+import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image, useColorModeValue } from "@chakra-ui/react";
 import { RiSearchLine } from "react-icons/ri";
 import { Profile } from "./Profile";
 import { useEffect, useState } from "react";
@@ -22,7 +22,10 @@ interface HeaderProps {
 }
 
 function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Element {
-    const [admin, setAdmin] = useState(false); 
+    const headerBg = useColorModeValue("#0000CD", "gray.900");
+    const searchBg = useColorModeValue("white", "whiteAlpha.200");
+    const searchColor = useColorModeValue("black", "whiteAlpha.900");
+    const [admin, setAdmin] = useState(false);
     const [typeUser, setTypeUser] = useState("");
     const [localVacancy, setLocalVacancy] = useState('');
     const router = useRouter();
@@ -82,7 +85,7 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
             mt="4"
             px="6"
             align="center"
-            bgColor="#0000CD"
+            bgColor={headerBg}
             boxShadow="dark-lg"
             borderRadius="full"
         >
@@ -115,11 +118,11 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
                 alignSelf="center"
                 color="gray.50"
                 position="relative"
-                bg="white"
+                bg={searchBg}
                 borderRadius="full"
             >
                 <Input
-                    color="black"
+                    color={searchColor}
                     variant="unstyled"
                     px="4"
                     mr="4"

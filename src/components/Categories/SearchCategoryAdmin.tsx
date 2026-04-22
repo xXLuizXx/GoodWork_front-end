@@ -1,4 +1,4 @@
-import { Avatar, Badge, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast, Tooltip, Link, Input, Select, HStack, IconButton } from "@chakra-ui/react";
+import { Avatar, Badge, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast, Tooltip, Link, Input, Select, HStack, IconButton, useColorModeValue } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoSearch, GoArrowLeft, GoArrowRight } from "react-icons/go";
 import { FiFilter, FiX } from "react-icons/fi";
@@ -37,8 +37,9 @@ interface SearchCategoryAdminProps {
 export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
 
     const router = useRouter();
-    const [admin, setAdmin] = useState(false); 
+    const [admin, setAdmin] = useState(false);
     const [userId, setUserId] = useState("");
+    const detailsBtnBg = useColorModeValue('#1E90FF', 'blue.500');
     const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
     const [sortBy, setSortBy] = useState<"all" | "newest" | "oldest">("all");
     const [currentPage, setCurrentPage] = useState(1);
@@ -287,7 +288,7 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
                                     <Button
                                         size="sm"
                                         variant="outline"
-                                        bg="#1E90FF"
+                                        bg={detailsBtnBg}
                                         leftIcon={<GrFormView />}
                                         onClick={() => {
                                             setSelectedCategory(category);

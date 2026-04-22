@@ -1,18 +1,20 @@
-import { Box, Flex, Text, Link } from "@chakra-ui/react";
+import { Box, Flex, Text, useColorModeValue } from "@chakra-ui/react";
 
 export function Footer() {
     const year = new Date().getFullYear();
+    const bg = useColorModeValue("white", "gray.800");
+    const borderColor = useColorModeValue("gray.100", "gray.700");
 
     return (
         <Box
             as="footer"
             w="100%"
             borderTop="1px solid"
-            borderColor="gray.100"
+            borderColor={borderColor}
             mt="auto"
             py={4}
             px={8}
-            bg="white"
+            bg={bg}
         >
             <Flex
                 maxWidth={1480}

@@ -1,7 +1,7 @@
 import { useContext, useState, useEffect } from "react";
 import { AuthContext } from "@/contexts/AuthContext";
 import { SubmitHandler, useForm } from "react-hook-form";
-import { Avatar, Button, Checkbox, Flex, HStack, InputGroup, InputLeftElement, InputRightElement, Link, Stack, Text, useToast } from "@chakra-ui/react";
+import { Avatar, Button, Checkbox, Flex, HStack, InputGroup, InputLeftElement, InputRightElement, Link, Stack, Text, useToast, useColorModeValue } from "@chakra-ui/react";
 import { CiUser } from "react-icons/ci";
 import { RiLockPasswordLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import * as yup from "yup";
@@ -26,6 +26,10 @@ const signInFormSchema = yup.object().shape({
 export default function Login(): JSX.Element {
     const { signIn } = useContext(AuthContext);
     const toast = useToast();
+    const outerBg = useColorModeValue("linear(to-l, #FFFFFF, #000080)", "linear(to-l, gray.900, gray.800)");
+    const formBg = useColorModeValue("white", "gray.800");
+    const inputBg = useColorModeValue("gray.100", "gray.700");
+    const inputHover = useColorModeValue("gray.200", "gray.600");
     const [showPassword, setShowPassword] = useState(false);
     const [isRememberChecked, setIsRememberChecked] = useState(false);
     const { register, handleSubmit, formState, setValue, watch } = useForm<ISignInFormData>({
@@ -96,15 +100,15 @@ export default function Login(): JSX.Element {
     const { errors } = formState;
 
     return (
-        <Flex w="100vw" h="100vh" align="center" justify="center" bgGradient="linear(to-l, #FFFFFF, #000080)">
+        <Flex w="100vw" h="100vh" align="center" justify="center" bgGradient={outerBg}>
             <Helmet>
                 <title>GoodWork - Bem Vindo!</title>
             </Helmet>
-            <Flex 
-                as="form" 
-                width="100%" 
-                maxWidth={1050} 
-                bg="white" 
+            <Flex
+                as="form"
+                width="100%"
+                maxWidth={1050}
+                bg={formBg}
                 p="8" 
                 borderRadius={50} 
                 flexDir="column"
@@ -145,10 +149,10 @@ export default function Login(): JSX.Element {
                                     boxShadow="2xl"
                                     borderRadius="full"
                                     focusBorderColor="blue.400"
-                                    bgColor="gray.100"
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
+                                    bgColor={inputBg}
+                                    variant="filled"
+                                    _hover={{ bgColor: inputHover }}
+                                    size="lg"
                                     placeholder="E-mail"
                                     {...register("email")}
                                 />
@@ -165,11 +169,11 @@ export default function Login(): JSX.Element {
                                     error={errors.password}
                                     boxShadow="2xl"
                                     borderRadius="full"
-                                    focusBorderColor="blue.400" 
-                                    bgColor="gray.100" 
-                                    variant="filled" 
-                                    _hover={{ bgColor: 'gray.200' }} 
-                                    size="lg" 
+                                    focusBorderColor="blue.400"
+                                    bgColor={inputBg}
+                                    variant="filled"
+                                    _hover={{ bgColor: inputHover }}
+                                    size="lg"
                                     placeholder="Senha"
                                     {...register("password")}
                                 />
@@ -189,15 +193,15 @@ export default function Login(): JSX.Element {
                             </InputGroup>
                         </Stack>
                         <Stack mt="1" align="center" spacing="20" direction='row'>
-                            <Checkbox 
-                                boxShadow="2xl" 
+                            <Checkbox
+                                boxShadow="2xl"
                                 ml="8"
-                                defaultChecked={isRememberChecked}
+                                isChecked={!!rememberValue}
                                 {...register("remember")}
                             >
                                 Lembrar
                             </Checkbox>
-                            <Link boxShadow="2xl">Esqueceu senha?</Link>
+                            <Link href="/forgot-password" boxShadow="2xl" color="blue.500">Esqueceu senha?</Link>
                         </Stack>
                         <Stack spacing='1'>
                             <Button 

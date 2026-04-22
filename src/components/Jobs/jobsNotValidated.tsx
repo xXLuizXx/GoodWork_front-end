@@ -1,4 +1,4 @@
-import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, Image, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast } from "@chakra-ui/react";
+import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, Image, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast, useColorModeValue } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill } from "react-icons/go";
 import { useJobsNotValidated } from "@/services/hooks/Jobs/useJobsNotValidated";
@@ -12,6 +12,7 @@ export function JobsNotValidated() {
     const { data, refetch } = useJobsNotValidated();
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [selectedJob, setSelectedJob] = useState(null);
+    const modalBodyBg = useColorModeValue('gray.50', 'gray.700');
     const { validateJob, isLoading } = useValidateJob();
     const toast = useToast();
 
@@ -153,7 +154,7 @@ export function JobsNotValidated() {
                                     </Flex>
                                 </ModalHeader>
                                 <ModalCloseButton />
-                                <ModalBody overflowY="auto" maxH="500px" bg="gray.50" p="6" borderRadius="md">
+                                <ModalBody overflowY="auto" maxH="500px" bg={modalBodyBg} p="6" borderRadius="md">
                                     <VStack align="start" spacing="6">
                                         <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
                                             <Image

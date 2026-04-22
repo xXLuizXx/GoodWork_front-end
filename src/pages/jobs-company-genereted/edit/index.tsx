@@ -13,7 +13,8 @@ import {
     Textarea,
     Select,
     Divider,
-    Avatar
+    Avatar,
+    useColorModeValue
 } from '@chakra-ui/react';
 import { LuSaveAll } from 'react-icons/lu';
 import { useMutation } from 'react-query';
@@ -50,6 +51,7 @@ interface DecodedToken {
 }
 
 export default function EditJob(): JSX.Element {
+    const inputBg = useColorModeValue("white", "gray.700");
     const router = useRouter();
     const { id } = router.query;
     const toast = useToast();
@@ -234,7 +236,7 @@ export default function EditJob(): JSX.Element {
                     <Flex
                         width="100%"
                         maxWidth={1050}
-                        bg="white"
+                        bg={inputBg}
                         p="8"
                         borderRadius={10}
                         boxShadow="dark-lg"
@@ -276,7 +278,7 @@ export default function EditJob(): JSX.Element {
                                 <Select
                                     {...register("vacancy_available", { setValueAs: (v) => v === "true" })}
                                     width="150px"
-                                    bg="white"
+                                    bg={inputBg}
                                     borderColor="blue.300"
                                     focusBorderColor="blue.500"
                                 >
@@ -294,7 +296,7 @@ export default function EditJob(): JSX.Element {
                                     <FormLabel color="blue.600">Empresa Contratante</FormLabel>
                                     <Input
                                         {...register("contractor")}
-                                        bg="white"
+                                        bg={inputBg}
                                         borderColor="blue.300"
                                         focusBorderColor="blue.500"
                                     />
@@ -304,7 +306,7 @@ export default function EditJob(): JSX.Element {
                                     <FormLabel color="blue.600">Localização</FormLabel>
                                     <Input
                                         {...register("location")}
-                                        bg="white"
+                                        bg={inputBg}
                                         borderColor="blue.300"
                                         focusBorderColor="blue.500"
                                     />
@@ -314,7 +316,7 @@ export default function EditJob(): JSX.Element {
                                     <FormLabel color="blue.600">Categoria</FormLabel>
                                     <Select
                                         {...register("category_id")}
-                                        bg="white"
+                                        bg={inputBg}
                                         borderColor="blue.300"
                                         focusBorderColor="blue.500"
                                         placeholder="Selecione uma categoria"
@@ -335,7 +337,7 @@ export default function EditJob(): JSX.Element {
                                     <FormLabel color="blue.600">Carga Horária</FormLabel>
                                     <Input
                                         {...register("workload")}
-                                        bg="white"
+                                        bg={inputBg}
                                         borderColor="blue.300"
                                         focusBorderColor="blue.500"
                                     />
@@ -346,7 +348,7 @@ export default function EditJob(): JSX.Element {
                                     <Input
                                         {...register("amount_vacancy")}
                                         type="number"
-                                        bg="white"
+                                        bg={inputBg}
                                         borderColor="blue.300"
                                         focusBorderColor="blue.500"
                                     />
@@ -357,7 +359,7 @@ export default function EditJob(): JSX.Element {
                                     <Input
                                         {...register("closing_date")}
                                         type="date"
-                                        bg="white"
+                                        bg={inputBg}
                                         borderColor="blue.300"
                                         focusBorderColor="blue.500"
                                     />
@@ -369,7 +371,7 @@ export default function EditJob(): JSX.Element {
                             <FormLabel color="blue.600">Descrição da Vaga</FormLabel>
                             <Textarea
                                 {...register("description_vacancy")}
-                                bg="white"
+                                bg={inputBg}
                                 borderColor="blue.300"
                                 focusBorderColor="blue.500"
                                 minH="150px"
@@ -380,7 +382,7 @@ export default function EditJob(): JSX.Element {
                             <FormLabel color="blue.600">Requisitos</FormLabel>
                             <Textarea
                                 {...register("requirements")}
-                                bg="white"
+                                bg={inputBg}
                                 borderColor="blue.300"
                                 focusBorderColor="blue.500"
                                 minH="150px"
@@ -392,7 +394,7 @@ export default function EditJob(): JSX.Element {
                             <FormLabel color="blue.600">Benefícios</FormLabel>
                             <Textarea
                                 {...register("benefits")}
-                                bg="white"
+                                bg={inputBg}
                                 borderColor="blue.300"
                                 focusBorderColor="blue.500"
                                 minH="150px"

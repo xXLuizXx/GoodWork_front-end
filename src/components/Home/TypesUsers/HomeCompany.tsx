@@ -5,7 +5,8 @@ import {
     CardBody,
     Text,
     Box,
-    Image
+    Image,
+    useColorModeValue,
 } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
@@ -19,7 +20,8 @@ interface DecodedToken {
 }
 export function HomeCompany(): JSX.Element {
     const router = useRouter();
-    const [ typeUser, setTypeUser] = useState("");
+    const cardBg = useColorModeValue('#FFFFFF', 'gray.800');
+    const cardText = useColorModeValue('gray.800', 'whiteAlpha.900');
     const [ userId, setUserId ] = useState("");
 
     useEffect(() => {
@@ -29,8 +31,7 @@ export function HomeCompany(): JSX.Element {
         if (token) {
             try {
                 const decoded = decode<DecodedToken>(token);
-                if (decoded.accessLevel) {
-                    setTypeUser(decoded.accessLevel);
+                if (decoded.sub) {
                     setUserId(decoded.sub);
                 }
             } catch (error) {
@@ -42,22 +43,18 @@ export function HomeCompany(): JSX.Element {
         {
             title: 'Minhas Vagas',
             borderColor: 'blue',
-            bgColor: '#FFFFFF',
-            hoverColor: '#FFFFFF',
             route: `/jobs-company-genereted?id=${userId}`
         },
         {
             title: 'Perfis',
             borderColor: 'blue',
-            bgColor: '#FFFFFF',
-            hoverColor: '#FFFFFF',
             route: '/users/list-users/listAllUsers'
         }
     ];
 
     const MotionCard = motion(Card);
 
-    const cardImages = {
+    const cardImages: Record<string, string> = {
         Perfis: "/Img/icons/perfisCard2.jpg",
         default: CardImage.src
     };
@@ -78,17 +75,15 @@ export function HomeCompany(): JSX.Element {
                             justifyContent="center"
                             cursor="pointer"
                             boxShadow="dark-lg"
-                            bg={card.bgColor}
+                            bg={cardBg}
                             initial={{ scale: 1 }}
-                            whileHover={{ 
+                            whileHover={{
                                 scale: 1.1,
                                 y: -10,
                                 boxShadow: '0px 15px 30px rgba(0, 0, 0, 0.2)',
-                                borderColor: card.hoverColor,
-                                backgroundColor: card.hoverColor,
                                 zIndex: 10
                             }}
-                            transition={{ 
+                            transition={{
                                 type: "spring",
                                 stiffness: 300,
                                 damping: 10,
@@ -97,10 +92,10 @@ export function HomeCompany(): JSX.Element {
                             onClick={() => router.push(card.route)}
                         >
                             <CardBody textAlign="center">
-                                <Text 
-                                    fontSize="xl" 
-                                    fontWeight="bold" 
-                                    color="gray.800"
+                                <Text
+                                    fontSize="xl"
+                                    fontWeight="bold"
+                                    color={cardText}
                                     mb={6}
                                 >
                                     {card.title}
