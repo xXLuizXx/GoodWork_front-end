@@ -86,6 +86,11 @@ interface ICancelForm {
     notice: string;
 }
 
+interface ICompleteForm {
+    feedback: string;
+    hired: "yes" | "no" | "pending";
+}
+
 // ── Modal de remarcar ──────────────────────────────────────────────────────────
 
 interface RescheduleModalProps {
@@ -358,6 +363,109 @@ function CancelModal({ interview, isOpen, onClose }: CancelModalProps) {
     );
 }
 
+// ── Modal de concluir ─────────────────────────────────────────────────────────
+
+interface CompleteModalProps {
+    interview: IInterviewWithCandidate;
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+function CompleteModal({ interview, isOpen, onClose }: CompleteModalProps) {
+    const toast = useToast();
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<ICompleteForm>({
+        defaultValues: { feedback: "", hired: "pending" },
+    });
+
+    const complete = useMutation(
+        async (data: ICompleteForm) => {
+            await api.patch("interview/completeInterview", {
+                interview_id: interview.id,
+                feedback: data.feedback || null,
+                hired: data.hired === "yes" ? true : data.hired === "no" ? false : null,
+            });
+        },
+        {
+            onSuccess: () => {
+                queryClient.invalidateQueries(["interview/searchAllInterview", interview.application_id]);
+                toast({
+                    description: "Entrevista marcada como realizada",
+                    status: "success",
+                    position: "top",
+                    duration: 4000,
+                    isClosable: true,
+                });
+                reset();
+                onClose();
+            },
+            onError: (error: any) => {
+                toast({
+                    description: error?.response?.data?.message ?? "Erro ao concluir entrevista",
+                    status: "error",
+                    position: "top",
+                    duration: 4000,
+                    isClosable: true,
+                });
+            },
+        }
+    );
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} isCentered>
+            <ModalOverlay />
+            <ModalContent>
+                <ModalHeader>Concluir entrevista</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    <Text fontSize="sm" color="gray.500" mb="4">
+                        Candidato: <strong>{interview.candidate_name}</strong>
+                    </Text>
+                    <Stack spacing="4">
+                        <Box>
+                            <FormLabel color="blue.600" fontSize="sm">Feedback da entrevista</FormLabel>
+                            <Textarea
+                                placeholder="Descreva o desempenho do candidato na entrevista..."
+                                error={errors.feedback}
+                                {...register("feedback")}
+                            />
+                        </Box>
+                        <Box>
+                            <FormLabel color="blue.600" fontSize="sm">
+                                Decisão de contratação{" "}
+                                <Text as="span" color="red.500" fontSize="xs">*</Text>
+                            </FormLabel>
+                            <Select
+                                placeholder="Selecione uma opção"
+                                border="1px solid"
+                                borderColor="rgba(0, 0, 255, 0.2)"
+                                error={errors.hired}
+                                options={[
+                                    { value: "pending", label: "Pendente — sem decisão ainda" },
+                                    { value: "yes",     label: "Sim — contratar candidato" },
+                                    { value: "no",      label: "Não — não contratar" },
+                                ]}
+                                {...register("hired", { required: "Selecione uma opção" })}
+                            />
+                        </Box>
+                    </Stack>
+                </ModalBody>
+                <ModalFooter gap="3">
+                    <Button
+                        colorScheme="green"
+                        isLoading={complete.isLoading}
+                        onClick={handleSubmit((data) => complete.mutate(data))}
+                    >
+                        Confirmar conclusão
+                    </Button>
+                    <Button variant="outline" onClick={onClose}>
+                        Voltar
+                    </Button>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
+    );
+}
+
 // ── Card de entrevista ─────────────────────────────────────────────────────────
 
 interface InterviewCardProps {
@@ -370,33 +478,7 @@ function InterviewCard({ interview }: InterviewCardProps) {
     const cardBg = useColorModeValue("gray.50", "gray.800");
     const { isOpen: isRescheduleOpen, onOpen: onRescheduleOpen, onClose: onRescheduleClose } = useDisclosure();
     const { isOpen: isCancelOpen, onOpen: onCancelOpen, onClose: onCancelClose } = useDisclosure();
-
-    const updateStatus = useMutation(
-        async ({ interview_id, status }: { interview_id: string; status: string }) => {
-            await api.patch("interview/updateStatus", { interview_id, status });
-        },
-        {
-            onSuccess: () => {
-                queryClient.invalidateQueries(["interview/searchAllInterview", interview.application_id]);
-                toast({
-                    description: "Status atualizado com sucesso",
-                    status: "success",
-                    position: "top",
-                    duration: 4000,
-                    isClosable: true,
-                });
-            },
-            onError: (error: any) => {
-                toast({
-                    description: error?.response?.data?.message ?? "Erro ao atualizar status",
-                    status: "error",
-                    position: "top",
-                    duration: 4000,
-                    isClosable: true,
-                });
-            },
-        }
-    );
+    const { isOpen: isCompleteOpen, onOpen: onCompleteOpen, onClose: onCompleteClose } = useDisclosure();
 
     return (
         <>
@@ -486,10 +568,7 @@ function InterviewCard({ interview }: InterviewCardProps) {
                                     variant="ghost"
                                     leftIcon={<Icon as={GoCheckCircleFill} color="green" />}
                                     size="xs"
-                                    isLoading={updateStatus.isLoading}
-                                    onClick={() =>
-                                        updateStatus.mutate({ interview_id: interview.id, status: "completed" })
-                                    }
+                                    onClick={onCompleteOpen}
                                 >
                                     Marcar como realizada
                                 </Button>
@@ -519,6 +598,7 @@ function InterviewCard({ interview }: InterviewCardProps) {
 
             <RescheduleModal interview={interview} isOpen={isRescheduleOpen} onClose={onRescheduleClose} />
             <CancelModal interview={interview} isOpen={isCancelOpen} onClose={onCancelClose} />
+            <CompleteModal interview={interview} isOpen={isCompleteOpen} onClose={onCompleteClose} />
         </>
     );
 }

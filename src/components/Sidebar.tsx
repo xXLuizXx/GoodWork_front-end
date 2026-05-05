@@ -10,6 +10,8 @@ import { useCountJobsNotValidated } from '@/services/hooks/Jobs/useCountJobsVali
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { useCountCategoriesNotValidated } from "@/services/hooks/Categories/useCountCategoriesNotValidated";
+import { useMyApplicationsCandidate } from "@/services/hooks/applications/useMyApplicationsCandidate";
+import { usePendingInterviewsCount } from "@/services/hooks/Interviews/usePendingInterviewsCount";
 import { CreateCategory } from "./Categories/CreateCategory";
 
 interface DecodedToken {
@@ -39,6 +41,13 @@ export function Sidebar() {
     const { data: jobsData, isLoading: isLoadingJobs } = useCountJobsNotValidated({ enabled: admin });
     const { data: categoriesData, isLoading: isLoadingCategories } = useCountCategoriesNotValidated({ enabled: admin });
     const { isOpen: isCategoryModalOpen, onOpen: onCategoryModalOpen, onClose: onCategoryModalClose } = useDisclosure();
+
+    const isIndividual = mounted && typeUser === "individual" && !admin;
+    const { data: myApplications } = useMyApplicationsCandidate(userId, { enabled: isIndividual && !!userId });
+    const candidateAppIds = myApplications?.map((a) => a.id) ?? [];
+    const { count: pendingInterviewsCount } = usePendingInterviewsCount(candidateAppIds, userId, {
+        enabled: isIndividual && candidateAppIds.length > 0,
+    });
 
     const categoriesCount = categoriesData?.length || 0;
     const jobsCount = admin ? (isLoadingJobs ? 0 : jobsData?.count || 0) : 0;
@@ -296,8 +305,73 @@ export function Sidebar() {
                             </AccordionItem>
                         )}
 
-                        {/* ENTREVISTAS — empresa e individual */}
-                        {(typeUser === "company" || typeUser === "individual") && !admin && (
+                        {/* CANDIDATURAS — apenas individual */}
+                        {typeUser === "individual" && !admin && (
+                            <AccordionItem>
+                                {({ isExpanded }) => (
+                                    <>
+                                        <AccordionButton pb="7" position="relative">
+                                            <Text flex="1" textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
+                                                CANDIDATURAS
+                                            </Text>
+                                            {!isExpanded && pendingInterviewsCount > 0 && (
+                                                <Box
+                                                    position="absolute"
+                                                    right="2"
+                                                    top="2"
+                                                    bg="red.600"
+                                                    borderRadius="full"
+                                                    w="12px"
+                                                    h="12px"
+                                                    border="2px solid white"
+                                                    boxShadow="md"
+                                                    animation="pulse 1.5s infinite"
+                                                    css={{
+                                                        "@keyframes pulse": {
+                                                            "0%": { transform: "scale(0.95)", opacity: 0.8 },
+                                                            "70%": { transform: "scale(1.1)", opacity: 1 },
+                                                            "100%": { transform: "scale(0.95)", opacity: 0.8 },
+                                                        },
+                                                    }}
+                                                />
+                                            )}
+                                            <AccordionIcon />
+                                        </AccordionButton>
+                                        <AccordionPanel>
+                                            <VStack align="start" spacing={1}>
+                                                <NextLink href="/applications/my-applications" legacyBehavior passHref>
+                                                    <ChakraLink {...linkStyle}>Minhas candidaturas</ChakraLink>
+                                                </NextLink>
+                                                <NextLink href="/interviews/candidate" legacyBehavior passHref>
+                                                    <ChakraLink {...linkStyle} display="inline-flex" alignItems="center">
+                                                        Acompanhamento de entrevista
+                                                        {pendingInterviewsCount > 0 && (
+                                                            <Badge
+                                                                ml={2}
+                                                                bg="red.600"
+                                                                color="white"
+                                                                borderRadius="full"
+                                                                boxSize="20px"
+                                                                display="flex"
+                                                                alignItems="center"
+                                                                justifyContent="center"
+                                                                fontSize="xs"
+                                                                fontWeight="extrabold"
+                                                            >
+                                                                {pendingInterviewsCount}
+                                                            </Badge>
+                                                        )}
+                                                    </ChakraLink>
+                                                </NextLink>
+                                            </VStack>
+                                        </AccordionPanel>
+                                    </>
+                                )}
+                            </AccordionItem>
+                        )}
+
+                        {/* ENTREVISTAS — apenas empresa */}
+                        {typeUser === "company" && !admin && (
                             <AccordionItem>
                                 <AccordionButton pb="7">
                                     <Text flex="1" textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
@@ -307,11 +381,9 @@ export function Sidebar() {
                                 </AccordionButton>
                                 <AccordionPanel>
                                     <VStack align="start" spacing={1}>
-                                        {typeUser === "company" && (
-                                            <NextLink href="/interviews/create" legacyBehavior passHref>
-                                                <ChakraLink {...linkStyle}>Marcar entrevista</ChakraLink>
-                                            </NextLink>
-                                        )}
+                                        <NextLink href="/interviews/create" legacyBehavior passHref>
+                                            <ChakraLink {...linkStyle}>Marcar entrevista</ChakraLink>
+                                        </NextLink>
                                         <NextLink href="/interviews/my-interviews" legacyBehavior passHref>
                                             <ChakraLink {...linkStyle}>Minhas entrevistas</ChakraLink>
                                         </NextLink>
