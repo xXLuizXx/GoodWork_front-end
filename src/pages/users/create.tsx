@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Input } from "@/components/Form/Input";
 import { InputMask } from "@/components/Form/InputMask";
-import { Button, Flex, Grid, GridItem, Image, SimpleGrid, Stack, Textarea, VStack, useToast, Box, Heading, Text, useColorModeValue, Tag, TagLabel, TagCloseButton, Wrap, WrapItem, InputGroup, InputLeftElement } from "@chakra-ui/react";
+import { Button, Flex, Grid, GridItem, Image, SimpleGrid, Stack, Textarea, VStack, useToast, Box, Heading, Text, useColorModeValue, Tag, TagLabel, TagCloseButton, Wrap, WrapItem, InputGroup, InputLeftElement, Alert, AlertIcon, AlertDescription } from "@chakra-ui/react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import * as yup from "yup";
 import { api } from "@/services/apiClient";
@@ -162,6 +162,9 @@ export default function CreateUser(): JSX.Element {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 8;
     
+    const [created, setCreated] = useState(false);
+    const [createdEmail, setCreatedEmail] = useState("");
+
     const bgColor = useColorModeValue('gray.50', 'gray.900');
     const cardBg = useColorModeValue('white', 'gray.800');
     const borderColor = useColorModeValue('blue.200', 'blue.600');
@@ -236,21 +239,13 @@ export default function CreateUser(): JSX.Element {
     const createUser = useMutation(
         async (user: ICreateUser) => {
             try {
-                const response = await api.post("users", user,{
+                const response = await api.post("users", user, {
                     headers: { "Content-Type": "multipart/form-data" },
                 });
-                toast({
-                    description: "Usuário criado com sucesso.",
-                    status: "success",
-                    position: "top",
-                    duration: 8000,
-                    isClosable: true,
-                });
-                Router.push("/");
                 return response.data.user;
             } catch (error) {
                 toast({
-                    description: error.response?.data?.message || "Erro ao criar usuário",
+                    description: (error as any).response?.data?.message || "Erro ao criar usuário",
                     status: "error",
                     position: "top",
                     duration: 8000,
@@ -261,6 +256,7 @@ export default function CreateUser(): JSX.Element {
         {
             onSuccess: () => {
                 queryClient.invalidateQueries("users");
+                setCreated(true);
             },
         }
     );
@@ -276,7 +272,9 @@ export default function CreateUser(): JSX.Element {
                 formDataToSend.append(key, String(value));
             }
         }
-    
+
+        setCreatedEmail(data.email ?? "");
+
         try {
             await createUser.mutateAsync(formDataToSend as unknown as ICreateUser);
         } catch (error) {
@@ -284,6 +282,58 @@ export default function CreateUser(): JSX.Element {
         }
     };
     
+    if (created) {
+        return (
+            <Flex w="100vw" minH="100vh" align="center" justify="center" bg={bgColor}>
+                <Helmet>
+                    <title>Conta criada!</title>
+                    <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />
+                </Helmet>
+                <Box
+                    bg={cardBg}
+                    p="10"
+                    borderRadius="2xl"
+                    maxW="500px"
+                    w="90%"
+                    boxShadow="xl"
+                    textAlign="center"
+                    borderWidth="1px"
+                    borderColor={borderColor}
+                >
+                    <Image
+                        src="../Img/logos/GoodworkSSlogan.png"
+                        alt="GoodWork"
+                        boxSize="100px"
+                        mx="auto"
+                        mb={4}
+                    />
+                    <Heading as="h2" size="lg" color={headingColor} mb={3}>
+                        Conta criada com sucesso!
+                    </Heading>
+                    <Alert status="info" borderRadius="md" mb={5} textAlign="left">
+                        <AlertIcon />
+                        <AlertDescription>
+                            Enviamos um e-mail de verificação para <strong>{createdEmail || "o seu endereço"}</strong>.
+                            Verifique sua caixa de entrada e clique no link para ativar sua conta antes de fazer login.
+                        </AlertDescription>
+                    </Alert>
+                    <Text color={textColor} fontSize="sm" mb={6}>
+                        Não recebeu o e-mail? Verifique a pasta de spam ou lixo eletrônico.
+                    </Text>
+                    <Button
+                        colorScheme="blue"
+                        borderRadius="full"
+                        w="100%"
+                        size="lg"
+                        onClick={() => Router.push("/")}
+                    >
+                        Ir para o login
+                    </Button>
+                </Box>
+            </Flex>
+        );
+    }
+
     return (
         <Flex
             as="form"
@@ -300,7 +350,7 @@ export default function CreateUser(): JSX.Element {
                 <title>Criar Conta</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />
             </Helmet>
-            
+
             <Box w={["95%", "90%", "70%"]} maxW="800px">
                 <Flex
                     width="100%"
@@ -314,10 +364,10 @@ export default function CreateUser(): JSX.Element {
                 >
                     <VStack spacing={6} w="100%">
                         <Box textAlign="center" mb={4}>
-                            <Image 
-                                maxW="100%" 
-                                boxSize={["150px", "180px", "200px"]} 
-                                src="../Img/logos/GoodworkSSlogan.png" 
+                            <Image
+                                maxW="100%"
+                                boxSize={["150px", "180px", "200px"]}
+                                src="../Img/logos/GoodworkSSlogan.png"
                                 alt="Goodwork Logo"
                                 mx="auto"
                             />
@@ -328,6 +378,13 @@ export default function CreateUser(): JSX.Element {
                                 Preencha os dados abaixo para criar sua conta
                             </Text>
                         </Box>
+
+                        <Alert status="info" borderRadius="md" w="100%">
+                            <AlertIcon />
+                            <AlertDescription fontSize="sm">
+                                Após criar sua conta, você receberá um e-mail para verificar e ativar o acesso antes de fazer login.
+                            </AlertDescription>
+                        </Alert>
                         
                         <Grid
                             gap={4}

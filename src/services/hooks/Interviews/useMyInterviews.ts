@@ -12,6 +12,7 @@ interface IInterview {
     interviewer_name: string;
     interviewer_email: string;
     notes?: string;
+    notice?: string;
     status: string;
     created_at: string;
 }
@@ -36,6 +37,7 @@ async function getMyInterviews(application_id: string): Promise<IGetInterviewsRe
         interviewer_name: interview.interviewer_name,
         interviewer_email: interview.interviewer_email,
         notes: interview.notes,
+        notice: interview.notice,
         status: interview.status,
         created_at: interview.created_at,
     })) : [];

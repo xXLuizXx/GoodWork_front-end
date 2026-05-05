@@ -26,6 +26,7 @@ import {
     AlertIcon,
 } from "@chakra-ui/react";
 import { Input } from "@/components/Form/Input";
+import { Textarea } from "@/components/Form/TextArea";
 import { Select } from "@/components/Form/SelectCategory";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header/Header";
@@ -78,6 +79,11 @@ interface IRescheduleForm {
     interviewer_name: string;
     interviewer_email: string;
     notes: string;
+    notice: string;
+}
+
+interface ICancelForm {
+    notice: string;
 }
 
 // ── Modal de remarcar ──────────────────────────────────────────────────────────
@@ -100,6 +106,7 @@ function RescheduleModal({ interview, isOpen, onClose }: RescheduleModalProps) {
             interviewer_name: interview.interviewer_name,
             interviewer_email: interview.interviewer_email,
             notes: "",
+            notice: "",
         },
     });
 
@@ -107,7 +114,7 @@ function RescheduleModal({ interview, isOpen, onClose }: RescheduleModalProps) {
 
     const reschedule = useMutation(
         async (data: IRescheduleForm) => {
-            await api.patch("interview/reschedule", {
+            await api.patch("interview/rescheduleInterview", {
                 interview_id: interview.id,
                 scheduled_date: data.scheduled_date,
                 duration_minutes: Number(data.duration_minutes),
@@ -117,6 +124,7 @@ function RescheduleModal({ interview, isOpen, onClose }: RescheduleModalProps) {
                 interviewer_name: data.interviewer_name,
                 interviewer_email: data.interviewer_email,
                 notes: data.notes,
+                notice: data.notice,
             });
         },
         {
@@ -181,8 +189,8 @@ function RescheduleModal({ interview, isOpen, onClose }: RescheduleModalProps) {
                                 borderColor="rgba(0, 0, 255, 0.2)"
                                 error={errors.interview_type}
                                 options={[
-                                    { key: "presencial", value: "presencial", label: "Presencial" },
-                                    { key: "online", value: "online", label: "Online" },
+                                    { value: "presencial", label: "Presencial" },
+                                    { value: "online", label: "Online" },
                                 ]}
                                 {...register("interview_type", { required: "Campo obrigatório" })}
                             />
@@ -229,15 +237,23 @@ function RescheduleModal({ interview, isOpen, onClose }: RescheduleModalProps) {
                             />
                         </Box>
                         <Box>
-                            <FormLabel color="blue.600" fontSize="sm">
-                                Observação{" "}
-                                <Text as="span" color="red.500" fontSize="xs">(obrigatório ao remarcar)</Text>
-                            </FormLabel>
+                            <FormLabel color="blue.600" fontSize="sm">Observação</FormLabel>
                             <Input
                                 border="1px solid"
                                 borderColor="rgba(0, 0, 255, 0.2)"
                                 error={errors.notes}
-                                {...register("notes", { required: "Informe o motivo do reagendamento" })}
+                                {...register("notes")}
+                            />
+                        </Box>
+                        <Box>
+                            <FormLabel color="blue.600" fontSize="sm">
+                                Aviso ao candidato{" "}
+                                <Text as="span" color="red.500" fontSize="xs">*</Text>
+                            </FormLabel>
+                            <Textarea
+                                placeholder="Descreva o motivo do reagendamento para o candidato..."
+                                error={errors.notice}
+                                {...register("notice", { required: "Informe o motivo do reagendamento" })}
                             />
                         </Box>
                     </Stack>
@@ -259,6 +275,89 @@ function RescheduleModal({ interview, isOpen, onClose }: RescheduleModalProps) {
     );
 }
 
+// ── Modal de cancelar ─────────────────────────────────────────────────────────
+
+interface CancelModalProps {
+    interview: IInterviewWithCandidate;
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+function CancelModal({ interview, isOpen, onClose }: CancelModalProps) {
+    const toast = useToast();
+    const { register, handleSubmit, reset, formState: { errors } } = useForm<ICancelForm>();
+
+    const cancel = useMutation(
+        async (data: ICancelForm) => {
+            await api.patch("interview/cancelInterview", {
+                interview_id: interview.id,
+                notice: data.notice,
+            });
+        },
+        {
+            onSuccess: () => {
+                queryClient.invalidateQueries(["interview/searchAllInterview", interview.application_id]);
+                toast({
+                    description: "Entrevista cancelada com sucesso",
+                    status: "success",
+                    position: "top",
+                    duration: 4000,
+                    isClosable: true,
+                });
+                reset();
+                onClose();
+            },
+            onError: (error: any) => {
+                toast({
+                    description: error?.response?.data?.message ?? "Erro ao cancelar entrevista",
+                    status: "error",
+                    position: "top",
+                    duration: 4000,
+                    isClosable: true,
+                });
+            },
+        }
+    );
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} isCentered>
+            <ModalOverlay />
+            <ModalContent>
+                <ModalHeader>Cancelar entrevista</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    <Text fontSize="sm" color="gray.500" mb="4">
+                        Candidato: <strong>{interview.candidate_name}</strong>
+                    </Text>
+                    <Box>
+                        <FormLabel color="blue.600" fontSize="sm">
+                            Motivo do cancelamento{" "}
+                            <Text as="span" color="red.500" fontSize="xs">*</Text>
+                        </FormLabel>
+                        <Textarea
+                            placeholder="Descreva o motivo do cancelamento para o candidato..."
+                            error={errors.notice}
+                            {...register("notice", { required: "Informe o motivo do cancelamento" })}
+                        />
+                    </Box>
+                </ModalBody>
+                <ModalFooter gap="3">
+                    <Button
+                        colorScheme="red"
+                        isLoading={cancel.isLoading}
+                        onClick={handleSubmit((data) => cancel.mutate(data))}
+                    >
+                        Confirmar cancelamento
+                    </Button>
+                    <Button variant="outline" onClick={onClose}>
+                        Voltar
+                    </Button>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
+    );
+}
+
 // ── Card de entrevista ─────────────────────────────────────────────────────────
 
 interface InterviewCardProps {
@@ -269,7 +368,8 @@ function InterviewCard({ interview }: InterviewCardProps) {
     const router = useRouter();
     const toast = useToast();
     const cardBg = useColorModeValue("gray.50", "gray.800");
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { isOpen: isRescheduleOpen, onOpen: onRescheduleOpen, onClose: onRescheduleClose } = useDisclosure();
+    const { isOpen: isCancelOpen, onOpen: onCancelOpen, onClose: onCancelClose } = useDisclosure();
 
     const updateStatus = useMutation(
         async ({ interview_id, status }: { interview_id: string; status: string }) => {
@@ -364,6 +464,11 @@ function InterviewCard({ interview }: InterviewCardProps) {
                                 Obs: {interview.notes}
                             </Text>
                         )}
+                        {interview.notice && (
+                            <Text fontSize="xs" color="orange.500" fontStyle="italic" mt="1">
+                                Aviso: {interview.notice}
+                            </Text>
+                        )}
                     </Box>
 
                     <Flex direction="column" gap="2" minW="150px">
@@ -373,7 +478,7 @@ function InterviewCard({ interview }: InterviewCardProps) {
                                     variant="ghost"
                                     leftIcon={<Icon as={FiCalendar} color="blue" />}
                                     size="xs"
-                                    onClick={onOpen}
+                                    onClick={onRescheduleOpen}
                                 >
                                     Remarcar
                                 </Button>
@@ -392,10 +497,7 @@ function InterviewCard({ interview }: InterviewCardProps) {
                                     variant="ghost"
                                     leftIcon={<Icon as={GoXCircleFill} color="red" />}
                                     size="xs"
-                                    isLoading={updateStatus.isLoading}
-                                    onClick={() =>
-                                        updateStatus.mutate({ interview_id: interview.id, status: "cancelled" })
-                                    }
+                                    onClick={onCancelOpen}
                                 >
                                     Cancelar entrevista
                                 </Button>
@@ -415,7 +517,8 @@ function InterviewCard({ interview }: InterviewCardProps) {
                 </Flex>
             </Box>
 
-            <RescheduleModal interview={interview} isOpen={isOpen} onClose={onClose} />
+            <RescheduleModal interview={interview} isOpen={isRescheduleOpen} onClose={onRescheduleClose} />
+            <CancelModal interview={interview} isOpen={isCancelOpen} onClose={onCancelClose} />
         </>
     );
 }
