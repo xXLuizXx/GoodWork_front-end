@@ -4,6 +4,7 @@ import { api } from "@/services/apiClient";
 interface IApplicationsVacancyCompany {
     id: string;
     application_approved: boolean | null;
+    hired: boolean | null;
     job_id: string;
     curriculum_user: string;
     user_id: string;

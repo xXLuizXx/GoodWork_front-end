@@ -38,19 +38,6 @@ interface FinalApprovalPayload {
     selected_count: number;
 }
 
-interface BatchRejectionEmail {
-    to: string;
-    candidate_name: string;
-    company_name: string;
-    vacancy_name: string;
-}
-
-interface BatchRejectionResponse {
-    success: boolean;
-    sent: number;
-    failed: number;
-    total: number;
-}
 
 interface JobData {
     vacancy: string;
@@ -148,7 +135,7 @@ function ApplicationCard({
                         justifyContent="center"
                     >
                         <TagLabel fontSize="xs">
-                            {isApproved ? "Selecionado" : isRejected ? "Rejeitado" : "Pendente"}
+                            {isApproved ? "Aprovado para entrevista" : isRejected ? "Reprovado" : "Pendente"}
                         </TagLabel>
                     </Tag>
 
@@ -165,7 +152,7 @@ function ApplicationCard({
                             fontSize="xs"
                             px={2}
                         >
-                            {isApproved ? "Selecionado" : "Selecionar"}
+                            {isApproved ? "Aprovado para entrevista" : "Aprovar para entrevista"}
                         </Button>
                     )}
                     {vacancyAvailable && (
@@ -181,7 +168,7 @@ function ApplicationCard({
                             fontSize="xs"
                             px={2}
                         >
-                            {isRejected ? "Rejeitado" : "Rejeitar"}
+                            {isRejected ? "Reprovado" : "Reprovar"}
                         </Button>
                     )}
                     <Button
@@ -289,8 +276,8 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             const { data, timestamp } = JSON.parse(cachedData);
             if (Date.now() - timestamp < 1800000) {
                 setApprovalList(data);
-                setApprovedCount(Object.values(data).filter(app => app.approved === true).length);
-                setRejectedCount(Object.values(data).filter(app => app.approved === false).length);
+                setApprovedCount(Object.values(data).filter((app: any) => app.approved === true).length);
+                setRejectedCount(Object.values(data).filter((app: any) => app.approved === false).length);
             }
         }
     }, [id]);
@@ -359,7 +346,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             }
 
             toast({
-                title: isApproving ? "Candidato selecionado" : targetStatus === false ? "Candidato rejeitado" : "Candidato movido para pendentes",
+                title: isApproving ? "Candidato aprovado" : targetStatus === false ? "Candidato reprovado" : "Candidato movido para pendentes",
                 status: "success",
                 duration: 2000,
                 isClosable: true,
@@ -395,7 +382,8 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
         }
 
         toast({
-            title: isApproving ? "Candidato(a) selecionado(a). Ao final finalize o processo de seleção" : "Candidato(a) rejeitado(a). Ao final finalize o processo de seleção",
+            title: isApproving ? "Candidato(a) aprovado(a)" : "Candidato(a) reprovado(a)",
+            description: "Ao final, confirme as aprovações para salvar.",
             status: "success",
             duration: 3000,
             isClosable: true,
@@ -443,48 +431,6 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
 
             await api.patch(`/application/finalizeApplications`, payload);
 
-            const rejectedApplications = applications.filter(app => 
-                approvalList[app.id]?.approved === false
-            );
-
-            if (rejectedApplications.length > 0) {
-                try {
-                    const batchRejectionData: BatchRejectionEmail[] = rejectedApplications.map(app => ({
-                        to: app.user?.email || '',
-                        candidate_name: app.user?.name || 'Candidato',
-                        company_name: user?.name || job?.company?.name || "Nossa empresa",
-                        vacancy_name: job?.vacancy || "a vaga"
-                    }));
-
-                    const response = await api.post<BatchRejectionResponse>('/mail/batch-rejections', {
-                        rejections: batchRejectionData,
-                        template_type: "rejection"
-                    });
-
-                    console.log(`Lote de ${rejectedApplications.length} e-mails enviado com sucesso`);
-                    
-                    if (response.data.failed > 0) {
-                        toast({
-                            title: "Aviso",
-                            description: `Processo finalizado, mas ${response.data.failed} e-mail(s) não foram enviados`,
-                            status: "warning",
-                            duration: 5000,
-                            isClosable: true,
-                        });
-                    }
-                    
-                } catch (batchError) {
-                    console.error("Erro no envio em lote:", batchError);
-                    toast({
-                        title: "Aviso",
-                        description: "Processo finalizado, mas os e-mails de rejeição não foram enviados",
-                        status: "warning",
-                        duration: 4000,
-                        isClosable: true,
-                    });
-                }
-            }
-
             const pendingApplications = applications.filter(app => approvalList[app.id]?.approved === null);
             const newApprovalList = { ...approvalList };
             
@@ -505,19 +451,17 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             
             toast({
                 title: "Processo finalizado!",
-                description: rejectedApplications.length > 0 
-                    ? `${rejectedApplications.length} candidatos rejeitados foram notificados.`
-                    : "Processo de seleção concluído.",
+                description: "Processo de seleção concluído. Os candidatos serão notificados por e-mail.",
                 status: "success",
                 duration: 5000,
                 isClosable: true,
             });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error("Erro ao finalizar processo:", error);
             toast({
                 title: "Erro ao finalizar",
-                description: error.response?.data?.message || "Ocorreu um erro ao finalizar o processo",
+                description: error?.response?.data?.message || "Ocorreu um erro ao finalizar o processo",
                 status: "error",
                 duration: 3000,
                 isClosable: true,
@@ -582,11 +526,10 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
             >
               <HStack spacing="3">
                   <Text fontWeight="bold" fontSize="sm">
-                      Vaga: {job?.vacancy} | 
-                      Vagas: {approvedCount}/{totalVacancyJob} | 
-                      Candidaturas: {totalApplicationVacancy} | 
-                      Selecionadas: {approvedCount} | 
-                      Rejeitadas: {rejectedCount}
+                      Vaga: {job?.vacancy} |
+                      Candidaturas: {totalApplicationVacancy} |
+                      Aprovados: {approvedCount}/{totalVacancyJob} |
+                      Reprovados: {rejectedCount}
                   </Text>
                   
                   <Menu>
@@ -605,13 +548,13 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                               Todas as Candidaturas
                           </MenuItem>
                           <MenuItem onClick={() => { setFilter("approved"); setCurrentPage(1); }} fontSize="sm">
-                              Aprovadas
+                              Aprovados
                               <Badge ml="2" colorScheme="green" fontSize="xs">
                                   {approvedApplications.length}
                               </Badge>
                           </MenuItem>
                           <MenuItem onClick={() => { setFilter("rejected"); setCurrentPage(1); }} fontSize="sm">
-                              Rejeitadas
+                              Reprovados
                               <Badge ml="2" colorScheme="red" fontSize="xs">
                                   {rejectedApplications.length}
                               </Badge>
@@ -638,9 +581,9 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                             fontSize="sm"
                             height="8"
                         >
-                            {approvedCount < totalVacancyJob 
-                                ? `Aprovar selecionados`
-                                : `Finalizar Processo`
+                            {approvedCount < totalVacancyJob
+                                ? `Confirmar e avançar para entrevista`
+                                : `Finalizar seleção`
                             }
                         </Button>
                     )}
@@ -673,7 +616,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                         </Badge>
                     </Heading>
                     <Text fontSize="xs" color="gray.600" mb={3}>
-                        Arraste os candidatos para as colunas de selecionados ou rejeitados
+                        Arraste os candidatos para as colunas de aprovados ou reprovados
                     </Text>
                     
                     <VStack align="stretch" spacing={2}>
@@ -710,7 +653,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                     overflowY="auto"
                 >
                     <Heading size="sm" mb={2} color="green.500" display="flex" alignItems="center">
-                        Candidatos Selecionados
+                        Aprovados para entrevista
                         <Badge ml={2} colorScheme="green" fontSize="xs">
                             {approvedApplications.length}/{totalVacancyJob}
                         </Badge>
@@ -738,7 +681,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                         
                         {approvedApplications.length === 0 && (
                             <Center h="100px" border="2px dashed" borderColor="green.300" borderRadius="md">
-                                <Text color="gray.500" fontSize="sm">Solte candidatos selecionados aqui</Text>
+                                <Text color="gray.500" fontSize="sm">Solte candidatos aprovados aqui</Text>
                             </Center>
                         )}
                     </VStack>
@@ -755,13 +698,13 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                     overflowY="auto"
                 >
                     <Heading size="sm" mb={2} color="red.500" display="flex" alignItems="center">
-                        Candidatos Não Selecionados
+                        Candidatos Reprovados
                         <Badge ml={2} colorScheme="red" fontSize="xs">
                             {rejectedApplications.length}
                         </Badge>
                     </Heading>
                     <Text fontSize="xs" color="gray.600" mb={3}>
-                        Candidatos que não foram selecionados para a vaga
+                        Candidatos reprovados nesta etapa do processo
                     </Text>
                     
                     <VStack align="stretch" spacing={2}>
@@ -781,7 +724,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                         
                         {rejectedApplications.length === 0 && (
                             <Center h="100px" border="2px dashed" borderColor="red.300" borderRadius="md">
-                                <Text color="gray.500" fontSize="sm">Solte candidatos rejeitados aqui</Text>
+                                <Text color="gray.500" fontSize="sm">Solte candidatos reprovados aqui</Text>
                             </Center>
                         )}
                     </VStack>
@@ -861,8 +804,8 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                     }
                                   >
                                     <TagLabel fontSize="sm">
-                                      {approvalList[selectedApplication.id]?.approved === true ? "Aprovado" : 
-                                      approvalList[selectedApplication.id]?.approved === false ? "Rejeitado" : "Pendente"}
+                                      {approvalList[selectedApplication.id]?.approved === true ? "Aprovado" :
+                                      approvalList[selectedApplication.id]?.approved === false ? "Reprovado" : "Pendente"}
                                     </TagLabel>
                                   </Tag>
                                 </Box>
@@ -881,26 +824,26 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                 <ModalOverlay />
                 <ModalContent>
                     <ModalHeader py={3} fontSize="md">
-                        {approvalAction?.type === 'approve' ? 'Confirmar seleção' : 'Confirmar rejeição'}
+                        {approvalAction?.type === 'approve' ? 'Confirmar aprovação' : 'Confirmar reprovação'}
                     </ModalHeader>
                     <ModalCloseButton size="sm" />
                     <ModalBody py={3}>
                         <Text fontSize="sm">
-                            {approvalAction?.type === 'approve' 
-                              ? 'Tem certeza que deseja selecionar este candidato?' 
-                              : 'Tem certeza que deseja rejeitar este candidato?'}
+                            {approvalAction?.type === 'approve'
+                              ? 'Tem certeza que deseja aprovar este candidato para a entrevista?'
+                              : 'Tem certeza que deseja reprovar este candidato?'}
                         </Text>
                     </ModalBody>
                     <ModalFooter py={2}>
                         <Button variant="outline" mr={2} onClick={onConfirmClose} size="sm">
                             Cancelar
                         </Button>
-                        <Button 
-                            colorScheme={approvalAction?.type === 'approve' ? 'green' : 'red'} 
+                        <Button
+                            colorScheme={approvalAction?.type === 'approve' ? 'green' : 'red'}
                             onClick={handleConfirmAction}
                             size="sm"
                         >
-                            {approvalAction?.type === 'approve' ? 'Confirmar' : 'Rejeitar'}
+                            {approvalAction?.type === 'approve' ? 'Aprovar' : 'Reprovar'}
                         </Button>
                     </ModalFooter>
                 </ModalContent>

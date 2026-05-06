@@ -51,7 +51,9 @@ function signOut(): void {
     authChannel.postMessage("signOut");
   }
 
-  Router.push("/");
+  if (Router.pathname !== "/") {
+    Router.push("/");
+  }
 }
 
 function AuthProvider({ children }: IAuthProviderProps) {
@@ -92,11 +94,11 @@ function AuthProvider({ children }: IAuthProviderProps) {
             is_employee: data.is_employee || undefined,
             curriculum: data.curriculum || undefined,
             business_area: data.business_area || undefined,
-            avatar: data.avatar || undefined
+            avatar: data.avatar || ""
           });
         })
         .catch(() => {
-          if (process.browser) signOut();
+          if (typeof window !== "undefined") signOut();
         });
     }
   }, []);
@@ -115,7 +117,6 @@ function AuthProvider({ children }: IAuthProviderProps) {
     } catch (error: any) {
       const errorMessage = error?.response?.data?.message || "Ocorreu um erro inesperado. Tente novamente.";
       showToast({ description: errorMessage, status: "error" });
-      Router.push("/");
     }
   }
 

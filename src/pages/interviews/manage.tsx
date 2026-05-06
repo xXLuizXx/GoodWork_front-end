@@ -68,6 +68,7 @@ interface IInterviewWithCandidate extends IInterview {
     candidate_name: string;
     candidate_email: string;
     application_id: string;
+    hired: boolean | null;
 }
 
 interface IRescheduleForm {
@@ -491,7 +492,15 @@ function InterviewCard({ interview }: InterviewCardProps) {
                 transition="box-shadow 0.2s"
                 opacity={interview.status === "cancelled" ? 0.6 : 1}
                 borderLeft="3px solid"
-                borderLeftColor={`${statusColor[interview.status] ?? "gray"}.400`}
+                borderLeftColor={
+                    interview.status === "completed"
+                        ? interview.hired === true
+                            ? "green.400"
+                            : interview.hired === false
+                            ? "red.400"
+                            : "yellow.400"
+                        : `${statusColor[interview.status] ?? "gray"}.400`
+                }
                 bg={cardBg}
             >
                 <Flex justify="space-between" align="flex-start" flexWrap="wrap" gap="4">
@@ -514,6 +523,25 @@ function InterviewCard({ interview }: InterviewCardProps) {
                             >
                                 {statusLabel[interview.status] ?? interview.status}
                             </Badge>
+                            {interview.status === "completed" && (
+                                <Badge
+                                    colorScheme={
+                                        interview.hired === true
+                                            ? "green"
+                                            : interview.hired === false
+                                            ? "red"
+                                            : "yellow"
+                                    }
+                                    borderRadius="full"
+                                    fontSize="xs"
+                                >
+                                    {interview.hired === true
+                                        ? "Contratado"
+                                        : interview.hired === false
+                                        ? "Não contratado"
+                                        : "Aguardando decisão"}
+                                </Badge>
+                            )}
                         </Flex>
 
                         <Text fontSize="sm" color="gray.500" mb="1">
@@ -589,7 +617,7 @@ function InterviewCard({ interview }: InterviewCardProps) {
                                 size="xs"
                                 onClick={() => router.push("/interviews/create")}
                             >
-                                Reagendar
+                                Agendar nova entrevista
                             </Button>
                         )}
                     </Flex>
@@ -634,6 +662,17 @@ export default function ManageInterviews(): JSX.Element {
     const isLoadingInterviews = interviewQueries.some((q) => q.isLoading);
     const isLoading = isLoadingApps || isLoadingInterviews;
 
+    const vacancyName = (() => {
+        for (const q of interviewQueries) {
+            const data = Array.isArray(q.data) ? q.data : [];
+            for (const iv of data) {
+                const name = (iv as any)?.application?.job?.vacancy;
+                if (name) return name as string;
+            }
+        }
+        return null;
+    })();
+
     const allInterviews: IInterviewWithCandidate[] = interviewQueries.flatMap((q, i) => {
         const data: any[] = Array.isArray(q.data) ? q.data : [];
         const app = approvedApplications[i];
@@ -642,6 +681,7 @@ export default function ManageInterviews(): JSX.Element {
             candidate_name: app?.user?.name ?? "—",
             candidate_email: app?.user?.email ?? "",
             application_id: app?.id ?? "",
+            hired: interview.application?.hired ?? null,
         }));
     });
 
@@ -682,7 +722,7 @@ export default function ManageInterviews(): JSX.Element {
                 <Sidebar />
 
                 <Box w="100%">
-                    <Flex justify="space-between" align="center" mb="6">
+                    <Flex justify="space-between" align="center" mb="2">
                         <Text fontSize="2xl" fontWeight="bold" color="gray.700">
                             Gerenciar entrevistas
                         </Text>
@@ -694,6 +734,12 @@ export default function ManageInterviews(): JSX.Element {
                             ← Voltar para vagas
                         </Button>
                     </Flex>
+
+                    {vacancyName && (
+                        <Text fontSize="sm" color="gray.500" mb="6">
+                            Vaga: <strong>{vacancyName}</strong>
+                        </Text>
+                    )}
 
                     <Tabs
                         mb="6"

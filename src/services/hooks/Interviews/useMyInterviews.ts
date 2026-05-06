@@ -15,6 +15,9 @@ interface IInterview {
     notice?: string;
     status: string;
     created_at: string;
+    application?: {
+        hired: boolean | null;
+    };
 }
 
 interface IGetInterviewsResponse {
@@ -26,6 +29,7 @@ async function getMyInterviews(application_id: string): Promise<IGetInterviewsRe
         params: { application_id },
     });
 
+    console.log("Dados da entrevista ", data);
     const interviews = Array.isArray(data) ? data.map((interview: IInterview) => ({
         id: interview.id,
         application_id: interview.application_id,
@@ -40,6 +44,7 @@ async function getMyInterviews(application_id: string): Promise<IGetInterviewsRe
         notice: interview.notice,
         status: interview.status,
         created_at: interview.created_at,
+        application: interview.application,
     })) : [];
 
     return { interviews };
