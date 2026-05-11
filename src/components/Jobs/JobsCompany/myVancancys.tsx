@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react";
 import { GrFormView, GrAdd } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FaRegEdit } from "react-icons/fa";
 import { TiInputChecked } from "react-icons/ti";
 import { useAllJobsCompany } from "@/services/hooks/Jobs/useAllJobsCompany";
@@ -46,53 +46,6 @@ export function MyVacancy({id}: IJobsCompanyProps) {
     const { updateStatusJob, isLoading } = useUpdateStatusJob();
     const [filter, setFilter] = useState("all");
     const toast = useToast();
-
-    const checkAndUpdateJobStatus = async (jobs: Job[]) => {
-        const agoraBR = new Date().toLocaleString('pt-BR', {
-            timeZone: 'America/Sao_Paulo',
-            hour12: false
-        });
-        
-        const [dataParte, horaParte] = agoraBR.split(', ');
-        const [dia, mes, ano] = dataParte.split('/').map(Number);
-        const [hora, minuto, segundo] = horaParte.split(':').map(Number);
-    
-        const todayUTC = new Date(Date.UTC(
-            ano,
-            mes - 1,
-            dia,
-            hora,
-            minuto,
-            segundo
-        ));
-    
-        let needsRefetch = false;
-    
-        for (const job of jobs) {
-            try {
-                if (!job.closing_date) continue;
-                
-                const closingDate = new Date(job.closing_date);
-
-                if (closingDate <= todayUTC && job.vacancy_available) {
-                    await updateStatusJob(job.id, false);
-                    needsRefetch = true;
-                }
-            } catch (error) {
-                console.error(`Erro ao verificar vaga ${job.id}:`, error);
-            }
-        }
-    
-        if (needsRefetch) {
-            refetch();
-        }
-    };
-
-    useEffect(() => {
-        if (data?.jobs) {
-            checkAndUpdateJobStatus(data.jobs);
-        }
-    }, [data?.jobs]);
 
     const handleValidate = async (jobId: string, validated: boolean) => {
         const success = await updateStatusJob(jobId, validated);
