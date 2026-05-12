@@ -3,7 +3,6 @@ import { api } from "@/services/apiClient";
 
 interface IMyApplication {
     id: string;
-    job_id: string;
     application_approved: boolean | null;
     hired: boolean | null;
     curriculum_user: string;
@@ -18,6 +17,7 @@ interface IMyApplication {
         };
     };
     job?: {
+        id: string;
         vacancy: string;
         contractor: string | null;
         amount_vacancy: number;

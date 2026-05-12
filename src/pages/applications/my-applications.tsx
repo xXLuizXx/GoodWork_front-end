@@ -4,11 +4,21 @@ import {
     AlertIcon,
     Badge,
     Box,
+    Button,
     Flex,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
     Spinner,
     Stack,
     Text,
     useColorModeValue,
+    useDisclosure,
+    useToast,
 } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header/Header";
@@ -17,6 +27,8 @@ import { withSSRAuth } from "@/shared/withSSRAuth";
 import { useMyApplicationsCandidate, IMyApplication } from "@/services/hooks/applications/useMyApplicationsCandidate";
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
+import { api } from "@/services/apiClient";
+import { useQueryClient } from "react-query";
 
 export const getServerSideProps = withSSRAuth(async () => {
     return { props: {} };
@@ -67,9 +79,10 @@ function getProcessStage(application: IMyApplication): IProcessStage {
 
 interface ApplicationCardProps {
     application: IMyApplication;
+    onCancelClick: () => void;
 }
 
-function ApplicationCard({ application }: ApplicationCardProps) {
+function ApplicationCard({ application, onCancelClick }: ApplicationCardProps) {
     const cardBg = useColorModeValue("white", "gray.800");
 
     const { label, color } = getProcessStage(application);
@@ -118,17 +131,29 @@ function ApplicationCard({ application }: ApplicationCardProps) {
                     )}
                 </Box>
 
-                <Badge
-                    colorScheme={color}
-                    borderRadius="full"
-                    fontSize="xs"
-                    px="3"
-                    py="1"
-                    alignSelf="center"
-                    textAlign="center"
-                >
-                    {label}
-                </Badge>
+                <Flex gap="2" alignItems="center" flexWrap="wrap" justifyContent="flex-end">
+                    {application.application_approved === null && (
+                        <Button
+                            size="xs"
+                            variant="ghost"
+                            colorScheme="red"
+                            onClick={onCancelClick}
+                        >
+                            Cancelar candidatura
+                        </Button>
+                    )}
+                    <Badge
+                        colorScheme={color}
+                        borderRadius="full"
+                        fontSize="xs"
+                        px="3"
+                        py="1"
+                        alignSelf="center"
+                        textAlign="center"
+                    >
+                        {label}
+                    </Badge>
+                </Flex>
             </Flex>
         </Box>
     );
@@ -138,6 +163,11 @@ function ApplicationCard({ application }: ApplicationCardProps) {
 
 export default function MyApplications(): JSX.Element {
     const [userId, setUserId] = useState("");
+    const [applicationToCancel, setApplicationToCancel] = useState<IMyApplication | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
+    const { isOpen, onOpen, onClose } = useDisclosure();
+    const toast = useToast();
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         const cookies = parseCookies();
@@ -153,6 +183,56 @@ export default function MyApplications(): JSX.Element {
     const { data: applications = [], isLoading } = useMyApplicationsCandidate(userId, {
         enabled: !!userId,
     });
+
+    function handleCancelClick(application: IMyApplication) {
+        setApplicationToCancel(application);
+        onOpen();
+    }
+
+    async function confirmCancel() {
+        if (!applicationToCancel) return;
+        setIsCancelling(true);
+        try {
+            await api.delete(`application/${applicationToCancel.id}`);
+
+            queryClient.setQueryData(
+                ["application/myApplications", userId],
+                (old: IMyApplication[] | undefined) =>
+                    old?.filter(a => a.id !== applicationToCancel.id) ?? []
+            );
+
+            onClose();
+            setApplicationToCancel(null);
+            toast({
+                description: "Candidatura cancelada com sucesso.",
+                status: "success",
+                position: "top",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error: any) {
+            const status = error?.response?.status;
+            const message =
+                status === 403 || status === 404 || status === 422
+                    ? error?.response?.data?.message ?? "Não foi possível cancelar a candidatura."
+                    : "Erro ao cancelar candidatura. Tente novamente.";
+            toast({
+                description: message,
+                status: "error",
+                position: "top",
+                duration: 5000,
+                isClosable: true,
+            });
+        } finally {
+            setIsCancelling(false);
+        }
+    }
+
+    function handleModalClose() {
+        if (isCancelling) return;
+        setApplicationToCancel(null);
+        onClose();
+    }
 
     return (
         <Flex direction="column" minH="100vh">
@@ -186,12 +266,46 @@ export default function MyApplications(): JSX.Element {
                     {!isLoading && (
                         <Stack spacing="4">
                             {applications.map((application) => (
-                                <ApplicationCard key={application.id} application={application} />
+                                <ApplicationCard
+                                    key={application.id}
+                                    application={application}
+                                    onCancelClick={() => handleCancelClick(application)}
+                                />
                             ))}
                         </Stack>
                     )}
                 </Box>
             </Flex>
+
+            <Modal isOpen={isOpen} onClose={handleModalClose} isCentered>
+                <ModalOverlay />
+                <ModalContent>
+                    <ModalHeader>Cancelar candidatura</ModalHeader>
+                    <ModalCloseButton isDisabled={isCancelling} />
+                    <ModalBody>
+                        <Text>
+                            Tem certeza que deseja cancelar sua candidatura para{" "}
+                            <strong>{applicationToCancel?.job?.vacancy ?? "esta vaga"}</strong>?
+                        </Text>
+                    </ModalBody>
+                    <ModalFooter gap="3">
+                        <Button
+                            variant="ghost"
+                            onClick={handleModalClose}
+                            isDisabled={isCancelling}
+                        >
+                            Voltar
+                        </Button>
+                        <Button
+                            colorScheme="red"
+                            onClick={confirmCancel}
+                            isLoading={isCancelling}
+                        >
+                            Confirmar cancelamento
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
         </Flex>
     );
 }

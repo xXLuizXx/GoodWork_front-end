@@ -44,7 +44,9 @@ export function JobsForUser() {
     const queryClient = useQueryClient();
 
     const { data: myApplications } = useMyApplicationsCandidate(userId, { enabled: !!userId && !admin });
-    const appliedJobIds = new Set(myApplications?.map(a => a.job_id) ?? []);
+    const applicationByJobId = new Map(myApplications?.map(a => [a.job?.id, a]) ?? []);
+    const [jobToCancel, setJobToCancel] = useState<{ id: string; vacancy: string } | null>(null);
+    const [isCancelling, setIsCancelling] = useState(false);
 
     useEffect(() => {
         const cookies = parseCookies();
@@ -116,6 +118,46 @@ export function JobsForUser() {
             }
         }
     );
+
+    const { isOpen: isCancelOpen, onOpen: onCancelOpen, onClose: onCancelClose } = useDisclosure();
+
+    async function confirmCancel() {
+        if (!jobToCancel) return;
+        const application = applicationByJobId.get(jobToCancel.id);
+        if (!application) return;
+        setIsCancelling(true);
+        try {
+            await api.delete(`application/${application.id}`);
+            queryClient.setQueryData(
+                ["application/myApplications", userId],
+                (old: any[] | undefined) => old?.filter(a => a.id !== application.id) ?? []
+            );
+            onCancelClose();
+            setJobToCancel(null);
+            toast({
+                description: "Candidatura cancelada com sucesso.",
+                status: "success",
+                position: "top",
+                duration: 5000,
+                isClosable: true,
+            });
+        } catch (error: any) {
+            const status = error?.response?.status;
+            const message =
+                status === 403 || status === 404 || status === 422
+                    ? error?.response?.data?.message ?? "Não foi possível cancelar a candidatura."
+                    : "Erro ao cancelar candidatura. Tente novamente.";
+            toast({
+                description: message,
+                status: "error",
+                position: "top",
+                duration: 5000,
+                isClosable: true,
+            });
+        } finally {
+            setIsCancelling(false);
+        }
+    }
 
     const getGridTemplateColumns = () => {
         if (!data?.jobs) return "1fr";
@@ -311,23 +353,37 @@ export function JobsForUser() {
                                     gap="2"
                                     width="100%"
                                 >
-                                    <Button
-                                        variant="ghost"
-                                        colorScheme={appliedJobIds.has(job.id) ? "gray" : "green"}
-                                        leftIcon={<GrUserAdd size="14"/>}
-                                        size="xs"
-                                        height="28px"
-                                        isDisabled={appliedJobIds.has(job.id)}
-                                        _hover={{
-                                            bg: "green.50",
-                                            transform: "translateY(-1px)",
-                                            boxShadow: "sm"
-                                        }}
-                                        transition="all 0.2s ease"
-                                        onClick={() => handleApplyClick(job)}
-                                    >
-                                        {appliedJobIds.has(job.id) ? "Já candidatado" : "Concorrer"}
-                                    </Button>
+                                    {(() => {
+                                        const myApp = applicationByJobId.get(job.id);
+                                        const canCancel = myApp?.application_approved === null;
+                                        const hasApplied = !!myApp;
+                                        return (
+                                            <Button
+                                                variant="ghost"
+                                                colorScheme={canCancel ? "red" : hasApplied ? "gray" : "green"}
+                                                leftIcon={<GrUserAdd size="14"/>}
+                                                size="xs"
+                                                height="28px"
+                                                isDisabled={hasApplied && !canCancel}
+                                                _hover={{
+                                                    bg: canCancel ? "red.50" : hasApplied ? undefined : "green.50",
+                                                    transform: hasApplied && !canCancel ? undefined : "translateY(-1px)",
+                                                    boxShadow: hasApplied && !canCancel ? undefined : "sm"
+                                                }}
+                                                transition="all 0.2s ease"
+                                                onClick={() => {
+                                                    if (canCancel) {
+                                                        setJobToCancel({ id: job.id, vacancy: job.vacancy });
+                                                        onCancelOpen();
+                                                    } else if (!hasApplied) {
+                                                        handleApplyClick(job);
+                                                    }
+                                                }}
+                                            >
+                                                {canCancel ? "Cancelar candidatura" : hasApplied ? "Já candidatado" : "Concorrer"}
+                                            </Button>
+                                        );
+                                    })()}
                                     <Button 
                                         variant="ghost" 
                                         colorScheme="blue" 
@@ -629,6 +685,40 @@ export function JobsForUser() {
                                 </Button>
                             </ModalFooter>
                         </form>
+                    </ModalContent>
+                </Modal>
+
+                <Modal
+                    isOpen={isCancelOpen}
+                    onClose={() => { if (!isCancelling) { setJobToCancel(null); onCancelClose(); } }}
+                    isCentered
+                >
+                    <ModalOverlay />
+                    <ModalContent>
+                        <ModalHeader>Cancelar candidatura</ModalHeader>
+                        <ModalCloseButton isDisabled={isCancelling} />
+                        <ModalBody>
+                            <Text>
+                                Tem certeza que deseja cancelar sua candidatura para{" "}
+                                <strong>{jobToCancel?.vacancy ?? "esta vaga"}</strong>?
+                            </Text>
+                        </ModalBody>
+                        <ModalFooter gap="3">
+                            <Button
+                                variant="ghost"
+                                onClick={() => { if (!isCancelling) { setJobToCancel(null); onCancelClose(); } }}
+                                isDisabled={isCancelling}
+                            >
+                                Voltar
+                            </Button>
+                            <Button
+                                colorScheme="red"
+                                onClick={confirmCancel}
+                                isLoading={isCancelling}
+                            >
+                                Confirmar cancelamento
+                            </Button>
+                        </ModalFooter>
                     </ModalContent>
                 </Modal>
             </>

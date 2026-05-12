@@ -23,6 +23,10 @@ interface IApplicationsVacancyCompany {
         amount_vacancy: number;
         vacancy_available: boolean;
     };
+    interview?: {
+        id: string;
+        status: "scheduled" | "rescheduled" | "completed" | "cancelled";
+    } | null;
 }
 
 async function getApplications(id: string): Promise<IApplicationsVacancyCompany[]> {
