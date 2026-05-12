@@ -13,6 +13,7 @@ import {
 import {BsThreeDotsVertical} from "react-icons/bs";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
 import { useJobsVacancy } from "@/services/hooks/Jobs/useJobsVacancy";
+import { useMyApplicationsCandidate } from "@/services/hooks/applications/useMyApplicationsCandidate";
 import React, { useEffect, useState } from 'react';
 import decode from "jwt-decode";
 import { parseCookies } from "nookies";
@@ -37,6 +38,9 @@ interface IJobsVacancyProps{
 export function JobsVacancy({vacancy}: IJobsVacancyProps) {
     const [userId, setUserId] = useState("");
     const [isChecking, setIsChecking] = useState(true);
+
+    const { data: myApplications } = useMyApplicationsCandidate(userId, { enabled: !!userId });
+    const appliedJobIds = new Set(myApplications?.map(a => a.job_id) ?? []);
     const [hasValidJobs, setHasValidJobs] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
@@ -316,12 +320,13 @@ export function JobsVacancy({vacancy}: IJobsVacancyProps) {
                                     gap="2"
                                     width="100%"
                                 >
-                                    <Button 
-                                        variant="ghost" 
-                                        colorScheme="green" 
-                                        leftIcon={<GrUserAdd size="14"/>} 
+                                    <Button
+                                        variant="ghost"
+                                        colorScheme={appliedJobIds.has(job.id) ? "gray" : "green"}
+                                        leftIcon={<GrUserAdd size="14"/>}
                                         size="xs"
                                         height="28px"
+                                        isDisabled={appliedJobIds.has(job.id)}
                                         _hover={{
                                             bg: "green.50",
                                             transform: "translateY(-1px)",
@@ -330,7 +335,7 @@ export function JobsVacancy({vacancy}: IJobsVacancyProps) {
                                         transition="all 0.2s ease"
                                         onClick={() => handleApplyClick(job)}
                                     >
-                                        Concorrer
+                                        {appliedJobIds.has(job.id) ? "Já candidatado" : "Concorrer"}
                                     </Button>
                                     <Button 
                                         variant="ghost" 
