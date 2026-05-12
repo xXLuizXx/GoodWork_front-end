@@ -43,7 +43,17 @@ interface IAuthProviderProps {
 const AuthContext = createContext({} as IAuthContextData);
 let authChannel: BroadcastChannel;
 
-function signOut(): void {
+async function signOut(): Promise<void> {
+  const { "token.refreshToken": refreshToken } = parseCookies();
+
+  if (refreshToken) {
+    try {
+      await api.post("logout", { refresh_token: refreshToken });
+    } catch {
+      // ignora erro — logout local sempre prossegue
+    }
+  }
+
   destroyCookie(undefined, "token.token", { path: "/" });
   destroyCookie(undefined, "token.refreshToken", { path: "/" });
 

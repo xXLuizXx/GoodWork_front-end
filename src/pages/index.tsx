@@ -14,7 +14,7 @@ import { Helmet } from "react-helmet";
 interface ISignInFormData {
     email: string;
     password: string;
-    remember: boolean;
+    remember?: boolean;
 }
 
 const signInFormSchema = yup.object().shape({
@@ -31,7 +31,6 @@ export default function Login(): JSX.Element {
     const inputBg = useColorModeValue("gray.100", "gray.700");
     const inputHover = useColorModeValue("gray.200", "gray.600");
     const [showPassword, setShowPassword] = useState(false);
-    const [isRememberChecked, setIsRememberChecked] = useState(false);
     const { register, handleSubmit, formState, setValue, watch } = useForm<ISignInFormData>({
         resolver: yupResolver(signInFormSchema)
     });
@@ -39,24 +38,17 @@ export default function Login(): JSX.Element {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             const rememberedEmail = localStorage.getItem('rememberedEmail');
-            const rememberedPassword = localStorage.getItem('rememberedPassword');
             const expiration = localStorage.getItem('rememberExpiration');
-            const rememberChecked = localStorage.getItem('rememberChecked');
 
-            if (rememberedEmail && rememberedPassword && expiration && rememberChecked) {
-                const now = new Date().getTime();
-                const isExpired = now > parseInt(expiration);
+            if (rememberedEmail && expiration) {
+                const isExpired = new Date().getTime() > parseInt(expiration);
 
                 if (!isExpired) {
                     setValue('email', rememberedEmail);
-                    setValue('password', rememberedPassword);
                     setValue('remember', true);
-                    setIsRememberChecked(true);
                 } else {
                     localStorage.removeItem('rememberedEmail');
-                    localStorage.removeItem('rememberedPassword');
                     localStorage.removeItem('rememberExpiration');
-                    localStorage.removeItem('rememberChecked');
                 }
             }
         }
@@ -66,10 +58,7 @@ export default function Login(): JSX.Element {
     useEffect(() => {
         if (rememberValue === false && typeof window !== 'undefined') {
             localStorage.removeItem('rememberedEmail');
-            localStorage.removeItem('rememberedPassword');
             localStorage.removeItem('rememberExpiration');
-            localStorage.removeItem('rememberChecked');
-            setIsRememberChecked(false);
         }
     }, [rememberValue]);
 
@@ -87,11 +76,8 @@ export default function Login(): JSX.Element {
         if (data.remember && typeof window !== 'undefined') {
             const oneMonth = 30 * 24 * 60 * 60 * 1000;
             const expirationDate = new Date().getTime() + oneMonth;
-            
             localStorage.setItem('rememberedEmail', data.email);
-            localStorage.setItem('rememberedPassword', data.password);
             localStorage.setItem('rememberExpiration', expirationDate.toString());
-            localStorage.setItem('rememberChecked', 'true');
         }
         
         await signIn({ showToast, ...data });
