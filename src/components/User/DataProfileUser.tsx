@@ -28,7 +28,7 @@ import {
     ModalCloseButton,
 } from '@chakra-ui/react';
 import { LuSaveAll } from 'react-icons/lu';
-import { MdEdit, MdCameraAlt, MdVisibility, MdVisibilityOff, MdLock } from 'react-icons/md';
+import { MdEdit, MdCameraAlt, MdVisibility, MdVisibilityOff, MdLock, MdDescription, MdUpload } from 'react-icons/md';
 import { Divider } from '@chakra-ui/react';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useMutation } from 'react-query';
@@ -77,9 +77,54 @@ export function MyProfile(): JSX.Element {
     } = useForm<IChangePassword>();
     const toast = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const curriculumInputRef = useRef<HTMLInputElement>(null);
 
     const handleAvatarClick = () => {
         fileInputRef.current?.click();
+    };
+
+    const handleCurriculumClick = () => {
+        curriculumInputRef.current?.click();
+    };
+
+    const handleCurriculumUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('curriculum', file);
+
+        try {
+            await api.patch('users/curriculum', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            toast({
+                description: "Currículo atualizado com sucesso.",
+                status: "success",
+                position: "top",
+                duration: 4000,
+                isClosable: true,
+            });
+
+            queryClient.invalidateQueries("users");
+            setTimeout(() => window.location.reload(), 500);
+        } catch (error: any) {
+            const status = error?.response?.status;
+            const message =
+                status === 403 || status === 404
+                    ? error?.response?.data?.message ?? "Não foi possível atualizar o currículo."
+                    : "Erro ao atualizar currículo. Tente novamente.";
+            toast({
+                description: message,
+                status: "error",
+                position: "top",
+                duration: 5000,
+                isClosable: true,
+            });
+        }
+
+        event.target.value = "";
     };
 
     const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -285,6 +330,13 @@ export function MyProfile(): JSX.Element {
                         accept="image/*"
                         display="none"
                     />
+                    <Input
+                        type="file"
+                        ref={curriculumInputRef}
+                        onChange={handleCurriculumUpload}
+                        accept=".pdf"
+                        display="none"
+                    />
                 </Box>
                 <Box ml={4}>
                     <Text fontSize="4xl" fontWeight="bold" color="blue.800">
@@ -437,6 +489,40 @@ export function MyProfile(): JSX.Element {
                         >
                             Alterar senha
                         </Button>
+                        {user.user_type === "individual" && (
+                            user.curriculum ? (
+                                <>
+                                    <Button
+                                        as="a"
+                                        href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${user.curriculum}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        type="button"
+                                        colorScheme="gray"
+                                        leftIcon={<MdDescription />}
+                                    >
+                                        Currículo
+                                    </Button>
+                                    <IconButton
+                                        aria-label="Atualizar currículo"
+                                        icon={<MdUpload />}
+                                        type="button"
+                                        colorScheme="gray"
+                                        variant="outline"
+                                        onClick={handleCurriculumClick}
+                                    />
+                                </>
+                            ) : (
+                                <Button
+                                    type="button"
+                                    colorScheme="gray"
+                                    leftIcon={<MdUpload />}
+                                    onClick={handleCurriculumClick}
+                                >
+                                    Atualizar currículo
+                                </Button>
+                            )
+                        )}
                     </>
                 )}
             </Flex>

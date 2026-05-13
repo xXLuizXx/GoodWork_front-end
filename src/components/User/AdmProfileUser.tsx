@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { 
-    Avatar, 
-    Flex, 
-    Stack, 
-    SimpleGrid, 
-    Text, 
-    Box, 
-    Button, 
+import {
+    Avatar,
+    Flex,
+    Stack,
+    SimpleGrid,
+    Text,
+    Box,
+    Button,
     Badge,
     Divider,
     useToast,
@@ -14,14 +14,15 @@ import {
     Tooltip,
     useColorModeValue
 } from '@chakra-ui/react';
-import { 
-    FiMail, 
-    FiPhone, 
-    FiMapPin, 
-    FiBriefcase, 
-    FiUser, 
+import {
+    FiMail,
+    FiPhone,
+    FiMapPin,
+    FiBriefcase,
+    FiUser,
     FiCheckCircle,
-    FiXCircle
+    FiXCircle,
+    FiFileText
 } from 'react-icons/fi';
 import { parseCookies } from 'nookies';
 import decode from "jwt-decode";
@@ -189,11 +190,33 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
                             </Text>
                             <InfoItem icon={FiUser} label="Tipo" value={isIndividual ? "Pessoa Física" : "Pessoa Jurídica"} />
                             {isIndividual && (
-                                <InfoItem 
-                                    icon={FiBriefcase} 
-                                    label="Situação Profissional" 
-                                    value={user.is_employee ? "Empregado" : "Não empregado"} 
+                                <InfoItem
+                                    icon={FiBriefcase}
+                                    label="Situação Profissional"
+                                    value={user.is_employee ? "Empregado" : "Não empregado"}
                                 />
+                            )}
+                            {isIndividual && (
+                                <Flex align="center" mb={2}>
+                                    <Icon as={FiFileText} mr={3} color="blue.500" />
+                                    <Text fontWeight="medium" minW="120px">Currículo:</Text>
+                                    {user.curriculum ? (
+                                        <Button
+                                            as="a"
+                                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${user.curriculum}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            size="sm"
+                                            colorScheme="blue"
+                                            variant="outline"
+                                            ml={2}
+                                        >
+                                            Visualizar PDF
+                                        </Button>
+                                    ) : (
+                                        <Text color="gray.400" ml={2} fontSize="sm">Não enviado</Text>
+                                    )}
+                                </Flex>
                             )}
                         </Box>
 
