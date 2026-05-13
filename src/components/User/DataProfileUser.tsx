@@ -4,7 +4,10 @@ import {
     Flex,
     FormControl,
     FormLabel,
+    FormErrorMessage,
     Input,
+    InputGroup,
+    InputRightElement,
     Stack,
     SimpleGrid,
     Text,
@@ -15,9 +18,17 @@ import {
     Textarea,
     IconButton,
     useColorModeValue,
+    useDisclosure,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    ModalCloseButton,
 } from '@chakra-ui/react';
 import { LuSaveAll } from 'react-icons/lu';
-import { MdEdit, MdCameraAlt } from 'react-icons/md';
+import { MdEdit, MdCameraAlt, MdVisibility, MdVisibilityOff, MdLock } from 'react-icons/md';
 import { Divider } from '@chakra-ui/react';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useMutation } from 'react-query';
@@ -37,9 +48,14 @@ interface IUpdateUser {
     business_area: string;
 }
 
+interface IChangePassword {
+    current_password: string;
+    new_password: string;
+    confirm_password: string;
+}
+
 export function MyProfile(): JSX.Element {
     const { user } = useContext(AuthContext);
-    console.log(user);
     const [isEditing, setIsEditing] = useState(false);
     const containerBg = useColorModeValue('white', 'gray.800');
     const inputBg = useColorModeValue('white', 'gray.700');
@@ -47,7 +63,18 @@ export function MyProfile(): JSX.Element {
     const fieldColor = useColorModeValue('blue.800', 'whiteAlpha.900');
     const selectBg = useColorModeValue('white', '#2D3748');
     const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+    const [showCurrentPwd, setShowCurrentPwd] = useState(false);
+    const [showNewPwd, setShowNewPwd] = useState(false);
+    const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+    const { isOpen: isPwdOpen, onOpen: onPwdOpen, onClose: onPwdClose } = useDisclosure();
     const { handleSubmit, register, setValue, reset } = useForm<IUpdateUser>();
+    const {
+        handleSubmit: handleSubmitPassword,
+        register: registerPassword,
+        watch: watchPassword,
+        reset: resetPassword,
+        formState: { errors: passwordErrors },
+    } = useForm<IChangePassword>();
     const toast = useToast();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -78,7 +105,7 @@ export function MyProfile(): JSX.Element {
             try {
                 const formData = new FormData();
                 formData.append('avatar', file);
-                
+
                 await api.patch('users/avatar', formData, {
                     headers: {
                         'Content-Type': 'multipart/form-data',
@@ -108,8 +135,6 @@ export function MyProfile(): JSX.Element {
 
     useEffect(() => {
         if (user) {
-            const userData = user.user_type === "individual" ? user.individualData : user.companyData;
-
             reset({
                 road: user.road ?? "",
                 number: user.number ?? "",
@@ -162,7 +187,7 @@ export function MyProfile(): JSX.Element {
             ...data,
             id: user?.id,
             is_employee: user?.user_type === "individual" ? data.is_employee : undefined,
-            functionn: user.user_type === "individual" ? data.functionn : undefined, 
+            functionn: user.user_type === "individual" ? data.functionn : undefined,
             ability: user.user_type === "individual" ? data.ability : undefined,
             business_area: user.user_type === "company" ? data.business_area : undefined,
         };
@@ -171,6 +196,46 @@ export function MyProfile(): JSX.Element {
         } catch (error) {
             console.error("Erro ao salvar dados:", error);
         }
+    };
+
+    const changePasswordMutation = useMutation(
+        async (data: { current_password: string; new_password: string }) => {
+            await api.patch("users/profile/changePassword", data);
+        },
+        {
+            onSuccess: () => {
+                toast({
+                    description: "Senha alterada com sucesso.",
+                    status: "success",
+                    position: "top",
+                    duration: 5000,
+                    isClosable: true,
+                });
+                resetPassword();
+                onPwdClose();
+            },
+            onError: (error: any) => {
+                const status = error?.response?.status;
+                const message =
+                    status === 400 || status === 401 || status === 404 || status === 422
+                        ? error?.response?.data?.message ?? "Não foi possível alterar a senha."
+                        : "Erro ao alterar senha. Tente novamente.";
+                toast({
+                    description: message,
+                    status: "error",
+                    position: "top",
+                    duration: 5000,
+                    isClosable: true,
+                });
+            },
+        }
+    );
+
+    const handleChangePassword: SubmitHandler<IChangePassword> = async (data) => {
+        await changePasswordMutation.mutateAsync({
+            current_password: data.current_password,
+            new_password: data.new_password,
+        });
     };
 
     if (!user) {
@@ -182,6 +247,7 @@ export function MyProfile(): JSX.Element {
     }
 
     return (
+        <>
         <Flex
             as="form"
             onSubmit={handleSubmit(handleUpdate)}
@@ -235,8 +301,8 @@ export function MyProfile(): JSX.Element {
                             />
                         ) : (
                             <Text fontSize="17px" color="blue.800">
-                                {user.user_type === "individual" 
-                                    ? user.individualData?.ability 
+                                {user.user_type === "individual"
+                                    ? user.individualData?.ability
                                     : null}
                             </Text>
                         )}
@@ -322,7 +388,7 @@ export function MyProfile(): JSX.Element {
                 )}
             </SimpleGrid>
 
-            <Flex mt={8} justify="center">
+            <Flex mt={8} justify="center" gap={3}>
                 {isEditing ? (
                     <>
                         <Button
@@ -333,7 +399,7 @@ export function MyProfile(): JSX.Element {
                         >
                             Salvar
                         </Button>
-                        <Button ml={2}
+                        <Button
                             onClick={() => {
                                 reset({
                                     road: user.road ?? "",
@@ -354,16 +420,151 @@ export function MyProfile(): JSX.Element {
                         </Button>
                     </>
                 ) : (
-                    <Button
-                        onClick={toggleEditing}
-                        type="button"
-                        colorScheme="blue"
-                        leftIcon={<MdEdit />}
-                    >
-                        Editar
-                    </Button>
+                    <>
+                        <Button
+                            onClick={toggleEditing}
+                            type="button"
+                            colorScheme="blue"
+                            leftIcon={<MdEdit />}
+                        >
+                            Editar
+                        </Button>
+                        <Button
+                            onClick={onPwdOpen}
+                            type="button"
+                            colorScheme="gray"
+                            leftIcon={<MdLock />}
+                        >
+                            Alterar senha
+                        </Button>
+                    </>
                 )}
             </Flex>
         </Flex>
+
+        <Modal
+            isOpen={isPwdOpen}
+            onClose={() => {
+                resetPassword();
+                setShowCurrentPwd(false);
+                setShowNewPwd(false);
+                setShowConfirmPwd(false);
+                onPwdClose();
+            }}
+            isCentered
+        >
+            <ModalOverlay />
+            <ModalContent
+                as="form"
+                onSubmit={handleSubmitPassword(handleChangePassword)}
+            >
+                <ModalHeader>Alterar senha</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody display="flex" flexDirection="column" gap={4}>
+                    <FormControl isInvalid={!!passwordErrors.current_password}>
+                        <FormLabel color="blue.600">Senha atual</FormLabel>
+                        <InputGroup>
+                            <Input
+                                {...registerPassword("current_password", {
+                                    required: "Informe a senha atual",
+                                })}
+                                type={showCurrentPwd ? "text" : "password"}
+                                borderColor="blue.300"
+                                focusBorderColor="blue.500"
+                                _hover={{ borderColor: "blue.400" }}
+                            />
+                            <InputRightElement>
+                                <IconButton
+                                    aria-label="Mostrar senha atual"
+                                    icon={showCurrentPwd ? <MdVisibilityOff /> : <MdVisibility />}
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowCurrentPwd(v => !v)}
+                                />
+                            </InputRightElement>
+                        </InputGroup>
+                        <FormErrorMessage>{passwordErrors.current_password?.message}</FormErrorMessage>
+                    </FormControl>
+
+                    <FormControl isInvalid={!!passwordErrors.new_password}>
+                        <FormLabel color="blue.600">Nova senha</FormLabel>
+                        <InputGroup>
+                            <Input
+                                {...registerPassword("new_password", {
+                                    required: "Informe a nova senha",
+                                    minLength: { value: 6, message: "A senha deve ter no mínimo 6 caracteres" },
+                                })}
+                                type={showNewPwd ? "text" : "password"}
+                                borderColor="blue.300"
+                                focusBorderColor="blue.500"
+                                _hover={{ borderColor: "blue.400" }}
+                            />
+                            <InputRightElement>
+                                <IconButton
+                                    aria-label="Mostrar nova senha"
+                                    icon={showNewPwd ? <MdVisibilityOff /> : <MdVisibility />}
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowNewPwd(v => !v)}
+                                />
+                            </InputRightElement>
+                        </InputGroup>
+                        <FormErrorMessage>{passwordErrors.new_password?.message}</FormErrorMessage>
+                    </FormControl>
+
+                    <FormControl isInvalid={!!passwordErrors.confirm_password}>
+                        <FormLabel color="blue.600">Confirmar nova senha</FormLabel>
+                        <InputGroup>
+                            <Input
+                                {...registerPassword("confirm_password", {
+                                    required: "Confirme a nova senha",
+                                    validate: (value) =>
+                                        value === watchPassword("new_password") || "As senhas não coincidem",
+                                })}
+                                type={showConfirmPwd ? "text" : "password"}
+                                borderColor="blue.300"
+                                focusBorderColor="blue.500"
+                                _hover={{ borderColor: "blue.400" }}
+                            />
+                            <InputRightElement>
+                                <IconButton
+                                    aria-label="Mostrar confirmação de senha"
+                                    icon={showConfirmPwd ? <MdVisibilityOff /> : <MdVisibility />}
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowConfirmPwd(v => !v)}
+                                />
+                            </InputRightElement>
+                        </InputGroup>
+                        <FormErrorMessage>{passwordErrors.confirm_password?.message}</FormErrorMessage>
+                    </FormControl>
+                </ModalBody>
+
+                <ModalFooter gap={3}>
+                    <Button
+                        type="submit"
+                        colorScheme="blue"
+                        leftIcon={<LuSaveAll />}
+                        isLoading={changePasswordMutation.isLoading}
+                    >
+                        Salvar
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                            resetPassword();
+                            setShowCurrentPwd(false);
+                            setShowNewPwd(false);
+                            setShowConfirmPwd(false);
+                            onPwdClose();
+                        }}
+                    >
+                        Cancelar
+                    </Button>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
+        </>
     );
 }
