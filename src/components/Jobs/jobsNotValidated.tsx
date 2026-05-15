@@ -1,8 +1,11 @@
-import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, Image, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast, useColorModeValue } from "@chakra-ui/react";
+import { Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, Flex, Heading, Icon, Image, SimpleGrid, Text, VStack, useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast, useColorModeValue } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill } from "react-icons/go";
+import { FiBriefcase } from "react-icons/fi";
 import { useJobsNotValidated } from "@/services/hooks/Jobs/useJobsNotValidated";
+import type { IJobs } from "@/services/hooks/Jobs/useJobsNotValidated";
 import { useState } from "react";
+import { FiBriefcase } from "react-icons/fi";
 import { useValidateJob } from "@/services/hooks/Jobs/useValidateJob";
 import { queryClient } from "@/services/queryClient";
 import { useRouter } from "next/router";
@@ -11,7 +14,7 @@ export function JobsNotValidated() {
     const router = useRouter();
     const { data, refetch } = useJobsNotValidated();
     const { isOpen, onOpen, onClose } = useDisclosure();
-    const [selectedJob, setSelectedJob] = useState(null);
+    const [selectedJob, setSelectedJob] = useState<IJobs | null>(null);
     const modalBodyBg = useColorModeValue('gray.50', 'gray.700');
     const { validateJob, isLoading } = useValidateJob();
     const toast = useToast();
@@ -50,8 +53,8 @@ export function JobsNotValidated() {
                         <Flex>
                             <Flex flex="1" gap="4" alignItems="center">
                                 <Avatar 
-                                    name="avatar" 
-                                    src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"} 
+                                    name={(job.contractor && job.contractor !== "") ? job.contractor : job.user_name}
+                                    src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : undefined}
                                     _hover={{
                                         transform: 'scale(1.1)',
                                         transition: 'transform 0.2s ease-in-out',
@@ -79,11 +82,7 @@ export function JobsNotValidated() {
                             <Text textAlign="justify" fontSize="12" maxW="100%" noOfLines={3}>
                                 {job.description_vacancy.toString()}
                             </Text>
-                            <Image
-                                maxW="40%"
-                                src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "../Img/icons/bannerVaga.png"}
-                                alt="Banner da vaga"
-                            />
+                            <Image maxW="40%" src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : undefined} alt="Banner da vaga" fallback={<Flex h="80px" w="40%" bgGradient="linear(to-r, blue.600, blue.400)" borderRadius="md" align="center" justify="center"><Icon as={FiBriefcase} boxSize="36px" color="whiteAlpha.800" /></Flex>} />
                         </VStack>
                     </CardBody>
 
@@ -134,9 +133,9 @@ export function JobsNotValidated() {
                             <ModalContent maxW="700px" borderRadius="lg" boxShadow="2xl">
                                 <ModalHeader alignItems="center">
                                     <Flex flex="1" gap="4" alignItems="center">
-                                        <Avatar 
-                                            name="avatar" 
-                                            src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"} 
+                                        <Avatar
+                                            name={(job.contractor && job.contractor !== "") ? job.contractor : job.user_name}
+                                            src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : undefined}
                                             _hover={{
                                                 transform: 'scale(1.1)',
                                                 transition: 'transform 0.2s ease-in-out',
@@ -158,12 +157,13 @@ export function JobsNotValidated() {
                                     <VStack align="start" spacing="6">
                                         <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
                                             <Image
-                                                src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "../Img/icons/bannerVaga.png"}
+                                                src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : undefined}
                                                 borderRadius="md"
                                                 boxShadow="md"
                                                 mb="4"
                                                 w="100%"
                                                 alt="Banner da vaga"
+                                                fallback={<Flex bgGradient="linear(to-r, blue.600, blue.400)" borderRadius="md" boxShadow="md" mb="4" w="100%" h="120px" align="center" justify="center"><Icon as={FiBriefcase} boxSize="48px" color="whiteAlpha.800" /></Flex>}
                                             />
                                             <Box pl="4">{selectedJob.description_vacancy}</Box>
                                         </Box>
@@ -198,7 +198,7 @@ export function JobsNotValidated() {
                                                 <Box flex="1">
                                                     <Text fontWeight="bold" fontSize="lg" mb="2">Benefícios:</Text>
                                                     <Box pl="4">
-                                                        {selectedJob.benefits.split(",").map((benefit, idx) => (
+                                                        {(selectedJob.benefits ?? "").split(",").map((benefit, idx) => (
                                                             <Text key={idx}>{benefit.trim()}</Text>
                                                         ))}
                                                     </Box>

@@ -11,11 +11,13 @@ import {
   Input,
   FormErrorMessage,
   useToast,
-  Icon
+  Icon,
+  useColorModeValue
 } from "@chakra-ui/react";
 import {BsThreeDotsVertical} from "react-icons/bs";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
 import { useAllJobsForUserLogged } from "@/services/hooks/Jobs/useAllJobsForUserLogged";
+import type { IJob } from "@/services/hooks/Jobs/useAllJobsForUserLogged";
 import { useMyApplicationsCandidate } from "@/services/hooks/applications/useMyApplicationsCandidate";
 import { useEffect, useState } from "react";
 import decode from "jwt-decode";
@@ -24,7 +26,7 @@ import { useForm } from "react-hook-form";
 import { api } from "@/services/apiClient";
 import { useMutation, useQueryClient } from "react-query";
 import Router from "next/router";
-import { FiSmile } from "react-icons/fi";
+import { FiSmile, FiBriefcase } from "react-icons/fi";
 
 interface DecodedToken {
     isAdmin: boolean;
@@ -42,6 +44,8 @@ export function JobsForUser() {
     const itemsPerPage = 12;
     const toast = useToast();
     const queryClient = useQueryClient();
+    const modalBodyBg = useColorModeValue("gray.50", "gray.700");
+    const applyHeaderBg = useColorModeValue("green.50", "green.900");
 
     const { data: myApplications } = useMyApplicationsCandidate(userId, { enabled: !!userId && !admin });
     const applicationByJobId = new Map(myApplications?.map(a => [a.job?.id, a]) ?? []);
@@ -73,8 +77,8 @@ export function JobsForUser() {
         onClose: onApplyClose 
     } = useDisclosure();
     
-    const [selectedJob, setSelectedJob] = useState(null);
-    const [selectedJobForApplication, setSelectedJobForApplication] = useState(null);
+    const [selectedJob, setSelectedJob] = useState<IJob | null>(null);
+    const [selectedJobForApplication, setSelectedJobForApplication] = useState<IJob | null>(null);
     
     const {
         register,
@@ -265,14 +269,14 @@ export function JobsForUser() {
     if(!data?.jobs || data.jobs.length === 0){
        return (
     <VStack align="center" py={12}>
-        <HStack align="flex-start" spacing={4} bg="blue.50">
+        <HStack align="flex-start" spacing={4} bg={useColorModeValue("blue.50", "blue.900")} p={4} borderRadius="md">
             <Icon as={FiSmile} w={8} h={8} color="blue.400"/>
             <VStack align="flex-start">
-                <Text color="gray.700" fontSize="lg" lineHeight="tall">
-                    Não encontramos vagas específicas para seu perfil no momento, 
+                <Text color={useColorModeValue("gray.700", "gray.300")} fontSize="lg" lineHeight="tall">
+                    Não encontramos vagas específicas para seu perfil no momento,
                     mas temos muitas oportunidades incríveis esperando por você! ✨
                 </Text>
-                <Text color="gray.600" fontSize="lg" lineHeight="tall">
+                <Text color={useColorModeValue("gray.600", "gray.400")} fontSize="lg" lineHeight="tall">
                     Explore <b>Todas as Vagas</b> e encontre o que procura. 😊
                 </Text>
             </VStack>
@@ -300,14 +304,14 @@ export function JobsForUser() {
                             <CardHeader p="3" pb="2">
                                 <Flex>
                                     <Flex flex="1" gap="3" alignItems="center">
-                                        <Avatar size="sm" name="avatar" src={job?.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job?.user_avatar}` : "./Img/icons/empresaTeste.jpg"}/>
+                                        <Avatar size="sm" name={(job.contractor && job.contractor !== "") ? job.contractor : job.user_name} src={job?.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job?.user_avatar}` : undefined}/>
                                         <Box>
                                             <Heading size="sm">
                                                 <Text fontSize="13" noOfLines={1}>
                                                     {job.vacancy}
                                                 </Text>
                                             </Heading>
-                                            <Text fontSize="11" color="gray.600">
+                                            <Text fontSize="11" color={useColorModeValue("gray.600", "gray.400")}>
                                                 {(job.contractor == null || job.contractor == "") ? job.user_name : job.contractor}
                                             </Text>
                                         </Box>
@@ -337,12 +341,9 @@ export function JobsForUser() {
                                         maxH="120px"
                                         maxW="100%"
                                         objectFit="contain"
-                                        src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "./Img/icons/bannerVaga.png"}
+                                        src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : undefined}
                                         alt="Banner da vaga"
-                                        fallbackSrc="./Img/icons/bannerVaga.png"
-                                        onError={(e) => {
-                                            e.currentTarget.src = "./Img/icons/bannerVaga.png";
-                                        }}
+                                        fallback={<Flex h="80px" w="100%" bgGradient="linear(to-r, blue.600, blue.400)" borderRadius="md" align="center" justify="center"><Icon as={FiBriefcase} boxSize="36px" color="whiteAlpha.800" /></Flex>}
                                     />
                                 </VStack>
                             </CardBody>
@@ -453,10 +454,10 @@ export function JobsForUser() {
                     <ModalContent maxW="700px" borderRadius="lg" boxShadow="2xl">
                         <ModalHeader alignItems="center">
                             <Flex flex="1" gap="4" alignItems="center">
-                                <Avatar name="avatar" src={selectedJob?.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJob?.user_avatar}` : "./Img/icons/empresaTeste.jpg"}/>
+                                <Avatar name={(selectedJob?.contractor && selectedJob?.contractor !== "") ? selectedJob?.contractor : selectedJob?.user_name} src={selectedJob?.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJob?.user_avatar}` : undefined}/>
                                 <Box>
                                     <Text fontWeight="bold" fontSize="xl">{selectedJob?.vacancy}</Text>
-                                    <Text fontSize="sm" color="gray.500">
+                                    <Text fontSize="sm" color={useColorModeValue("gray.500", "gray.400")}>
                                         {(selectedJob?.contractor == null || selectedJob?.contractor === "") ? selectedJob?.user_name : selectedJob?.contractor}
                                     </Text>
                                 </Box>
@@ -466,7 +467,7 @@ export function JobsForUser() {
                         <ModalBody 
                             overflowY="auto" 
                             maxH="500px" 
-                            bg="gray.50" 
+                            bg={modalBodyBg}
                             p="6" 
                             borderRadius="md"
                         >
@@ -479,12 +480,13 @@ export function JobsForUser() {
                                         borderRadius="md" 
                                         w="100%"
                                     >
-                                        <Image 
-                                            src={selectedJob.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${selectedJob.banner}` : "../Img/icons/bannerVaga.png"}
-                                            borderRadius="md" 
+                                        <Image
+                                            src={selectedJob.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${selectedJob.banner}` : undefined}
+                                            borderRadius="md"
                                             boxShadow="md"
                                             mb="4"
                                             w="100%"
+                                            fallback={<Flex bgGradient="linear(to-r, blue.600, blue.400)" borderRadius="md" boxShadow="md" mb="4" w="100%" h="120px" align="center" justify="center"><Icon as={FiBriefcase} boxSize="48px" color="whiteAlpha.800" /></Flex>}
                                         />
                                         <Box pl="4">{selectedJob.description_vacancy}</Box>
                                     </Box>
@@ -575,21 +577,21 @@ export function JobsForUser() {
                     <ModalOverlay />
                     <ModalContent borderRadius="lg" boxShadow="2xl">
                         <ModalHeader 
-                            bg="green.50" 
+                            bg={applyHeaderBg}
                             borderTopRadius="lg"
                             alignItems="center"
                         >
                             <Flex flex="1" gap="4" alignItems="center">
                                 <Avatar 
                                     size="sm" 
-                                    name="avatar" 
-                                    src={selectedJobForApplication?.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJobForApplication?.user_avatar}` : "./Img/icons/empresaTeste.jpg"}
+                                    name={(selectedJobForApplication?.contractor && selectedJobForApplication?.contractor !== "") ? selectedJobForApplication?.contractor : selectedJobForApplication?.user_name}
+                                    src={selectedJobForApplication?.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJobForApplication?.user_avatar}` : undefined}
                                 />
                                 <Box>
                                     <Text fontWeight="bold" fontSize="lg">
                                         Concorrer à Vaga
                                     </Text>
-                                    <Text fontSize="sm" color="gray.600">
+                                    <Text fontSize="sm" color={useColorModeValue("gray.600", "gray.400")}>
                                         {selectedJobForApplication?.vacancy}
                                     </Text>
                                 </Box>
@@ -639,7 +641,7 @@ export function JobsForUser() {
                                         <FormErrorMessage>
                                             {errors.curriculum_user?.message}
                                         </FormErrorMessage>
-                                        <Text fontSize="xs" color="gray.600" mt="2">
+                                        <Text fontSize="xs" color={useColorModeValue("gray.600", "gray.400")} mt="2">
                                             Tamanho máximo: 5MB • Formato aceito: PDF
                                         </Text>
                                     </FormControl>

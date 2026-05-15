@@ -3,11 +3,11 @@ import {
     Flex, Heading, Image, SimpleGrid, Text, VStack, useDisclosure, 
     Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, 
     ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, useToast,
-    Select, HStack, Badge, Center, Spinner, useColorModeValue
+    Select, HStack, Badge, Center, Spinner, useColorModeValue, Icon
 } from "@chakra-ui/react";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill } from "react-icons/go";
-import { FiX } from "react-icons/fi";
+import { FiX, FiBriefcase } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { useValidateJob } from "@/services/hooks/Jobs/useValidateJob";
 import { useRouter } from "next/router";
@@ -269,8 +269,8 @@ export function GenerateAllJobs({ search }: SearchJobAdminProps) {
                                 <Flex>
                                     <Flex flex="1" gap="3" alignItems="center">
                                         <Avatar 
-                                            name="avatar" 
-                                            src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"} 
+                                            name={(job.contractor && job.contractor !== "") ? job.contractor : job.user_name}
+                                            src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : undefined}
                                             _hover={{
                                                 transform: 'scale(1.1)',
                                                 transition: 'transform 0.2s ease-in-out',
@@ -303,9 +303,10 @@ export function GenerateAllJobs({ search }: SearchJobAdminProps) {
                                         maxW="80%"
                                         maxH="120px"
                                         objectFit="cover"
-                                        src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "../Img/icons/bannerVaga.png"}
+                                        src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : undefined}
                                         alt="Banner da vaga"
                                         borderRadius="md"
+                                        fallback={<Flex h="80px" w="80%" bgGradient="linear(to-r, blue.600, blue.400)" borderRadius="md" align="center" justify="center"><Icon as={FiBriefcase} boxSize="36px" color="whiteAlpha.800" /></Flex>}
                                     />
                                 </VStack>
                             </CardBody>
@@ -417,8 +418,8 @@ export function GenerateAllJobs({ search }: SearchJobAdminProps) {
                         <ModalHeader alignItems="center">
                             <Flex flex="1" gap="4" alignItems="center">
                                 <Avatar 
-                                    name="avatar" 
-                                    src={selectedJob.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJob.user_avatar}` : "../../../Img/icons/avatarLogin.png"} 
+                                    name={(selectedJob.contractor && selectedJob.contractor !== "") ? selectedJob.contractor : selectedJob.user_name}
+                                    src={selectedJob.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJob.user_avatar}` : undefined}
                                     size="md"
                                 />
                                 <Box>
@@ -440,7 +441,7 @@ export function GenerateAllJobs({ search }: SearchJobAdminProps) {
                             <VStack align="start" spacing="6">
                                 <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
                                     <Image
-                                        src={selectedJob.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${selectedJob.banner}` : "../Img/icons/bannerVaga.png"}
+                                        src={selectedJob.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${selectedJob.banner}` : undefined}
                                         borderRadius="md"
                                         boxShadow="md"
                                         mb="4"
@@ -448,6 +449,7 @@ export function GenerateAllJobs({ search }: SearchJobAdminProps) {
                                         maxH="200px"
                                         objectFit="cover"
                                         alt="Banner da vaga"
+                                        fallback={<Flex bgGradient="linear(to-r, blue.600, blue.400)" borderRadius="md" boxShadow="md" mb="4" w="100%" h="120px" align="center" justify="center"><Icon as={FiBriefcase} boxSize="48px" color="whiteAlpha.800" /></Flex>}
                                     />
                                     <Box pl="4">{selectedJob.description_vacancy}</Box>
                                 </Box>

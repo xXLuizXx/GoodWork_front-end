@@ -10,6 +10,7 @@ import { GrFormView, GrAdd } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
 import { useState, useEffect } from "react";
 import { FaRegEdit } from "react-icons/fa";
+import { FiBriefcase } from "react-icons/fi";
 import { TiInputChecked } from "react-icons/ti";
 import { useAllJobsCompany } from "@/services/hooks/Jobs/useAllJobsCompany";
 import { useRouter } from "next/router";
@@ -243,8 +244,8 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                     <Flex flex="1" gap="3" alignItems="center" minW="0">
                                         <Avatar 
                                             size="sm"
-                                            name="avatar" 
-                                            src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : "../../../Img/icons/avatarLogin.png"}
+                                            name={(job.contractor && job.contractor !== "") ? job.contractor : job.user_name}
+                                            src={job.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${job.user_avatar}` : undefined}
                                         />
                                         <Box minW="0" flex="1">
                                             <Heading size="sm">
@@ -279,11 +280,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                     <Text textAlign="justify" fontSize="12" maxW="100%" noOfLines={3}>
                                         {job.description_vacancy.toString()}
                                     </Text>
-                                    <Image
-                                        maxW="40%"
-                                        src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : "../Img/icons/bannerVaga.png"}
-                                        alt="Banner da vaga"
-                                    />
+                                    <Image maxW="40%" src={job.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${job.banner}` : undefined} alt="Banner da vaga" fallback={<Flex h="80px" w="40%" bgGradient="linear(to-r, blue.600, blue.400)" borderRadius="md" align="center" justify="center"><Icon as={FiBriefcase} boxSize="36px" color="whiteAlpha.800" /></Flex>} />
                                 </VStack>
                             </CardBody>
 
@@ -347,7 +344,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                     <ModalContent maxW="700px" borderRadius="lg" boxShadow="2xl">
                         <ModalHeader alignItems="center">
                             <Flex flex="1" gap="4" alignItems="center">
-                                <Avatar name="avatar" src={selectedJob.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJob.user_avatar}` : "../../../Img/icons/avatarLogin.png"}/>
+                                <Avatar name={(selectedJob.contractor && selectedJob.contractor !== "") ? selectedJob.contractor : selectedJob.user_name} src={selectedJob.user_avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${selectedJob.user_avatar}` : undefined}/>
                                 <Box>
                                     <Text fontWeight="bold" fontSize="xl">{selectedJob.vacancy}</Text>
                                     <Text fontSize="sm" color="gray.500">
@@ -420,14 +417,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                     </Flex>
                                 </Box>
                                 <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
-                                    <Image
-                                        src={selectedJob.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${selectedJob.banner}` : "../Img/icons/bannerVaga.png"}
-                                        borderRadius="md"
-                                        boxShadow="md"
-                                        mb="4"
-                                        w="100%"
-                                        alt="Banner da vaga"
-                                    />
+                                    <Image src={selectedJob.banner ? `${process.env.NEXT_PUBLIC_API_URL}/banners/${selectedJob.banner}` : undefined} borderRadius="md" boxShadow="md" mb="4" w="100%" alt="Banner da vaga" fallback={<Flex bgGradient="linear(to-r, blue.600, blue.400)" borderRadius="md" boxShadow="md" mb="4" w="100%" h="120px" align="center" justify="center"><Icon as={FiBriefcase} boxSize="48px" color="whiteAlpha.800" /></Flex>} />
                                     <Box pl="4">{selectedJob.description_vacancy}</Box>
                                 </Box>
                                 <Box p="4" border="1px" borderColor="blue.100" borderRadius="md" w="100%">
