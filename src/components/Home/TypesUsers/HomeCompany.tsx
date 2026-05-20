@@ -53,7 +53,7 @@ export function HomeCompany(): JSX.Element {
     const cards: CardItem[] = [
         { title: 'Minhas Vagas', borderColor: 'blue', route: `/jobs-company-genereted?id=${userId}`, icon: FiBriefcase },
         { title: 'Perfis',       borderColor: 'blue', route: '/users/list-users/listAllUsers',        icon: FiUsers },
-        { title: 'Entrevistas',  borderColor: 'blue', route: '/interviews/manage',                    icon: FiCalendar },
+        { title: 'Entrevistas',  borderColor: 'blue', route: '/interviews/my-interviews',             icon: FiCalendar },
         { title: 'Relatórios',   borderColor: 'blue', route: '/report',                               icon: FiBarChart2 },
     ];
 

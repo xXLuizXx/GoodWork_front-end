@@ -16,7 +16,7 @@ import { Helmet } from "react-helmet";
 import { Header } from "@/components/Header/Header";
 import { Sidebar } from "@/components/Sidebar";
 import * as yup from "yup";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Input } from "@/components/Form/Input";
 import { Textarea } from "@/components/Form/TextArea";
@@ -29,34 +29,33 @@ import Link from "next/link";
 
 interface ICreateJob{
     vacancy: string;
-    contractor: string;
+    contractor?: string;
     description_vacancy: string;
     requirements: string;
     workload: string;
     location: string;
     benefits: string;
-    banner?: File;
+    banner?: File | null;
     category_id: string;
     amount_vacancy: number;
     closing_date: Date;
 }
 const validMandatoryFields = yup.object().shape({
     vacancy: yup.string().required("Campo obrigatório"),
+    contractor: yup.string().optional(),
     description_vacancy: yup.string().required("Campo obrigatório"),
     requirements: yup.string().required("Campo obrigatório"),
     workload: yup.string().required("Campo obrigatório"),
     location: yup.string().required("Campo obrigatório"),
     benefits: yup.string().required("Campo obrigatório"),
     category_id: yup.string().required("Campo obrigatório"),
-    amount_vacancy: yup.number() .transform((value, originalValue) => originalValue === "" ? 0 : value).required("Campo obrigatório").min(1, "Mínimo 1 vaga"),
+    amount_vacancy: yup.number().transform((value, originalValue) => originalValue === "" ? 0 : value).required("Campo obrigatório").min(1, "Mínimo 1 vaga"),
 });
 const schema = yup.object().shape({
     banner: yup.mixed()
         .required("Campo obrigatório")
-        .test("fileRequired", "Arquivo obrigatório", (value) => {
-            return value instanceof File;
-        }),
-        closing_date: yup
+        .test("fileRequired", "Arquivo obrigatório", (value) => value instanceof File),
+    closing_date: yup
             .date()
             .required("Data de encerramento é obrigatória")
             .typeError("Informe uma data válida")
@@ -84,8 +83,8 @@ export default function CreateJob(): JSX.Element {
     const toast = useToast();
     const { data } = useCategories(); 
     const createJob = useMutation(
-        async (job: ICreateJob) => {
-            api.post("jobs", job, {
+        async (job: FormData) => {
+            await api.post("jobs", job, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -98,7 +97,7 @@ export default function CreateJob(): JSX.Element {
                     duration: 8000,
                     isClosable: true,
                 });
-                
+                setTimeout(() => window.location.reload(), 2000);
                 return response.data.job;
             }).catch(error => {
                 toast({
@@ -117,7 +116,7 @@ export default function CreateJob(): JSX.Element {
         },
     );
 
-    const createHandle: SubmitHandler<ICreateJob> = async (formData) => {
+    const createHandle = async (formData: ICreateJob) => {
         const formDataToSend = new FormData();
       
         for (const [key, value] of Object.entries(formData)) {
@@ -151,7 +150,7 @@ export default function CreateJob(): JSX.Element {
             as="form"
             direction="column"
             minH="100vh"
-            onSubmit={handleSubmit(createHandle)}
+            onSubmit={handleSubmit(createHandle as any)}
         >
             <Helmet>
                 <title>Cadastrar vaga</title>

@@ -5,7 +5,6 @@ import { FiBriefcase } from "react-icons/fi";
 import { useJobsNotValidated } from "@/services/hooks/Jobs/useJobsNotValidated";
 import type { IJobs } from "@/services/hooks/Jobs/useJobsNotValidated";
 import { useState } from "react";
-import { FiBriefcase } from "react-icons/fi";
 import { useValidateJob } from "@/services/hooks/Jobs/useValidateJob";
 import { queryClient } from "@/services/queryClient";
 import { useRouter } from "next/router";

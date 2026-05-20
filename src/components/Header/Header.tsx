@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { useRouter } from "next/router";
+import { NotificationBell } from "@/components/Notifications/NotificationBell";
 
 interface IProfileProps {
     showProfileData: boolean;
@@ -145,7 +146,7 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
             </Flex>
 
             <Flex align="center" ml="auto">
-                <HStack 
+                <HStack
                     spacing="4"
                     mx="8"
                     pr="8"
@@ -154,6 +155,9 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
                     borderRightWidth={1}
                     borderColor="gray.100"
                 >
+                    {!admin && (typeUser === "individual" || typeUser === "company") && (
+                        <NotificationBell enabled />
+                    )}
                 </HStack>
                 <Flex align="center">
                     <Profile showProfileData={isWideVersion} />
