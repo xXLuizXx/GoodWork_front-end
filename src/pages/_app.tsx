@@ -4,10 +4,10 @@ import { QueryClientProvider } from "react-query";
 import { theme } from "@/styles/theme";
 import { AuthProvider } from "../contexts/AuthContext";
 import { queryClient } from "@/services/queryClient";
-import { Footer } from "@/components/Footer";
+import { Footer } from "@/components/Footer/Footer";
 import { useRouter } from "next/router";
 
-const NO_FOOTER_PAGES = ["/", "/users/create", "/forgot-password", "/reset-password", "/verify-account"];
+const NO_FOOTER_PAGES = ["/", "/login", "/users/create", "/forgot-password", "/reset-password", "/verify-account"];
 
 function MyApp({ Component, pageProps }: AppProps){
     const router = useRouter();

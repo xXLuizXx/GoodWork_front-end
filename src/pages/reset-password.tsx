@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import {
-    Alert,
-    AlertIcon,
     Box,
     Button,
     Flex,
-    FormLabel,
+    Image,
     InputGroup,
     InputRightElement,
     Stack,
     Text,
+    Alert,
+    AlertIcon,
     useColorModeValue,
+    VStack,
+    Icon,
 } from "@chakra-ui/react";
 import { Helmet } from "react-helmet";
 import { useForm } from "react-hook-form";
@@ -19,8 +21,9 @@ import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { api } from "@/services/apiClient";
 import { Input } from "@/components/Form/Input";
-import { RiEyeLine, RiEyeOffLine } from "react-icons/ri";
+import { RiLockPasswordLine, RiEyeLine, RiEyeOffLine } from "react-icons/ri";
 import { GoCheckCircleFill, GoXCircleFill } from "react-icons/go";
+import { Footer } from "@/components/Footer/Footer";
 
 interface IResetForm {
     password: string;
@@ -43,12 +46,17 @@ export default function ResetPassword(): JSX.Element {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [done, setDone] = useState(false);
-    const [tokenError, setTokenError] = useState("");
+    const [tokenError, setTokenError] = useState(false);
     const [submitError, setSubmitError] = useState("");
-    const outerBg = useColorModeValue("linear(to-l, #FFFFFF, #000080)", "linear(to-l, gray.900, gray.800)");
-    const cardBg = useColorModeValue("white", "gray.800");
-    const inputBg = useColorModeValue("gray.100", "gray.700");
-    const inputHover = useColorModeValue("gray.200", "gray.600");
+
+    const pageBg      = useColorModeValue("gray.50", "gray.900");
+    const navBg       = useColorModeValue("#0000CD", "gray.900");
+    const cardBg      = useColorModeValue("white", "gray.800");
+    const borderColor = useColorModeValue("gray.200", "gray.700");
+    const inputBg     = useColorModeValue("gray.50", "gray.700");
+    const inputHover  = useColorModeValue("gray.100", "gray.600");
+    const subtitleColor = useColorModeValue("gray.500", "gray.400");
+    const headingColor  = useColorModeValue("gray.800", "white");
 
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<IResetForm>({
         resolver: yupResolver(schema),
@@ -56,7 +64,7 @@ export default function ResetPassword(): JSX.Element {
 
     useEffect(() => {
         if (router.isReady && !router.query.token) {
-            setTokenError("Link de redefinição inválido. Solicite um novo.");
+            setTokenError(true);
         }
     }, [router.isReady, router.query.token]);
 
@@ -73,52 +81,108 @@ export default function ResetPassword(): JSX.Element {
     }
 
     return (
-        <Flex w="100vw" minH="100vh" align="center" justify="center" bgGradient={outerBg}>
+        <Flex direction="column" minH="100vh" bg={pageBg}>
             <Helmet>
-                <title>Redefinir senha</title>
+                <title>GoodWork — Redefinir senha</title>
                 <link rel="icon" href="/Img/logos/GoodworkSSlogan.png" type="image/png" />
             </Helmet>
 
-            <Box bg={cardBg} p="10" borderRadius={20} maxW="480px" w="100%" boxShadow="dark-lg">
-                {tokenError ? (
-                    <Flex direction="column" align="center" textAlign="center">
-                        <GoXCircleFill size={56} color="#E53E3E" />
-                        <Text fontSize="xl" fontWeight="bold" color="gray.700" mt="4" mb="2">
-                            Link inválido
-                        </Text>
-                        <Alert status="error" borderRadius="md" mb="6" textAlign="left">
-                            <AlertIcon />
-                            {tokenError}
-                        </Alert>
-                        <Button colorScheme="blue" borderRadius="full" w="100%" onClick={() => router.push("/forgot-password")}>
-                            Solicitar novo link
-                        </Button>
-                    </Flex>
-                ) : !done ? (
-                    <>
-                        <Text fontSize="2xl" fontWeight="bold" color="gray.700" mb="2" textAlign="center">
-                            Redefinir senha
-                        </Text>
-                        <Text color="gray.500" fontSize="sm" mb="6" textAlign="center">
-                            Escolha uma nova senha para sua conta.
-                        </Text>
+            {/* Navbar */}
+            <Flex
+                as="header"
+                w="100%"
+                h="16"
+                bg={navBg}
+                px={6}
+                align="center"
+                position="sticky"
+                top={0}
+                zIndex={100}
+                boxShadow="dark-lg"
+                flexShrink={0}
+            >
+                <Image
+                    src="/Img/logos/GoodWorkLogoBranco.png"
+                    alt="GoodWork"
+                    h="44px"
+                    objectFit="contain"
+                    draggable={false}
+                    style={{ userSelect: "none", cursor: "pointer" }}
+                    onClick={() => router.push("/")}
+                />
+            </Flex>
 
-                        <Stack spacing="4" as="form" onSubmit={handleSubmit(handleReset)}>
-                            {submitError && (
-                                <Alert status="error" borderRadius="md">
-                                    <AlertIcon />
-                                    {submitError}
-                                </Alert>
-                            )}
+            {/* Conteúdo centralizado */}
+            <Flex flex={1} align="center" justify="center" py={10} px={4}>
+                <Box
+                    bg={cardBg}
+                    borderRadius="2xl"
+                    boxShadow="xl"
+                    borderWidth="1px"
+                    borderColor={borderColor}
+                    p={[6, 8, 10]}
+                    w="100%"
+                    maxW="440px"
+                >
+                    {tokenError ? (
+                        <VStack spacing={6} textAlign="center">
+                            <GoXCircleFill size={64} color="#E53E3E" />
+                            <VStack spacing={1}>
+                                <Text fontSize="xl" fontWeight="bold" color={headingColor}>
+                                    Link inválido
+                                </Text>
+                                <Text fontSize="sm" color={subtitleColor}>
+                                    O link de redefinição é inválido ou já expirou. Solicite um novo.
+                                </Text>
+                            </VStack>
+                            <Button
+                                colorScheme="blue"
+                                borderRadius="full"
+                                w="100%"
+                                h="12"
+                                onClick={() => router.push("/forgot-password")}
+                            >
+                                Solicitar novo link
+                            </Button>
+                        </VStack>
+                    ) : !done ? (
+                        <VStack spacing={6}>
+                            {/* Ícone */}
+                            <Flex
+                                w="72px"
+                                h="72px"
+                                borderRadius="full"
+                                bg="blue.50"
+                                align="center"
+                                justify="center"
+                            >
+                                <Icon as={RiLockPasswordLine} boxSize="36px" color="blue.500" />
+                            </Flex>
 
-                            <Box>
-                                <FormLabel color="blue.600" fontSize="sm">Nova senha</FormLabel>
-                                <InputGroup size="lg">
+                            {/* Título */}
+                            <VStack spacing={1} textAlign="center">
+                                <Text fontSize="2xl" fontWeight="bold" color={headingColor}>
+                                    Redefinir senha
+                                </Text>
+                                <Text fontSize="sm" color={subtitleColor}>
+                                    Escolha uma nova senha para sua conta.
+                                </Text>
+                            </VStack>
+
+                            {/* Formulário */}
+                            <Stack spacing={4} w="100%" as="form" onSubmit={handleSubmit(handleReset)}>
+                                {submitError && (
+                                    <Alert status="error" borderRadius="xl" fontSize="sm">
+                                        <AlertIcon />
+                                        {submitError}
+                                    </Alert>
+                                )}
+
+                                <InputGroup>
                                     <Input
                                         type={showPassword ? "text" : "password"}
-                                        placeholder="Mínimo 6 caracteres"
-                                        boxShadow="sm"
-                                        borderRadius="full"
+                                        placeholder="Nova senha (mínimo 6 caracteres)"
+                                        borderRadius="lg"
                                         focusBorderColor="blue.400"
                                         bgColor={inputBg}
                                         variant="filled"
@@ -126,30 +190,27 @@ export default function ResetPassword(): JSX.Element {
                                         error={errors.password}
                                         {...register("password")}
                                     />
-                                    <InputRightElement width="2.5rem" mr={1}>
+                                    <InputRightElement mr={1}>
                                         <Button
-                                            h="1.75rem"
                                             size="sm"
                                             variant="ghost"
+                                            type="button"
                                             onClick={() => setShowPassword(!showPassword)}
                                             _hover={{ bg: "transparent" }}
                                             _active={{ bg: "transparent" }}
                                             p={0}
+                                            color="gray.400"
                                         >
                                             {showPassword ? <RiEyeOffLine size={18} /> : <RiEyeLine size={18} />}
                                         </Button>
                                     </InputRightElement>
                                 </InputGroup>
-                            </Box>
 
-                            <Box>
-                                <FormLabel color="blue.600" fontSize="sm">Confirmar senha</FormLabel>
-                                <InputGroup size="lg">
+                                <InputGroup>
                                     <Input
                                         type={showConfirm ? "text" : "password"}
-                                        placeholder="Repita a senha"
-                                        boxShadow="sm"
-                                        borderRadius="full"
+                                        placeholder="Confirmar senha"
+                                        borderRadius="lg"
                                         focusBorderColor="blue.400"
                                         bgColor={inputBg}
                                         variant="filled"
@@ -157,49 +218,61 @@ export default function ResetPassword(): JSX.Element {
                                         error={errors.confirmPassword}
                                         {...register("confirmPassword")}
                                     />
-                                    <InputRightElement width="2.5rem" mr={1}>
+                                    <InputRightElement mr={1}>
                                         <Button
-                                            h="1.75rem"
                                             size="sm"
                                             variant="ghost"
+                                            type="button"
                                             onClick={() => setShowConfirm(!showConfirm)}
                                             _hover={{ bg: "transparent" }}
                                             _active={{ bg: "transparent" }}
                                             p={0}
+                                            color="gray.400"
                                         >
                                             {showConfirm ? <RiEyeOffLine size={18} /> : <RiEyeLine size={18} />}
                                         </Button>
                                     </InputRightElement>
                                 </InputGroup>
-                            </Box>
 
+                                <Button
+                                    type="submit"
+                                    colorScheme="blue"
+                                    borderRadius="full"
+                                    w="100%"
+                                    h="12"
+                                    isLoading={isSubmitting}
+                                    loadingText="Redefinindo..."
+                                >
+                                    Redefinir senha
+                                </Button>
+                            </Stack>
+                        </VStack>
+                    ) : (
+                        <VStack spacing={6} textAlign="center">
+                            <GoCheckCircleFill size={64} color="#38A169" />
+                            <VStack spacing={1}>
+                                <Text fontSize="xl" fontWeight="bold" color={headingColor}>
+                                    Senha redefinida com sucesso!
+                                </Text>
+                                <Text fontSize="sm" color={subtitleColor}>
+                                    Sua nova senha foi salva. Faça login para continuar.
+                                </Text>
+                            </VStack>
                             <Button
-                                type="submit"
                                 colorScheme="blue"
                                 borderRadius="full"
                                 w="100%"
                                 h="12"
-                                isLoading={isSubmitting}
+                                onClick={() => router.push("/login")}
                             >
-                                Redefinir senha
+                                Ir para o login
                             </Button>
-                        </Stack>
-                    </>
-                ) : (
-                    <Flex direction="column" align="center" textAlign="center">
-                        <GoCheckCircleFill size={56} color="#38A169" />
-                        <Text fontSize="xl" fontWeight="bold" color="gray.700" mt="4" mb="2">
-                            Senha redefinida com sucesso!
-                        </Text>
-                        <Text color="gray.500" mb="6">
-                            Sua nova senha foi salva. Faça login para continuar.
-                        </Text>
-                        <Button colorScheme="blue" borderRadius="full" w="100%" onClick={() => router.push("/")}>
-                            Ir para o login
-                        </Button>
-                    </Flex>
-                )}
-            </Box>
+                        </VStack>
+                    )}
+                </Box>
+            </Flex>
+
+            <Footer />
         </Flex>
     );
 }

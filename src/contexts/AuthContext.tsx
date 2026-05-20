@@ -61,8 +61,8 @@ async function signOut(): Promise<void> {
     authChannel.postMessage("signOut");
   }
 
-  if (Router.pathname !== "/") {
-    Router.push("/");
+  if (Router.pathname !== "/login") {
+    Router.push("/login");
   }
 }
 
