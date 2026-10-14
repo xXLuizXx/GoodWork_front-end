@@ -250,6 +250,7 @@ export default function EditJob(): JSX.Element {
                                     <Image
                                         src={`${process.env.NEXT_PUBLIC_API_URL}/banners/${watch("banner")}`}
                                         alt="Banner atual"
+                                        unoptimized
                                         layout="fill"
                                         objectFit="cover"
                                         onError={(e) => {
