@@ -18,6 +18,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { withSSRGuest } from "@/shared/withSSRGuest";
 import { Select } from "@/components/Form/Select";
 import { Helmet } from "react-helmet";
+import { isValidCNPJ, isValidCPF } from "@/utils/documentValidator";
 import { useEffect, useState } from "react";
 import { useCategories } from "@/services/hooks/Categories/useCategories";
 import { SearchIcon } from "@chakra-ui/icons";
@@ -73,13 +74,12 @@ const validMandatoryFields = yup.object().shape({
     identifier: yup
         .string()
         .required('O identificador (CPF/CNPJ) é obrigatório')
-        .test('valid-identifier', 'CPF/CNPJ inválido', (value, context) => {
-            const userType = context.parent.user_type;
-            if (userType === 'company') {
-                return /^(\d{2})\.(\d{3})\.(\d{3})\/(\d{4})\-(\d{2})$|^\d{14}$/.test(value);
-            } else {
-                return /^(\d{3})\.(\d{3})\.(\d{3})\-(\d{2})$|^\d{11}$/.test(value);
+        .test('valid-identifier', 'CPF/CNPJ inválido', function (value) {
+            // Valida também os dígitos verificadores, não só o formato
+            if (this.parent.user_type === 'company') {
+                return isValidCNPJ(value) || this.createError({ message: 'CNPJ inválido' });
             }
+            return isValidCPF(value) || this.createError({ message: 'CPF inválido' });
         }),
     telephone: yup
         .string()
