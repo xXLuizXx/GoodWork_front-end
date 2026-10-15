@@ -97,9 +97,9 @@ const validMandatoryFields = yup.object().shape({
             const type = Array.isArray(user_type) ? user_type[0] : user_type;
             if (type === 'company') return schema.notRequired();
             return schema
-                .required('O arquivo é obrigatório')
+                .notRequired()
                 .test('fileType', 'Apenas arquivos do tipo PDF são permitidos', (value) => {
-                    if (!value) return false;
+                    if (!value) return true;
                     return (value as any).type === 'application/pdf';
                 });
         }),
@@ -598,7 +598,10 @@ export default function CreateUser(): JSX.Element {
                                                 borderColor={errors.curriculum ? "red.500" : cvBoxBorder}
                                             >
                                                 <Text fontWeight="medium" mb={2} color={headingColor} fontSize="sm">
-                                                    Currículo (PDF)
+                                                    Currículo (PDF) — opcional
+                                                </Text>
+                                                <Text fontSize="xs" color={textColor} mb={2}>
+                                                    Você pode enviar depois pelo seu perfil ou na hora de se candidatar.
                                                 </Text>
                                                 <Input
                                                     type="file"
@@ -650,6 +653,7 @@ export default function CreateUser(): JSX.Element {
                                                                     placeholder="Pesquisar categorias..."
                                                                     value={searchTerm}
                                                                     onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                                                                    onKeyDown={(e) => { if (e.key === "Enter") e.preventDefault(); }}
                                                                     variant="filled"
                                                                     borderRadius="lg"
                                                                     bgColor={inputBg}

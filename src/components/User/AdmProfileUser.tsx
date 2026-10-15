@@ -14,6 +14,7 @@ import {
     Tooltip,
     useColorModeValue
 } from '@chakra-ui/react';
+import { CurriculumPreview } from './CurriculumPreview';
 import {
     FiMail,
     FiPhone,
@@ -201,18 +202,15 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
                                     <Icon as={FiFileText} mr={3} color="blue.500" />
                                     <Text fontWeight="medium" minW="120px">Currículo:</Text>
                                     {user.curriculum ? (
-                                        <Button
-                                            as="a"
-                                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${user.curriculum}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            size="sm"
-                                            colorScheme="blue"
-                                            variant="outline"
-                                            ml={2}
-                                        >
-                                            Visualizar PDF
-                                        </Button>
+                                        <Box ml={2}>
+                                            <CurriculumPreview
+                                                curriculum={user.curriculum}
+                                                size="sm"
+                                                label="Visualizar PDF"
+                                                colorScheme="blue"
+                                                title={`Currículo de ${user.name}`}
+                                            />
+                                        </Box>
                                     ) : (
                                         <Text color="gray.400" ml={2} fontSize="sm">Não enviado</Text>
                                     )}

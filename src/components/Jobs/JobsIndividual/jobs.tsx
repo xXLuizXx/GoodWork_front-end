@@ -6,10 +6,6 @@ import {
   Grid,
   useBreakpointValue,
   HStack,
-  FormControl,
-  FormLabel,
-  Input,
-  FormErrorMessage,
   useToast,
   Icon,
   useColorModeValue
@@ -24,6 +20,8 @@ import { useEffect, useState } from "react";
 import decode from "jwt-decode";
 import { parseCookies } from "nookies";
 import { useForm } from "react-hook-form";
+import { useDataUser } from "@/services/hooks/Users/useProfile";
+import { ApplicationCurriculumField, JobApplicationForm } from "./ApplicationCurriculumField";
 import { api } from "@/services/apiClient";
 import { useMutation, useQueryClient } from "react-query";
 import Router from "next/router";
@@ -31,10 +29,6 @@ import Router from "next/router";
 interface DecodedToken {
     isAdmin: boolean;
     sub: string;
-}
-
-interface JobApplicationForm {
-  curriculum_user: FileList;
 }
 
 interface IApplicationVancacy{
@@ -91,8 +85,14 @@ export function Jobs() {
         handleSubmit,
         formState: { errors, isSubmitting },
         reset,
-        watch
+        watch,
+        setValue
     } = useForm<JobApplicationForm>();
+
+    const { data: profileData } = useDataUser(userId);
+    const profileCurriculum = profileData?.user?.curriculum;
+    // Com currículo no perfil, ele é o padrão; sem currículo, o upload é obrigatório
+    const curriculumSource = profileCurriculum && watch("curriculum_source") !== "upload" ? "profile" : "upload";
 
     const applicationMutation = useMutation(
         async (formData: FormData) => {
@@ -212,9 +212,9 @@ export function Jobs() {
 
     const onSubmitApplication = async (data: JobApplicationForm) => {
         try {
-            const file = data.curriculum_user[0];
+            const file = curriculumSource === "upload" ? data.curriculum_user?.[0] : undefined;
             
-            if (file.type !== 'application/pdf') {
+            if (file && file.type !== 'application/pdf') {
                 toast({
                     title: "Formato inválido",
                     description: "Por favor, envie um arquivo no formato PDF.",
@@ -225,7 +225,7 @@ export function Jobs() {
                 return;
             }
 
-            if (file.size > 5 * 1024 * 1024) {
+            if (file && file.size > 5 * 1024 * 1024) {
                 toast({
                     title: "Arquivo muito grande",
                     description: "O arquivo deve ter no máximo 5MB.",
@@ -248,15 +248,15 @@ export function Jobs() {
             }
 
             const formData = new FormData();
-            formData.append("curriculum_user", file);
+            if (file) formData.append("curriculum_user", file);
             formData.append("job_id", selectedJobForApplication.id);
             formData.append("user_id", userId);
 
             console.log("Enviando candidatura:", {
                 jobId: selectedJobForApplication.id,
                 userId: userId,
-                fileName: file.name,
-                fileSize: file.size
+                fileName: file?.name ?? "currículo do perfil",
+                fileSize: file?.size
             });
 
             await applicationMutation.mutateAsync(formData);
@@ -598,64 +598,14 @@ export function Jobs() {
                         <form onSubmit={handleSubmit(onSubmitApplication)}>
                             <ModalBody p="6">
                                 <VStack spacing="6" align="stretch">
-                                    <Alert status="info" borderRadius="md">
-                                        <AlertIcon />
-                                        <Text fontSize="sm">
-                                            Para concorrer a esta vaga, é obrigatório enviar seu currículo em formato PDF.
-                                        </Text>
-                                    </Alert>
-
-                                    <FormControl isInvalid={!!errors.curriculum_user} isRequired>
-                                        <FormLabel fontSize="sm" fontWeight="bold">
-                                            Currículo (PDF)
-                                        </FormLabel>
-                                        <Input
-                                            type="file"
-                                            accept=".pdf"
-                                            {...register("curriculum_user", {
-                                                required: "O currículo é obrigatório",
-                                                validate: {
-                                                    isPDF: (files) => {
-                                                        if (files && files[0]) {
-                                                            return files[0].type === 'application/pdf' || 
-                                                                   files[0].name.toLowerCase().endsWith('.pdf') ||
-                                                                   "Apenas arquivos PDF são aceitos";
-                                                        }
-                                                        return true;
-                                                    },
-                                                    fileSize: (files) => {
-                                                        if (files && files[0]) {
-                                                            return files[0].size <= 5 * 1024 * 1024 || 
-                                                                   "O arquivo deve ter no máximo 5MB";
-                                                        }
-                                                        return true;
-                                                    }
-                                                }
-                                            })}
-                                            p="1"
-                                        />
-                                        <FormErrorMessage>
-                                            {errors.curriculum_user?.message}
-                                        </FormErrorMessage>
-                                        <Text fontSize="xs" color="gray.600" mt="2">
-                                            Tamanho máximo: 5MB • Formato aceito: PDF
-                                        </Text>
-                                    </FormControl>
-
-                                    {watch("curriculum_user")?.[0] && (
-                                        <Alert status="success" borderRadius="md" size="sm">
-                                            <AlertIcon />
-                                            <Box>
-                                                <Text fontSize="sm" fontWeight="medium">
-                                                    Arquivo selecionado:
-                                                </Text>
-                                                <Text fontSize="xs">
-                                                    {watch("curriculum_user")[0].name} 
-                                                    ({(watch("curriculum_user")[0].size / 1024 / 1024).toFixed(2)} MB)
-                                                </Text>
-                                            </Box>
-                                        </Alert>
-                                    )}
+                                    <ApplicationCurriculumField
+                                        profileCurriculum={profileCurriculum}
+                                        source={curriculumSource}
+                                        onSourceChange={(source) => setValue("curriculum_source", source)}
+                                        register={register}
+                                        errors={errors}
+                                        selectedFile={watch("curriculum_user")?.[0]}
+                                    />
                                 </VStack>
                             </ModalBody>
 
@@ -677,7 +627,7 @@ export function Jobs() {
                                     type="submit"
                                     isLoading={isSubmitting || applicationMutation.isLoading}
                                     loadingText="Enviando..."
-                                    isDisabled={!watch("curriculum_user")?.[0]}
+                                    isDisabled={curriculumSource === "upload" && !watch("curriculum_user")?.[0]}
                                 >
                                     Enviar Candidatura
                                 </Button>

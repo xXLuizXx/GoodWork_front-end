@@ -6,6 +6,7 @@ import {
     Menu, MenuButton, MenuList, MenuItem, Tooltip, ModalCloseButton,
     Tag, TagLabel, Icon, useColorModeValue
 } from "@chakra-ui/react";
+import { CurriculumPreview } from "@/components/User/CurriculumPreview";
 import { GrFormView, GrAdd } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
 import { FaRegEdit, FaFileDownload } from "react-icons/fa";
@@ -449,7 +450,7 @@ export default function ListAllDataUsers() {
                                             Visualizar
                                         </Button>
                                         
-                                        {profile.user_type === 'individual' && (
+                                        {profile.user_type === 'individual' && profile.curriculum && (
                                             <Button
                                                 variant="ghost"
                                                 leftIcon={<FaFileDownload color="green" />}
@@ -563,16 +564,19 @@ export default function ListAllDataUsers() {
                                 {selectedProfile.user_type === 'individual' && selectedProfile.curriculum && (
                                     <Box w="100%">
                                         <Heading size="md" mb="4">Currículo</Heading>
-                                        <Button 
-                                            leftIcon={<FaFileDownload />} 
-                                            colorScheme="blue"
-                                            as={Link}
-                                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${selectedProfile.curriculum}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                        >
-                                            Baixar Currículo
-                                        </Button>
+                                        <Flex align="center" gap={3}>
+                                            <CurriculumPreview curriculum={selectedProfile.curriculum} title={`Currículo de ${selectedProfile.name}`} />
+                                            <Button 
+                                                leftIcon={<FaFileDownload />} 
+                                                colorScheme="blue"
+                                                as={Link}
+                                                href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${selectedProfile.curriculum}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                            >
+                                                Baixar Currículo
+                                            </Button>
+                                        </Flex>
                                     </Box>
                                 )}
                             </VStack>

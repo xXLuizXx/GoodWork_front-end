@@ -28,13 +28,14 @@ import {
     ModalCloseButton,
 } from '@chakra-ui/react';
 import { LuSaveAll } from 'react-icons/lu';
-import { MdEdit, MdCameraAlt, MdVisibility, MdVisibilityOff, MdLock, MdDescription, MdUpload } from 'react-icons/md';
+import { MdEdit, MdCameraAlt, MdVisibility, MdVisibilityOff, MdLock, MdUpload } from 'react-icons/md';
 import { Divider } from '@chakra-ui/react';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useMutation } from 'react-query';
 import { api } from '@/services/apiClient';
 import { queryClient } from '@/services/queryClient';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import { CurriculumPreview } from './CurriculumPreview';
 
 interface IUpdateUser {
     id: string;
@@ -493,38 +494,17 @@ export function MyProfile(): JSX.Element {
                             Alterar senha
                         </Button>
                         {user.user_type === "individual" && (
-                            user.curriculum ? (
-                                <>
-                                    <Button
-                                        as="a"
-                                        href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${user.curriculum}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        type="button"
-                                        colorScheme="gray"
-                                        leftIcon={<MdDescription />}
-                                    >
-                                        Currículo
-                                    </Button>
-                                    <IconButton
-                                        aria-label="Atualizar currículo"
-                                        icon={<MdUpload />}
-                                        type="button"
-                                        colorScheme="gray"
-                                        variant="outline"
-                                        onClick={handleCurriculumClick}
-                                    />
-                                </>
-                            ) : (
+                            <Flex align="center" gap={2}>
                                 <Button
                                     type="button"
                                     colorScheme="gray"
                                     leftIcon={<MdUpload />}
                                     onClick={handleCurriculumClick}
                                 >
-                                    Atualizar currículo
+                                    {user.curriculum ? "Atualizar currículo" : "Enviar currículo"}
                                 </Button>
-                            )
+                                {user.curriculum && <CurriculumPreview curriculum={user.curriculum} />}
+                            </Flex>
                         )}
                     </>
                 )}

@@ -5,6 +5,7 @@ import {
     Alert, AlertIcon, Spinner, Center, Input,
     InputGroup, InputLeftElement, Select, Stack, useColorModeValue
 } from "@chakra-ui/react";
+import { CurriculumPreview } from "./CurriculumPreview";
 import { GrFormView } from "react-icons/gr";
 import { GoCheckCircleFill, GoXCircleFill, GoFilter } from "react-icons/go";
 import { FaFileDownload, FaUserEdit, FaSearch, FaCalendarAlt } from "react-icons/fa";
@@ -306,18 +307,21 @@ export function GenerateAllUsers({ search }: SearchUserAdminProps) {
                                     </Button>
                                     
                                     {user.user_type === 'individual' && user.curriculum && (
-                                        <Button 
-                                            leftIcon={<FaFileDownload />}
-                                            variant="outline"
-                                            size="sm"
-                                            as={Link}
-                                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${user.curriculum}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            width="100%"
-                                        >
-                                            Baixar Currículo
-                                        </Button>
+                                        <Flex align="center" gap={2} width="100%">
+                                            <CurriculumPreview curriculum={user.curriculum} size="sm" title={`Currículo de ${user.name}`} />
+                                            <Button 
+                                                leftIcon={<FaFileDownload />}
+                                                variant="outline"
+                                                size="sm"
+                                                as={Link}
+                                                href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${user.curriculum}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                flex="1"
+                                            >
+                                                Baixar Currículo
+                                            </Button>
+                                        </Flex>
                                     )}
                                     
                                     <Button 

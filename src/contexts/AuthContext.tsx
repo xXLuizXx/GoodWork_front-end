@@ -98,7 +98,8 @@ function AuthProvider({ children }: IAuthProviderProps) {
       functionn: data.functionn || undefined,
       ability: data.ability || undefined,
       is_employee: data.is_employee || undefined,
-      curriculum: data.curriculum || undefined,
+      // O back devolve os dados do candidato dentro de individualData
+      curriculum: (data as any).individualData?.curriculum || data.curriculum || undefined,
       business_area: data.business_area || undefined,
       avatar: data.avatar || ""
     });

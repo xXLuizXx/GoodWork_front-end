@@ -6,10 +6,10 @@ import {
     MenuButton, MenuList, MenuItem, Badge, SimpleGrid, Grid, GridItem,
     Tooltip
 } from "@chakra-ui/react";
+import { CurriculumPreview } from "@/components/User/CurriculumPreview";
 import { GrFormView } from "react-icons/gr";
 import { GoXCircleFill, GoCheckCircleFill, GoFilter } from "react-icons/go";
 import { useState, useEffect, useContext } from "react";
-import { FaFilePdf } from "react-icons/fa";
 import { FiMail, FiPhone, FiBriefcase } from "react-icons/fi";
 import { useRouter } from "next/router";
 import { useAllApplicationsVacancy } from "@/services/hooks/applications/useAllApplicationsVacancyCompany";
@@ -190,18 +190,13 @@ function ApplicationCard({
                             Detalhes
                         </Button>
 
-                        <Button
-                            leftIcon={<FaFilePdf size={10} />}
-                            variant="outline"
+                        <CurriculumPreview
+                            curriculum={application.curriculum_user}
+                            kind="application"
                             size="xs"
-                            as={Link}
-                            href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_application/${application.curriculum_user}`}
-                            isExternal
-                            fontSize="10px"
-                            px={1.5}
-                        >
-                            Currículo
-                        </Button>
+                            label="Currículo"
+                            title={`Currículo de ${application.user?.name ?? "candidato"}`}
+                        />
                     </Flex>
                 )}
             </VStack>
@@ -800,7 +795,12 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                                       <Text fontSize="sm">Data: {new Date(selectedApplication.created_at).toLocaleDateString()}</Text>
                                     </HStack>
                                     <HStack>
-                                      <Icon as={FaFilePdf} color="gray.500" boxSize={3} />
+                                      <CurriculumPreview
+                                        curriculum={selectedApplication.curriculum_user}
+                                        kind="application"
+                                        size="sm"
+                                        title={`Currículo de ${selectedApplication.user?.name ?? "candidato"}`}
+                                      />
                                       <Link 
                                         href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_application/${selectedApplication.curriculum_user}`}
                                         isExternal
