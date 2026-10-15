@@ -97,7 +97,7 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
                     transform: "scale(1.05)",
                     cursor: "pointer"
                 }}
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/dashboard")}
                 draggable={false} 
                 style={{
                     userSelect: "none"

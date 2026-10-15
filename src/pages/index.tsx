@@ -45,6 +45,7 @@ import {
 } from "@/services/hooks/Jobs/usePublicJobs";
 import { useCategories } from "@/services/hooks/Categories/useCategories";
 import { Footer } from "@/components/Footer/Footer";
+import { withSSRGuest } from "@/shared/withSSRGuest";
 
 function formatClosingDate(dateStr: string): string {
     const date = new Date(dateStr);
@@ -571,3 +572,6 @@ export default function PublicJobsPage(): JSX.Element {
 }
 
 export { };
+
+// Usuário logado que acessa a home pública vai direto para o dashboard
+export const getServerSideProps = withSSRGuest();

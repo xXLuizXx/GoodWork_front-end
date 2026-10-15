@@ -53,7 +53,7 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
 
     const handleLogoClick = () => {
         handleClear();
-        router.push('/');
+        router.push('/dashboard');
     };
 
     const isWideVersion = useBreakpointValue({

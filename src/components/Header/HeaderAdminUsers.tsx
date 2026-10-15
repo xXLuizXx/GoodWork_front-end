@@ -103,7 +103,7 @@ function HeaderAdminUsers({ onSearch, searchValue, onSearchChange, redirectOnSea
                     transform: "scale(1.05)",
                     cursor: "pointer"
                 }}
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/dashboard")}
                 draggable={false} 
                 style={{
                     userSelect: "none"
