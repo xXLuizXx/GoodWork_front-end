@@ -103,7 +103,7 @@ export function HomeIndividual() {
                     colorScheme="blue"
                     leftIcon={<Icon as={FiCalendar} />}
                     _hover={{ bg: buttonHoverBg }}
-                    onClick={() => router.push('/interviews/my-interviews')}
+                    onClick={() => router.push('/interviews/candidate')}
                 >
                     Minhas Entrevistas
                 </Button>

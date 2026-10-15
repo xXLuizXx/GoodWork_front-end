@@ -74,8 +74,9 @@ function NotificationItem({ notification, onClose }: { notification: INotificati
             router.push("/applications/my-applications");
         } else if (notification.resource_type === "interview") {
             router.push("/interviews/candidate");
-        } else if (notification.resource_type === "job") {
-            router.push("/jobs/generate-jobs");
+        } else if (notification.resource_type === "job" && notification.resource_id) {
+            // Nova candidatura recebida: abre o kanban da vaga
+            router.push(`/applications?id=${notification.resource_id}`);
         }
     };
 
