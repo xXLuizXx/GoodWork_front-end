@@ -34,6 +34,7 @@ interface IAuthContextData {
   signIn(credentials: ISignInCredentials): Promise<void>;
   user: IUser | undefined;
   isAuthenticated: boolean;
+  refreshUser(): Promise<void>;
 }
 
 interface IAuthProviderProps {
@@ -88,28 +89,33 @@ function AuthProvider({ children }: IAuthProviderProps) {
     };
   }, []);
 
+  async function loadUser(): Promise<void> {
+    const response = await api.get("users/profile");
+    const data = response.data as IUser;
+    setUser({
+      ...data,
+      sex: data.sex || undefined,
+      functionn: data.functionn || undefined,
+      ability: data.ability || undefined,
+      is_employee: data.is_employee || undefined,
+      curriculum: data.curriculum || undefined,
+      business_area: data.business_area || undefined,
+      avatar: data.avatar || ""
+    });
+  }
+
+  // Recarrega os dados do usuário logado (ex.: após trocar o avatar) sem recarregar a página
+  async function refreshUser(): Promise<void> {
+    await loadUser().catch(() => undefined);
+  }
+
   useEffect(() => {
     const { "token.token": token } = parseCookies();
     if (token) {
       api.defaults.headers["Authorization"] = `Bearer ${token}`;
-      api
-        .get("users/profile")
-        .then((response) => {
-          const data = response.data as IUser;
-          setUser({
-            ...data,
-            sex: data.sex || undefined,
-            functionn: data.functionn || undefined,
-            ability: data.ability || undefined,
-            is_employee: data.is_employee || undefined,
-            curriculum: data.curriculum || undefined,
-            business_area: data.business_area || undefined,
-            avatar: data.avatar || ""
-          });
-        })
-        .catch(() => {
-          if (typeof window !== "undefined") signOut();
-        });
+      loadUser().catch(() => {
+        if (typeof window !== "undefined") signOut();
+      });
     }
   }, []);
 
@@ -131,7 +137,7 @@ function AuthProvider({ children }: IAuthProviderProps) {
   }
 
   return (
-    <AuthContext.Provider value={{ signIn, user, isAuthenticated }}>
+    <AuthContext.Provider value={{ signIn, user, isAuthenticated, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -55,7 +55,7 @@ interface IChangePassword {
 }
 
 export function MyProfile(): JSX.Element {
-    const { user } = useContext(AuthContext);
+    const { user, refreshUser } = useContext(AuthContext);
     const [isEditing, setIsEditing] = useState(false);
     const containerBg = useColorModeValue('white', 'gray.800');
     const inputBg = useColorModeValue('white', 'gray.700');
@@ -156,6 +156,9 @@ export function MyProfile(): JSX.Element {
                         'Content-Type': 'multipart/form-data',
                     },
                 });
+
+                // Atualiza o usuário no contexto para o novo avatar aparecer no cabeçalho na hora
+                await refreshUser();
 
                 toast({
                     description: "Avatar atualizado com sucesso!",
