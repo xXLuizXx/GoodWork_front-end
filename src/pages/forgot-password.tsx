@@ -191,6 +191,13 @@ export default function ForgotPassword(): JSX.Element {
                                     Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.
                                 </Text>
                             </VStack>
+                            <Alert status="warning" borderRadius="xl" textAlign="left" fontSize="sm">
+                                <AlertIcon />
+                                <Text>
+                                    <strong>Não encontrou o e-mail?</strong> Confira as pastas <strong>Spam</strong> ou <strong>Lixo eletrônico</strong> e,
+                                    no Gmail, as abas <strong>Atualizações</strong> e <strong>Promoções</strong>.
+                                </Text>
+                            </Alert>
                             <Button
                                 colorScheme="blue"
                                 borderRadius="full"

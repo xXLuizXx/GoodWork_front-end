@@ -252,6 +252,8 @@ export default function CreateUser(): JSX.Element {
                 return response.data.user;
             } catch (error) {
                 toast({ description: (error as any).response?.data?.message || "Erro ao criar usuário", status: "error", position: "top", duration: 8000, isClosable: true });
+                // Relança para o react-query não chamar o onSuccess (que mostraria a tela de "conta criada")
+                throw error;
             }
         },
         {
@@ -337,9 +339,14 @@ export default function CreateUser(): JSX.Element {
                                 Verifique sua caixa de entrada e clique no link para ativar sua conta.
                             </AlertDescription>
                         </Alert>
-                        <Text color={textColor} fontSize="sm" mb={6}>
-                            Não recebeu o e-mail? Verifique a pasta de spam.
-                        </Text>
+                        <Alert status="warning" borderRadius="xl" mb={6} textAlign="left">
+                            <AlertIcon />
+                            <AlertDescription fontSize="sm">
+                                <strong>Não encontrou o e-mail?</strong> Confira as pastas <strong>Spam</strong> ou <strong>Lixo eletrônico</strong> e,
+                                no Gmail, as abas <strong>Atualizações</strong> e <strong>Promoções</strong>. Se estiver no spam, marque como
+                                &quot;Não é spam&quot; para receber os próximos normalmente.
+                            </AlertDescription>
+                        </Alert>
                         <Button colorScheme="blue" borderRadius="full" w="100%" size="lg" onClick={() => Router.push("/login")}>
                             Ir para o login
                         </Button>
