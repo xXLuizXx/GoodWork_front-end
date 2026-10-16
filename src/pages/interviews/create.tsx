@@ -143,7 +143,11 @@ export default function CreateInterview(): JSX.Element {
     );
 
     const handleCreate: SubmitHandler<ICreateInterview> = async (formData) => {
-        await createInterview.mutateAsync(formData);
+        // O input datetime-local está no horário do navegador; envia o instante em UTC
+        await createInterview.mutateAsync({
+            ...formData,
+            scheduled_date: new Date(formData.scheduled_date).toISOString(),
+        });
     };
 
     return (

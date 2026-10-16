@@ -100,11 +100,17 @@ interface RescheduleModalProps {
     onClose: () => void;
 }
 
+// A API devolve UTC ("...Z"); o input datetime-local espera o horário local, sem fuso
+function toDateTimeLocal(iso: string): string {
+    const date = new Date(iso);
+    return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+}
+
 function RescheduleModal({ interview, isOpen, onClose }: RescheduleModalProps) {
     const toast = useToast();
     const { register, handleSubmit, watch, formState: { errors } } = useForm<IRescheduleForm>({
         defaultValues: {
-            scheduled_date: interview.scheduled_date.slice(0, 16),
+            scheduled_date: toDateTimeLocal(interview.scheduled_date),
             duration_minutes: interview.duration_minutes,
             interview_type: interview.interview_type,
             location: interview.location ?? "",
@@ -122,7 +128,7 @@ function RescheduleModal({ interview, isOpen, onClose }: RescheduleModalProps) {
         async (data: IRescheduleForm) => {
             await api.patch("interview/rescheduleInterview", {
                 interview_id: interview.id,
-                scheduled_date: data.scheduled_date,
+                scheduled_date: new Date(data.scheduled_date).toISOString(),
                 duration_minutes: Number(data.duration_minutes),
                 interview_type: data.interview_type,
                 location: data.interview_type === "presencial" ? data.location : null,
