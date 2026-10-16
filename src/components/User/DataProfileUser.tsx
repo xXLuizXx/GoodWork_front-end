@@ -303,12 +303,12 @@ export function MyProfile(): JSX.Element {
             width="100%"
             maxWidth={1050}
             bg={containerBg}
-            p="8"
+            p={{ base: "4", md: "8" }}
             borderRadius={10}
             boxShadow="dark-lg"
             flexDirection="column"
         >
-            <Flex align="center" mb={8}>
+            <Flex align="center" mb={8} direction={{ base: "column", md: "row" }} textAlign={{ base: "center", md: "left" }}>
                 <Box position="relative">
                     <Avatar
                         size="2xl"
@@ -342,8 +342,8 @@ export function MyProfile(): JSX.Element {
                         display="none"
                     />
                 </Box>
-                <Box ml={4}>
-                    <Text fontSize="4xl" fontWeight="bold" color="blue.800">
+                <Box ml={{ base: 0, md: 4 }} mt={{ base: 4, md: 0 }} minW="0">
+                    <Text fontSize={{ base: "2xl", md: "4xl" }} fontWeight="bold" color="blue.800" wordBreak="break-word">
                         {user.name}
                     </Text>
                     <FormControl>
@@ -369,7 +369,7 @@ export function MyProfile(): JSX.Element {
 
             <Divider mb={8} />
 
-            <SimpleGrid ml={10} mr={10} columns={{ base: 1, md: 2 }} spacing={6}>
+            <SimpleGrid ml={{ base: 0, md: 10 }} mr={{ base: 0, md: 10 }} columns={{ base: 1, md: 2 }} spacing={6}>
                 {[
                     { label: "Rua", field: "road" },
                     { label: "Número", field: "number" },
@@ -444,7 +444,7 @@ export function MyProfile(): JSX.Element {
                 )}
             </SimpleGrid>
 
-            <Flex mt={8} justify="center" gap={3}>
+            <Flex mt={8} justify="center" gap={3} flexWrap="wrap">
                 {isEditing ? (
                     <>
                         <Button

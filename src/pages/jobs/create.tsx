@@ -167,26 +167,29 @@ export default function CreateJob(): JSX.Element {
                     width="100%"
                 >
                     <Box
-                        p={8} 
+                        p={{ base: 4, md: 8 }}
                         borderWidth="1px" 
                         borderRadius="lg"
                         height="100%"
-                        width="70%"
+                        width={{ base: "100%", md: "70%" }}
                     >
                         <VStack spacing={4}>
                             <Grid
                                 pt="1%"
                                 gap="2"
-                                templateAreas={`"row1 row1"
+                                templateAreas={{
+                                    base: `"row1" "row2" "row3" "row4" "row5" "row6" "row7" "row8" "row9" "row10" "row11"`,
+                                    md: `"row1 row1"
                                                 "row2 row3"
                                                 "row4 row4"
                                                 "row5 row5"
                                                 "row6 row7"
                                                 "row8 row8"
                                                 "row9 row9"
-                                                "row10 row11"`}
-                                gridTemplateColumns={"310px 1fr"}
-                                w="550px"
+                                                "row10 row11"`,
+                                }}
+                                gridTemplateColumns={{ base: "1fr", md: "310px 1fr" }}
+                                w={{ base: "100%", md: "550px" }}
                                 minWidth={[200, 250]}
                             >
                                 <GridItem pl="2" area={"row1"}>
@@ -328,10 +331,11 @@ export default function CreateJob(): JSX.Element {
                         <Flex 
                             width="100%" 
                             maxWidth={1050} 
-                            p="8" 
+                            p={{ base: 4, md: 8 }}
                             borderRadius={10} 
                             justify="center"
                             gap={4}
+                            flexWrap="wrap"
                         >
                             <Button 
                                 type="submit" 

@@ -304,7 +304,7 @@ export function SearchCategoryAdmin({ search }: SearchCategoryAdminProps) {
                 </SimpleGrid>
                 
                 {totalPages > 1 && (
-                    <Flex justify="center" align="center" mt={8} gap={2}>
+                    <Flex justify="center" align="center" mt={8} gap={2} flexWrap="wrap">
                         <Button
                             size="sm"
                             leftIcon={<GoArrowLeft />}

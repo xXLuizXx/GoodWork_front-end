@@ -1,10 +1,11 @@
 import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image, useColorModeValue } from "@chakra-ui/react";
-import { RiSearchLine } from "react-icons/ri";
+import { RiMenuLine, RiSearchLine } from "react-icons/ri";
 import { Profile } from "./Profile";
 import { useEffect, useState } from "react";
 import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { useRouter } from "next/router";
+import { useSidebarDrawer } from "@/contexts/SidebarDrawerContext";
 
 interface DecodedToken {
     isAdmin: boolean;
@@ -24,6 +25,7 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
     const [typeUser, setTypeUser] = useState("");
     const [localJob, setLocalJob] = useState('');
     const router = useRouter();
+    const { onOpen: onOpenSidebar } = useSidebarDrawer();
     const isWideVersion = useBreakpointValue({
         base: false,
         lg: true,
@@ -78,19 +80,21 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
             h="20"
             mx="auto"
             mt="4"
-            px="6"
+            px={{ base: "3", md: "6" }}
             align="center"
             bgColor="#0000CD"
             boxShadow="dark-lg"
             borderRadius="full"
         >
+            <IconButton                aria-label="Abrir menu"                icon={<RiMenuLine />}                onClick={onOpenSidebar}                display={{ base: "flex", lg: "none" }}                variant="unstyled"                color="white"                fontSize="24"                minW="8"            />
+
             <Image 
                 src="/Img/logos/GoodWorkLogoBranco.png"
                 alt="Logo GoodWork"
                 w="auto"
-                h="75px"
+                h={{ base: "48px", md: "75px" }}
                 objectFit="contain"
-                ml="4"
+                ml={{ base: "1", md: "4" }}
                 loading="eager"
                 transition="all 0.2s ease"
                 _hover={{
@@ -107,8 +111,9 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
             <Flex
                 flex="1"
                 py="2"
-                px="8"
-                ml="6"
+                px={{ base: "3", md: "8" }}
+                ml={{ base: "2", md: "6" }}
+                minW="0"
                 maxWidth={1000}
                 alignSelf="center"
                 color="gray.50"
@@ -119,8 +124,9 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
                 <Input
                     color={searchColor}
                     variant="unstyled"
-                    px="4"
-                    mr="4"
+                    px={{ base: "1", md: "4" }}
+                    mr={{ base: "1", md: "4" }}
+                    minW="0"
                     placeholder="Buscar"
                     _placeholder={{
                         color: "gray.500"
@@ -142,8 +148,8 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
             <Flex align="center" ml="auto">
                 <HStack 
                     spacing="4"
-                    mx="8"
-                    pr="8"
+                    mx={{ base: "2", md: "8" }}
+                    pr={{ base: "2", md: "8" }}
                     py="3"
                     color="gray.50"
                     borderRightWidth={1}
@@ -155,7 +161,7 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
                 </Flex>
             </Flex>
 
-            <Flex>
+            <Flex display={{ base: "none", lg: "flex" }}>
                 <VStack 
                     w="100%"
                     mt="40"

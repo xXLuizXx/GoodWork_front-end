@@ -117,8 +117,8 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
                 p={6}
                 position="relative"
             >
-                <Flex justify="space-between" align="flex-end">
-                    <Flex align="center">
+                <Flex justify="space-between" align={{ base: "center", md: "flex-end" }} direction={{ base: "column", md: "row" }}>
+                    <Flex align="center" direction={{ base: "column", md: "row" }} textAlign={{ base: "center", md: "left" }}>
                         <Avatar
                             size="2xl"
                             name={user.name}
@@ -127,9 +127,9 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
                             borderColor={cardBg}
                             boxShadow="lg"
                         />
-                        <Box ml={6} color="white">
-                            <Flex align="center">
-                                <Text fontSize="3xl" fontWeight="bold" mr={3}>
+                        <Box ml={{ base: 0, md: 6 }} mt={{ base: 3, md: 0 }} color="white" minW="0">
+                            <Flex align="center" justify={{ base: "center", md: "flex-start" }} flexWrap="wrap" gap={{ base: 2, md: 0 }}>
+                                <Text fontSize={{ base: "2xl", md: "3xl" }} fontWeight="bold" mr={3} wordBreak="break-word">
                                     {user.name}
                                 </Text>
                                 <Badge 
@@ -147,9 +147,9 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
                                 {isIndividual ? user.functionn : user.business_area}
                             </Text>
                             
-                            <Flex mt={3} align="center">
+                            <Flex mt={3} align="center" justify={{ base: "center", md: "flex-start" }}>
                                 <Icon as={FiMail} mr={2} />
-                                <Text>{user.email}</Text>
+                                <Text wordBreak="break-all">{user.email}</Text>
                             </Flex>
                         </Box>
                     </Flex>
@@ -161,6 +161,7 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
                                 leftIcon={user.active ? <FiXCircle /> : <FiCheckCircle />}
                                 onClick={() => handleStatusChange(user.id, user.active)}
                                 variant="solid"
+                                mt={{ base: 4, md: 0 }}
                             >
                                 {user.active ? "Desativar" : "Ativar"}
                             </Button>
@@ -169,7 +170,7 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
                 </Flex>
             </Box>
 
-            <Box p={8}>
+            <Box p={{ base: 4, md: 8 }}>
                 <Box mb={10}>
                     <Text fontSize="2xl" fontWeight="bold" color={headingColor} mb={4}>
                         Sobre
@@ -262,7 +263,7 @@ const InfoItem = ({ icon, label, value }: { icon: any; label: string; value: str
         <Flex align="center" mb={2}>
             <Icon as={icon} mr={3} color="blue.500" />
             <Text fontWeight="medium" minW="120px">{label}:</Text>
-            <Text color={textColor} ml={2}>{value}</Text>
+            <Text color={textColor} ml={2} wordBreak="break-word">{value}</Text>
         </Flex>
     );
 };

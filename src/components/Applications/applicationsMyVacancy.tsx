@@ -614,7 +614,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                 </Alert>
             )}
 
-            <Grid templateColumns="repeat(3, 1fr)" gap={4} mt={4}>
+            <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={4} mt={4}>
                 <GridItem 
                     colSpan={1} 
                     p={3} 
@@ -622,7 +622,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                     borderRadius="md"
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, null)}
-                    minH="500px"
+                    minH={{ base: "auto", md: "500px" }}
                     maxH="80vh"
                     overflowY="auto"
                 >
@@ -665,7 +665,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                     borderRadius="md"
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, true)}
-                    minH="500px"
+                    minH={{ base: "auto", md: "500px" }}
                     maxH="80vh"
                     overflowY="auto"
                 >
@@ -710,7 +710,7 @@ export function MyApplications({ id }: IApplicationMyVacancyProps) {
                     borderRadius="md"
                     onDragOver={handleDragOver}
                     onDrop={(e) => handleDrop(e, false)}
-                    minH="500px"
+                    minH={{ base: "auto", md: "500px" }}
                     maxH="80vh"
                     overflowY="auto"
                 >

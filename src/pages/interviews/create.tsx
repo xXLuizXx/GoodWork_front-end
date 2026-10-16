@@ -161,12 +161,14 @@ export default function CreateInterview(): JSX.Element {
             <Flex w="100%" my="8" maxWidth={1480} mx="auto" px="4">
                 <Sidebar />
                 <Flex justify="center" align="center" height="100%" width="100%">
-                    <Box p={8} borderWidth="1px" borderRadius="lg" width="70%">
+                    <Box p={{ base: 4, md: 8 }} borderWidth="1px" borderRadius="lg" width={{ base: "100%", md: "70%" }}>
                         <VStack spacing={4}>
                             <Grid
                                 pt="1%"
                                 gap="4"
-                                templateAreas={`
+                                templateAreas={{
+                                    base: `"job" "application" "type" "date" "duration" "location" "link" "name" "email" "notes"`,
+                                    md: `
                                     "job job"
                                     "application application"
                                     "type type"
@@ -174,8 +176,9 @@ export default function CreateInterview(): JSX.Element {
                                     "location link"
                                     "name email"
                                     "notes notes"
-                                `}
-                                gridTemplateColumns="1fr 1fr"
+                                `,
+                                }}
+                                gridTemplateColumns={{ base: "1fr", md: "1fr 1fr" }}
                                 w="100%"
                             >
                                 <GridItem area="job">
@@ -335,7 +338,7 @@ export default function CreateInterview(): JSX.Element {
                             </Grid>
                         </VStack>
 
-                        <Flex width="100%" p="8" borderRadius={10} justify="center" gap={4}>
+                        <Flex width="100%" p={{ base: 4, md: 8 }} borderRadius={10} justify="center" gap={4} flexWrap="wrap">
                             <Button
                                 type="submit"
                                 colorScheme="blue"

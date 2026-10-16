@@ -24,7 +24,7 @@ export function IndividualReport() {
 
     return (
         <Flex direction="column" gap={8} flex="1">
-            <Flex justify="space-between" align="center">
+            <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
                 <Text fontSize="xl" fontWeight="bold" color={textColor}>Minhas Candidaturas</Text>
                 <Flex gap={2}>
                     <Button

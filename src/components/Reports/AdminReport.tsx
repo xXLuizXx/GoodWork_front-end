@@ -23,7 +23,7 @@ export function AdminReport() {
 
     return (
         <Flex direction="column" gap={8} flex="1">
-            <Flex justify="space-between" align="center">
+            <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
                 <Text fontSize="xl" fontWeight="bold" color={textColor}>Visão Geral</Text>
                 <Flex gap={2}>
                     <Button

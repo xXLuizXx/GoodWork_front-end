@@ -47,7 +47,7 @@ export function CompanyReport({ userId }: CompanyReportProps) {
     return (
         <Flex direction="column" gap={8} flex="1">
             {/* Exportar tudo */}
-            <Flex justify="flex-end" gap={2}>
+            <Flex justify="flex-end" gap={2} flexWrap="wrap">
                 <Button
                     size="sm"
                     colorScheme="red"
@@ -77,7 +77,7 @@ export function CompanyReport({ userId }: CompanyReportProps) {
             </Flex>
 
             {/* Overview */}
-            <Flex justify="space-between" align="center">
+            <Flex justify="space-between" align="center" flexWrap="wrap" gap={2}>
                 <Text fontSize="xl" fontWeight="bold" color={textColor}>Minhas Vagas</Text>
                 <Flex gap={2}>
                     <Button

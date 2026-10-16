@@ -1,9 +1,10 @@
 import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image } from "@chakra-ui/react";
-import { RiSearchLine } from "react-icons/ri";
+import { RiMenuLine, RiSearchLine } from "react-icons/ri";
 import { GoXCircleFill } from "react-icons/go";
 import { Profile } from "./Profile";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { useSidebarDrawer } from "@/contexts/SidebarDrawerContext";
 
 interface IProfileProps {
     showProfileData: boolean;
@@ -21,6 +22,7 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
     const [localSearchTerm, setLocalSearchTerm] = useState(searchValue || '');
     const [isSearching, setIsSearching] = useState(false);
     const router = useRouter();
+    const { onOpen: onOpenSidebar } = useSidebarDrawer();
 
     const handleSearch = async () => {
         const term = localSearchTerm.trim();
@@ -69,19 +71,21 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
             h="20"
             mx="auto"
             mt="4"
-            px="6"
+            px={{ base: "3", md: "6" }}
             align="center"
             bgColor="#0000CD"
             boxShadow="dark-lg"
             borderRadius="full"
         >
+            <IconButton                aria-label="Abrir menu"                icon={<RiMenuLine />}                onClick={onOpenSidebar}                display={{ base: "flex", lg: "none" }}                variant="unstyled"                color="white"                fontSize="24"                minW="8"            />
+
             <Image 
                 src="/Img/logos/GoodWorkLogoBranco.png"
                 alt="Logo GoodWork"
                 w="auto"
-                h="75px"
+                h={{ base: "48px", md: "75px" }}
                 objectFit="contain"
-                ml="4"
+                ml={{ base: "1", md: "4" }}
                 loading="eager"
                 transition="all 0.2s ease"
                 _hover={{
@@ -98,8 +102,9 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
             <Flex
                 flex="1"
                 py="2"
-                px="8"
-                ml="6"
+                px={{ base: "3", md: "8" }}
+                ml={{ base: "2", md: "6" }}
+                minW="0"
                 maxWidth={1000}
                 alignSelf="center"
                 color="gray.50"
@@ -110,8 +115,9 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
                 <Input
                     color="black"
                     variant="unstyled"
-                    px="4"
-                    mr="2"
+                    px={{ base: "1", md: "4" }}
+                    mr={{ base: "1", md: "2" }}
+                    minW="0"
                     placeholder="Buscar perfis por nome, função ou habilidade"
                     _placeholder={{
                         color: "gray.500"
@@ -149,8 +155,8 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
             <Flex align="center" ml="auto">
                 <HStack 
                     spacing="4"
-                    mx="8"
-                    pr="8"
+                    mx={{ base: "2", md: "8" }}
+                    pr={{ base: "2", md: "8" }}
                     py="3"
                     color="gray.50"
                     borderRightWidth={1}
@@ -162,7 +168,7 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
                 </Flex>
             </Flex>
 
-            <Flex>
+            <Flex display={{ base: "none", lg: "flex" }}>
                 <VStack 
                     w="100%"
                     mt="40"

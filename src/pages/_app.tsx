@@ -3,6 +3,7 @@ import { ChakraProvider, Flex } from "@chakra-ui/react";
 import { QueryClientProvider } from "react-query";
 import { theme } from "@/styles/theme";
 import { AuthProvider } from "../contexts/AuthContext";
+import { SidebarDrawerProvider } from "../contexts/SidebarDrawerContext";
 import { queryClient } from "@/services/queryClient";
 import { Footer } from "@/components/Footer/Footer";
 import { useRouter } from "next/router";
@@ -17,10 +18,12 @@ function MyApp({ Component, pageProps }: AppProps){
         <QueryClientProvider client={queryClient}>
             <AuthProvider>
                 <ChakraProvider theme={theme}>
-                    <Flex direction="column" minH="100vh">
-                        <Component {...pageProps}/>
-                        {showFooter && <Footer />}
-                    </Flex>
+                    <SidebarDrawerProvider>
+                        <Flex direction="column" minH="100vh">
+                            <Component {...pageProps}/>
+                            {showFooter && <Footer />}
+                        </Flex>
+                    </SidebarDrawerProvider>
                 </ChakraProvider>
             </AuthProvider>
         </QueryClientProvider>

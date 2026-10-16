@@ -142,7 +142,8 @@ export function JobsCategory({category_id}: IJobsCategoriesProps) {
     
     const gridTemplateColumns = useBreakpointValue({
         base: "1fr",
-        md: getGridTemplateColumns(),
+        // No tablet, no máximo 2 colunas: 3 não cabem
+        md: getGridTemplateColumns() === "1fr 1fr 1fr" ? "1fr 1fr" : getGridTemplateColumns(),
         lg: getGridTemplateColumns()
     });
 

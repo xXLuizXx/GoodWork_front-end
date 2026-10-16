@@ -752,9 +752,9 @@ export default function ManageInterviews(): JSX.Element {
                         colorScheme="blue"
                         onChange={(index) => setActiveFilter(filterTabs[index].key)}
                     >
-                        <TabList>
+                        <TabList overflowX={{ base: "auto", md: "visible" }} overflowY={{ base: "hidden", md: "visible" }}>
                             {filterTabs.map((tab) => (
-                                <Tab key={tab.key}>{tab.label}</Tab>
+                                <Tab key={tab.key} flexShrink={0}>{tab.label}</Tab>
                             ))}
                         </TabList>
                     </Tabs>
