@@ -84,18 +84,10 @@ export default function EditJob(): JSX.Element {
                     const response = await api.get(`/jobs/getJob?id=${id}`);
                     const jobData = response.data;
                     
-                    const closingDateBR = jobData.closing_date 
-                        ? new Date(jobData.closing_date).toLocaleString('pt-BR', {
-                            timeZone: 'America/Sao_Paulo',
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit'
-                          }).split(',')[0].split('/').reverse().join('-')
-                        : '';
-    
+                    // A API já envia "YYYY-MM-DD", o mesmo formato do input type="date"
                     reset({
                         ...jobData,
-                        closing_date: closingDateBR
+                        closing_date: jobData.closing_date ?? ''
                     });
                     
                     setIsLoading(false);
@@ -180,8 +172,7 @@ export default function EditJob(): JSX.Element {
                         formData.append(key, value);
                     }
                 } else if (key === "closing_date") {
-                    const date = new Date(`${value}T00:00:00-00:00`);
-                    formData.append(key, date.toISOString());
+                    formData.append(key, value as string);
                 } else if (key === "vacancy_available") {
                     formData.append(key, value ? "true" : "false");
                 } else {

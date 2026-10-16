@@ -29,6 +29,7 @@ import decode from "jwt-decode";
 import { useRouter } from "next/router";
 import { GrAdd } from "react-icons/gr";
 import { MdOutlineEventAvailable } from "react-icons/md";
+import { parseClosingDate } from "@/utils/closingDate";
 
 export const getServerSideProps = withSSRAuth(async () => {
     return { props: {} };
@@ -112,10 +113,10 @@ export default function MyInterviews(): JSX.Element {
                     <SimpleGrid columns={{ base: 1, lg: Math.min(4, data?.jobs?.length || 1) }} spacing="6">
                         {data?.jobs?.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage).map((job) => {
                             const today = new Date();
-                            const isClosedByDate = job.closing_date && new Date(job.closing_date) <= today;
+                            const isClosedByDate = job.closing_date && parseClosingDate(job.closing_date) <= today;
                             const isClosed = !job.vacancy_available || isClosedByDate;
                             const closingDateFormatted = job.closing_date
-                                ? new Date(job.closing_date).toLocaleDateString("pt-BR")
+                                ? parseClosingDate(job.closing_date).toLocaleDateString("pt-BR")
                                 : "Sem data definida";
 
                             return (

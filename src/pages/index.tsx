@@ -46,11 +46,10 @@ import {
 import { useCategories } from "@/services/hooks/Categories/useCategories";
 import { Footer } from "@/components/Footer/Footer";
 import { withSSRGuest } from "@/shared/withSSRGuest";
+import { daysUntilClosing } from "@/utils/closingDate";
 
 function formatClosingDate(dateStr: string): string {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffDays = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    const diffDays = daysUntilClosing(dateStr);
     if (diffDays < 0) return "Encerrada";
     if (diffDays === 0) return "Encerra hoje";
     if (diffDays === 1) return "Encerra amanhã";

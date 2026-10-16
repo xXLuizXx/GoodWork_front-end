@@ -16,6 +16,7 @@ import { useAllJobsCompany } from "@/services/hooks/Jobs/useAllJobsCompany";
 import { useRouter } from "next/router";
 import { useUpdateStatusJob } from "@/services/hooks/Jobs/useUpdateStatusJob";
 import { useJobsVacancy } from "@/services/hooks/Jobs/useJobsVacancy";
+import { parseClosingDate } from "@/utils/closingDate";
 
 interface IJobsCompanyProps {
     vacancy: string;
@@ -76,7 +77,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
             try {
                 if (!job.closing_date) continue;
                 
-                const closingDate = new Date(job.closing_date);
+                const closingDate = parseClosingDate(job.closing_date);
                 
                 if (closingDate <= todayUTC && job.vacancy_available) {
                     await updateStatusJob(job.id, false);
@@ -111,7 +112,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
     const filteredJobs = data?.jobs?.filter(job => {
         const today = new Date();
         
-        const isClosedByDate = job.closing_date && new Date(job.closing_date) <= today;
+        const isClosedByDate = job.closing_date && parseClosingDate(job.closing_date) <= today;
         const isClosed = !job.vacancy_available || isClosedByDate;
 
         if (filter === "open" && isClosed) return false;
@@ -121,7 +122,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
             if (!job.closing_date) return false;
             
             try {
-                const closingDate = new Date(job.closing_date);
+                const closingDate = parseClosingDate(job.closing_date);
                 const now = new Date();
                 
                 return (
@@ -176,14 +177,14 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                 Vagas Abertas
                                 <Badge ml="2" colorScheme="green">
                                     {data.jobs.filter(j => j.vacancy_available && 
-                                        (!j.closing_date || new Date(j.closing_date) > new Date())).length}
+                                        (!j.closing_date || parseClosingDate(j.closing_date) > new Date())).length}
                                 </Badge>
                             </MenuItem>
                             <MenuItem onClick={() => setFilter("closed")}>
                                 Vagas Fechadas
                                 <Badge ml="2" colorScheme="red">
                                     {data.jobs.filter(j => !j.vacancy_available || 
-                                        (j.closing_date && new Date(j.closing_date) <= new Date())).length}
+                                        (j.closing_date && parseClosingDate(j.closing_date) <= new Date())).length}
                                 </Badge>
                             </MenuItem>
                             <MenuItem onClick={() => setFilter("month")}>
@@ -192,7 +193,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                     {data.jobs.filter(job => {
                                         if (!job.closing_date) return false;
                                         try {
-                                            const closingDate = new Date(job.closing_date);
+                                            const closingDate = parseClosingDate(job.closing_date);
                                             const now = new Date();
                                             return (
                                                 closingDate.getMonth() === now.getMonth() &&
@@ -222,10 +223,10 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                 {filteredJobs?.map(job => {
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    const isClosedByDate = job.closing_date && new Date(job.closing_date) <= today;
+                    const isClosedByDate = job.closing_date && parseClosingDate(job.closing_date) <= today;
                     const isClosed = !job.vacancy_available || isClosedByDate;
                     const closingDateFormatted = job.closing_date ? 
-                        new Date(job.closing_date).toLocaleDateString('pt-BR') : 
+                        parseClosingDate(job.closing_date).toLocaleDateString('pt-BR') : 
                         'Sem data definida';
 
                     return (
@@ -353,21 +354,21 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                 </Box>
                                 <Tooltip label={`Data de encerramento: ${
                                     selectedJob.closing_date ? 
-                                    new Date(selectedJob.closing_date).toLocaleDateString('pt-BR') : 
+                                    parseClosingDate(selectedJob.closing_date).toLocaleDateString('pt-BR') : 
                                     'Sem data definida'
                                 }`}>
                                     <Badge 
                                         ml="auto"
                                         colorScheme={
                                             (!selectedJob.vacancy_available || 
-                                            (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                            (selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date())) 
                                             ? "red" 
                                             : "green"
                                         }
                                     >
                                         {
                                             (!selectedJob.vacancy_available || 
-                                            (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                            (selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date())) 
                                             ? "Fechada" 
                                             : "Aberta"
                                         }
@@ -384,7 +385,7 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                             <Text fontWeight="bold" fontSize="lg" mb="2">Data de Encerramento:</Text>
                                             <Box pl="4">
                                                 {selectedJob.closing_date ? 
-                                                    new Date(selectedJob.closing_date).toLocaleDateString('pt-BR', {
+                                                    parseClosingDate(selectedJob.closing_date).toLocaleDateString('pt-BR', {
                                                         day: '2-digit',
                                                         month: '2-digit',
                                                         year: 'numeric',
@@ -400,14 +401,14 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                                                 <Badge 
                                                     colorScheme={
                                                         (!selectedJob.vacancy_available || 
-                                                        (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                                        (selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date())) 
                                                         ? "red" 
                                                         : "green"
                                                     }
                                                 >
                                                     {
                                                         (!selectedJob.vacancy_available || 
-                                                        (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                                        (selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date())) 
                                                         ? "Fechada" 
                                                         : "Aberta"
                                                     }
@@ -462,28 +463,28 @@ export function MyJobsVacancy({vacancy}: IJobsCompanyProps) {
                             <Button
                                 colorScheme={
                                     (!selectedJob.vacancy_available || 
-                                    (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                    (selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date())) 
                                     ? "green" 
                                     : "red"
                                 }
                                 leftIcon={<Icon as={
                                     (!selectedJob.vacancy_available || 
-                                    (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                    (selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date())) 
                                     ? GoCheckCircleFill 
                                     : GoXCircleFill
                                 } />}
                                 onClick={() => handleValidate(
                                     selectedJob.id, 
                                     !(!selectedJob.vacancy_available || 
-                                      (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date()))
+                                      (selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date()))
                                 )}
                                 isLoading={isLoading}
                                 mr={3}
-                                isDisabled={selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date()}
+                                isDisabled={selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date()}
                             >
                                 {
                                     (!selectedJob.vacancy_available || 
-                                    (selectedJob.closing_date && new Date(selectedJob.closing_date) <= new Date())) 
+                                    (selectedJob.closing_date && parseClosingDate(selectedJob.closing_date) <= new Date())) 
                                     ? "Reabrir Vaga" 
                                     : "Fechar Vaga"
                                 }

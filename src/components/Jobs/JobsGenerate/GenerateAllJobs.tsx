@@ -15,6 +15,7 @@ import { useAllJobs } from "@/services/hooks/Jobs/useAllJobs";
 import decode from "jwt-decode";
 import { parseCookies } from "nookies";
 import { Helmet } from "react-helmet";
+import { daysUntilClosing, parseClosingDate } from "@/utils/closingDate";
 
 interface DecodedToken {
     isAdmin: boolean;
@@ -98,19 +99,17 @@ export function GenerateAllJobs({ search }: SearchJobAdminProps) {
         }
     };
 
+    // Usado para created_at (instante) e closing_date ("YYYY-MM-DD"); parseClosingDate trata os dois
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('pt-BR');
+        return parseClosingDate(dateString).toLocaleDateString('pt-BR');
     };
 
     const isJobExpired = (closingDate: string) => {
-        return new Date(closingDate) < new Date();
+        return parseClosingDate(closingDate) < new Date();
     };
 
     const isJobExpiringSoon = (closingDate: string, days = 7) => {
-        const today = new Date();
-        const closing = new Date(closingDate);
-        const diffTime = closing.getTime() - today.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const diffDays = daysUntilClosing(closingDate);
         return diffDays <= days && diffDays >= 0;
     };
 
