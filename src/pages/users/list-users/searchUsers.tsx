@@ -546,22 +546,26 @@ export default function SearchAllUsers() {
                                     </Box>
                                 )}
 
-                                {selectedProfile.user_type === 'individual' && selectedProfile.curriculum && (
+                                {selectedProfile.user_type === 'individual' && (
                                     <Box w="100%">
                                         <Heading size="md" mb="4">Currículo</Heading>
-                                        <Flex align="center" gap={3}>
-                                            <CurriculumPreview curriculum={selectedProfile.curriculum} title={`Currículo de ${selectedProfile.name}`} />
-                                            <Button 
-                                                leftIcon={<FaFileDownload />} 
-                                                colorScheme="blue"
-                                                as={Link}
-                                                href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${selectedProfile.curriculum}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                Baixar Currículo
-                                            </Button>
-                                        </Flex>
+                                        {selectedProfile.curriculum ? (
+                                            <Flex align="center" gap={3}>
+                                                <CurriculumPreview curriculum={selectedProfile.curriculum} title={`Currículo de ${selectedProfile.name}`} />
+                                                <Button 
+                                                    leftIcon={<FaFileDownload />} 
+                                                    colorScheme="blue"
+                                                    as={Link}
+                                                    href={`${process.env.NEXT_PUBLIC_API_URL}/curriculum_user_profile/${selectedProfile.curriculum}`}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    Baixar Currículo
+                                                </Button>
+                                            </Flex>
+                                        ) : (
+                                            <Text color="gray.400" fontSize="sm">Não enviado</Text>
+                                        )}
                                     </Box>
                                 )}
                             </VStack>
