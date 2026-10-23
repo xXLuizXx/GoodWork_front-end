@@ -22,6 +22,7 @@ export type NotificationType =
     | "interview_cancelled"
     | "interview_rescheduled"
     | "hired"
+    | "not_hired"
     // Enviadas aos admins
     | "job_pending_validation"
     | "category_pending_validation"

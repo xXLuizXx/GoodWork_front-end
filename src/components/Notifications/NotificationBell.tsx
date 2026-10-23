@@ -48,6 +48,7 @@ const typeConfig: Record<NotificationType, { icon: any; color: string; label: st
     interview_cancelled:    { icon: FiCalendar,    color: "red.400",    label: "Entrevista cancelada" },
     interview_rescheduled:  { icon: FiCalendar,    color: "orange.400", label: "Entrevista reagendada" },
     hired:                  { icon: FiAward,       color: "yellow.400", label: "Contratado!" },
+    not_hired:              { icon: FiXCircle,     color: "red.400",    label: "Não selecionado" },
     job_pending_validation:      { icon: FiBriefcase, color: "purple.400", label: "Vaga para aprovar" },
     category_pending_validation: { icon: FiTag,       color: "purple.400", label: "Categoria para aprovar" },
     user_registered:             { icon: FiUser,      color: "teal.400",   label: "Novo usuário" },
