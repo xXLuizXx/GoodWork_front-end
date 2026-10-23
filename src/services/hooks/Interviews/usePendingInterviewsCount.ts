@@ -1,6 +1,7 @@
+import { useEffect, useState } from "react";
 import { useQueries } from "react-query";
 import { api } from "@/services/apiClient";
-import { getSeenSnapshot } from "@/utils/interviewSeenState";
+import { getSeenSnapshot, SEEN_CHANGED_EVENT } from "@/utils/interviewSeenState";
 
 interface IInterviewSummary {
     id: string;
@@ -11,10 +12,16 @@ interface IInterviewSummary {
 }
 
 async function getMyInterview(application_id: string): Promise<IInterviewSummary | null> {
-    const { data } = await api.get("interview/myInterview", {
-        params: { application_id },
-    });
-    return data ?? null;
+    try {
+        const { data } = await api.get("interview/myInterview", {
+            params: { application_id },
+        });
+        return data ?? null;
+    } catch (error: any) {
+        // 404 = candidatura ainda sem entrevista; não é erro (e não deve ser repetido)
+        if (error?.response?.status === 404) return null;
+        throw error;
+    }
 }
 
 function usePendingInterviewsCount(
@@ -34,6 +41,18 @@ function usePendingInterviewsCount(
     );
 
     const isLoading = queries.some((q) => q.isLoading);
+
+    // Relê o "visto" quando a página de entrevistas o atualiza (nesta aba ou em outra)
+    const [, setSeenVersion] = useState(0);
+    useEffect(() => {
+        const refresh = () => setSeenVersion((v) => v + 1);
+        window.addEventListener(SEEN_CHANGED_EVENT, refresh);
+        window.addEventListener("storage", refresh);
+        return () => {
+            window.removeEventListener(SEEN_CHANGED_EVENT, refresh);
+            window.removeEventListener("storage", refresh);
+        };
+    }, []);
 
     const seenSnapshot = getSeenSnapshot(userId);
 

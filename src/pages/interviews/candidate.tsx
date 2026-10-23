@@ -70,10 +70,16 @@ const statusColor: Record<string, string> = {
 };
 
 async function getMyInterview(application_id: string): Promise<IInterviewWithContext | null> {
-    const { data } = await api.get("interview/myInterview", {
-        params: { application_id },
-    });
-    return data ?? null;
+    try {
+        const { data } = await api.get("interview/myInterview", {
+            params: { application_id },
+        });
+        return data ?? null;
+    } catch (error: any) {
+        // 404 = candidatura ainda sem entrevista; não é erro (e não deve ser repetido)
+        if (error?.response?.status === 404) return null;
+        throw error;
+    }
 }
 
 // ── Card de entrevista ─────────────────────────────────────────────────────────

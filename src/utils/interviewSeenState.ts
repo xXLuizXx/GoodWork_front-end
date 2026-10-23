@@ -1,4 +1,6 @@
 const STORAGE_PREFIX = "interview_seen_";
+// Avisa quem mostra o contador (ex.: Sidebar) que o "visto" mudou nesta aba
+export const SEEN_CHANGED_EVENT = "interview-seen-changed";
 
 interface SeenEntry {
     status: string;
@@ -41,5 +43,6 @@ export function markInterviewsAsSeen(userId: string, interviews: SeenableIntervi
     }
     try {
         localStorage.setItem(storageKey(userId), JSON.stringify(snapshot));
+        window.dispatchEvent(new Event(SEEN_CHANGED_EVENT));
     } catch {}
 }
