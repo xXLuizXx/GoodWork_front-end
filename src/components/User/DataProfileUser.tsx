@@ -28,7 +28,7 @@ import {
     ModalCloseButton,
 } from '@chakra-ui/react';
 import { LuSaveAll } from 'react-icons/lu';
-import { MdEdit, MdCameraAlt, MdVisibility, MdVisibilityOff, MdLock, MdUpload } from 'react-icons/md';
+import { MdEdit, MdCameraAlt, MdVisibility, MdVisibilityOff, MdLock, MdUpload, MdDelete } from 'react-icons/md';
 import { Divider } from '@chakra-ui/react';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useMutation } from 'react-query';
@@ -68,6 +68,8 @@ export function MyProfile(): JSX.Element {
     const [showNewPwd, setShowNewPwd] = useState(false);
     const [showConfirmPwd, setShowConfirmPwd] = useState(false);
     const { isOpen: isPwdOpen, onOpen: onPwdOpen, onClose: onPwdClose } = useDisclosure();
+    const { isOpen: isDeleteCvOpen, onOpen: onDeleteCvOpen, onClose: onDeleteCvClose } = useDisclosure();
+    const [isDeletingCurriculum, setIsDeletingCurriculum] = useState(false);
     const { handleSubmit, register, setValue, reset, formState: { errors } } = useForm<IUpdateUser>();
 
     // Campos obrigatórios do perfil não podem ficar vazios nem só com espaços
@@ -91,6 +93,35 @@ export function MyProfile(): JSX.Element {
 
     const handleCurriculumClick = () => {
         curriculumInputRef.current?.click();
+    };
+
+    const handleCurriculumDelete = async () => {
+        setIsDeletingCurriculum(true);
+        try {
+            await api.delete('users/curriculum');
+
+            toast({
+                description: "Currículo removido. As candidaturas já enviadas não são afetadas.",
+                status: "success",
+                position: "top",
+                duration: 4000,
+                isClosable: true,
+            });
+
+            onDeleteCvClose();
+            queryClient.invalidateQueries("users");
+            setTimeout(() => window.location.reload(), 500);
+        } catch (error: any) {
+            toast({
+                description: error?.response?.data?.message ?? "Erro ao remover currículo. Tente novamente.",
+                status: "error",
+                position: "top",
+                duration: 5000,
+                isClosable: true,
+            });
+        } finally {
+            setIsDeletingCurriculum(false);
+        }
     };
 
     const handleCurriculumUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -512,12 +543,45 @@ export function MyProfile(): JSX.Element {
                                     {user.curriculum ? "Atualizar currículo" : "Enviar currículo"}
                                 </Button>
                                 {user.curriculum && <CurriculumPreview curriculum={user.curriculum} />}
+                                {user.curriculum && (
+                                    <Button
+                                        type="button"
+                                        colorScheme="red"
+                                        variant="outline"
+                                        leftIcon={<MdDelete />}
+                                        onClick={onDeleteCvOpen}
+                                    >
+                                        Remover currículo
+                                    </Button>
+                                )}
                             </Flex>
                         )}
                     </>
                 )}
             </Flex>
         </Flex>
+
+        <Modal isOpen={isDeleteCvOpen} onClose={onDeleteCvClose} isCentered>
+            <ModalOverlay />
+            <ModalContent mx="4">
+                <ModalHeader>Remover currículo</ModalHeader>
+                <ModalCloseButton />
+                <ModalBody>
+                    <Text>
+                        Seu currículo será apagado do perfil. As candidaturas que você já enviou continuam com o
+                        currículo da época. Para se candidatar a novas vagas, será preciso enviar um currículo.
+                    </Text>
+                </ModalBody>
+                <ModalFooter gap={3}>
+                    <Button variant="ghost" onClick={onDeleteCvClose} isDisabled={isDeletingCurriculum}>
+                        Cancelar
+                    </Button>
+                    <Button colorScheme="red" onClick={handleCurriculumDelete} isLoading={isDeletingCurriculum}>
+                        Remover
+                    </Button>
+                </ModalFooter>
+            </ModalContent>
+        </Modal>
 
         <Modal
             isOpen={isPwdOpen}
