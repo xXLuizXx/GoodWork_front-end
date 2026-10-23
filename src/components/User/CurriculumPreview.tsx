@@ -11,6 +11,7 @@ import {
     ModalHeader,
     ModalOverlay,
     Spinner,
+    Text,
     Tooltip,
     useColorModeValue,
     useDisclosure,
@@ -43,6 +44,16 @@ const SIZES = {
 // O PDF é renderizado em tamanho real e reduzido, para a miniatura mostrar a página inteira
 const PAGE_WIDTH = 600;
 
+// Celulares e tablets não mostram PDF dentro da página: o Chrome do Android exibe só um botão
+// "Abrir" e o Safari do iPhone/iPad, só a 1ª página. Nesses casos o modal oferece abrir o arquivo.
+function canShowPdfInline(): boolean {
+    const nav = navigator as Navigator & { pdfViewerEnabled?: boolean };
+    const isIOS = /iPad|iPhone|iPod/.test(nav.userAgent) || (nav.platform === 'MacIntel' && nav.maxTouchPoints > 1);
+    if (isIOS) return false;
+    // Navegadores antigos não informam: mantém a prévia
+    return nav.pdfViewerEnabled !== false;
+}
+
 // Miniatura de um currículo em PDF; ao clicar, abre o arquivo em um modal.
 // O PDF é baixado como blob porque o back (helmet) não permite ser exibido em iframe de outra origem.
 export function CurriculumPreview({
@@ -55,6 +66,7 @@ export function CurriculumPreview({
     const thumbScale = thumbWidth / PAGE_WIDTH;
     const [blobUrl, setBlobUrl] = useState<string | null>(null);
     const [hasError, setHasError] = useState(false);
+    const [inlineUnsupported, setInlineUnsupported] = useState(false);
     const { isOpen, onOpen, onClose } = useDisclosure();
     const thumbBorder = useColorModeValue('gray.300', 'gray.600');
     const thumbBg = useColorModeValue('white', 'gray.700');
@@ -65,6 +77,12 @@ export function CurriculumPreview({
 
         setBlobUrl(null);
         setHasError(false);
+
+        // Sem leitor de PDF na página, não há o que mostrar: nem baixa o arquivo
+        if (!canShowPdfInline()) {
+            setInlineUnsupported(true);
+            return;
+        }
 
         fetch(fileUrl)
             .then((response) => {
@@ -88,7 +106,7 @@ export function CurriculumPreview({
 
     // Sem prévia, o clique abre o arquivo em uma nova aba
     const handleClick = () => {
-        if (blobUrl) onOpen();
+        if (blobUrl || inlineUnsupported) onOpen();
         else if (hasError) window.open(fileUrl, '_blank', 'noopener,noreferrer');
     };
 
@@ -138,7 +156,7 @@ export function CurriculumPreview({
                 </>
             ) : (
                 <Flex h="100%" align="center" justify="center">
-                    {hasError ? <MdDescription size={size === 'xs' ? 14 : 20} color="#A0AEC0" /> : <Spinner size="xs" color="blue.400" />}
+                    {hasError || inlineUnsupported ? <MdDescription size={size === 'xs' ? 14 : 20} color="#A0AEC0" /> : <Spinner size="xs" color="blue.400" />}
                 </Flex>
             )}
         </Box>
@@ -152,7 +170,7 @@ export function CurriculumPreview({
                     colorScheme={colorScheme}
                     size={size}
                     onClick={handleClick}
-                    isDisabled={!blobUrl && !hasError}
+                    isDisabled={!blobUrl && !hasError && !inlineUnsupported}
                     fontSize={size === 'xs' ? '10px' : undefined}
                     pl="2px"
                     pr={1.5}
@@ -168,7 +186,7 @@ export function CurriculumPreview({
                         type="button"
                         onClick={handleClick}
                         borderRadius="sm"
-                        cursor={blobUrl || hasError ? 'pointer' : 'default'}
+                        cursor={blobUrl || hasError || inlineUnsupported ? 'pointer' : 'default'}
                         transition="box-shadow 0.2s"
                         _hover={{ boxShadow: 'md' }}
                         aria-label="Visualizar currículo"
@@ -185,6 +203,25 @@ export function CurriculumPreview({
                     <ModalHeader>{title}</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
+                        {inlineUnsupported && (
+                            <Flex direction="column" align="center" textAlign="center" gap={4} py={6}>
+                                <MdDescription size={48} color="#A0AEC0" />
+                                <Text>
+                                    Este navegador não mostra PDFs dentro da página.
+                                    Toque no botão abaixo para abrir o currículo.
+                                </Text>
+                                <Button
+                                    as="a"
+                                    href={fileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    colorScheme="blue"
+                                    leftIcon={<MdOpenInNew />}
+                                >
+                                    Abrir currículo
+                                </Button>
+                            </Flex>
+                        )}
                         {blobUrl && (
                             <Box
                                 as="iframe"
@@ -198,9 +235,11 @@ export function CurriculumPreview({
                         )}
                     </ModalBody>
                     <ModalFooter gap={3}>
-                        <Button as="a" href={fileUrl} target="_blank" rel="noopener noreferrer" variant="outline" leftIcon={<MdOpenInNew />}>
-                            Abrir em nova aba
-                        </Button>
+                        {!inlineUnsupported && (
+                            <Button as="a" href={fileUrl} target="_blank" rel="noopener noreferrer" variant="outline" leftIcon={<MdOpenInNew />}>
+                                Abrir em nova aba
+                            </Button>
+                        )}
                         <Button colorScheme="blue" onClick={onClose}>
                             Fechar
                         </Button>
