@@ -15,6 +15,7 @@ import decode from "jwt-decode";
 import { useCountCategoriesNotValidated } from "@/services/hooks/Categories/useCountCategoriesNotValidated";
 import { useMyApplicationsCandidate } from "@/services/hooks/applications/useMyApplicationsCandidate";
 import { usePendingInterviewsCount } from "@/services/hooks/Interviews/usePendingInterviewsCount";
+import { useUnreadCountByType } from "@/services/hooks/Notifications/useNotifications";
 import { CreateCategory } from "./Categories/CreateCategory";
 import { useSidebarDrawer } from "@/contexts/SidebarDrawerContext";
 
@@ -54,6 +55,9 @@ export function Sidebar() {
     const { count: pendingInterviewsCount } = usePendingInterviewsCount(candidateAppIds, userId, {
         enabled: isIndividual && candidateAppIds.length > 0,
     });
+
+    // Usuários não têm status "pendente": conta os cadastros novos ainda não lidos nas notificações do admin
+    const newUsersCount = useUnreadCountByType("user_registered", admin);
 
     const categoriesCount = categoriesData?.length || 0;
     const jobsCount = admin ? (isLoadingJobs ? 0 : jobsData?.count || 0) : 0;
@@ -100,19 +104,61 @@ export function Sidebar() {
                     {/* USUÁRIOS — só admin */}
                     {admin && (
                         <AccordionItem>
-                            <AccordionButton pb="7">
-                                <Text flex="1" textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
-                                    USUÁRIOS
-                                </Text>
-                                <AccordionIcon />
-                            </AccordionButton>
-                            <AccordionPanel>
-                                <NextLink href="/users/generate-users" legacyBehavior passHref>
-                                    <ChakraLink {...linkStyle}>
-                                        Gerenciar Usuários
-                                    </ChakraLink>
-                                </NextLink>
-                            </AccordionPanel>
+                            {({ isExpanded }) => (
+                                <>
+                                    <AccordionButton pb="7" position="relative">
+                                        <Text flex="1" textAlign="left" fontWeight="bold" color="gray.500" fontSize="small">
+                                            USUÁRIOS
+                                        </Text>
+                                        {!isExpanded && newUsersCount > 0 && (
+                                            <Box
+                                                position="absolute"
+                                                right="2"
+                                                top="2"
+                                                bg="red.600"
+                                                borderRadius="full"
+                                                w="12px"
+                                                h="12px"
+                                                border="2px solid white"
+                                                boxShadow="md"
+                                                animation="pulse 1.5s infinite"
+                                                css={{
+                                                    "@keyframes pulse": {
+                                                        "0%": { transform: "scale(0.95)", opacity: 0.8 },
+                                                        "70%": { transform: "scale(1.1)", opacity: 1 },
+                                                        "100%": { transform: "scale(0.95)", opacity: 0.8 },
+                                                    },
+                                                }}
+                                            />
+                                        )}
+                                        <AccordionIcon />
+                                    </AccordionButton>
+                                    <AccordionPanel>
+                                        <NextLink href="/users/generate-users" legacyBehavior passHref>
+                                            <ChakraLink {...linkStyle} display="inline-flex" alignItems="center">
+                                                Gerenciar Usuários
+                                                {newUsersCount > 0 && (
+                                                    <Badge
+                                                        ml={2}
+                                                        bg="red.600"
+                                                        color="black"
+                                                        borderRadius="full"
+                                                        boxSize="20px"
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                        fontSize="xs"
+                                                        fontWeight="extrabold"
+                                                        title="Cadastros novos ainda não vistos nas notificações"
+                                                    >
+                                                        {newUsersCount}
+                                                    </Badge>
+                                                )}
+                                            </ChakraLink>
+                                        </NextLink>
+                                    </AccordionPanel>
+                                </>
+                            )}
                         </AccordionItem>
                     )}
 

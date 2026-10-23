@@ -36,12 +36,21 @@ export function useUnreadCount(enabled = true) {
     );
 }
 
+const fetchNotifications = () => api.get<INotification[]>("/notifications").then(r => r.data);
+
 export function useNotificationsList(enabled = true) {
-    return useQuery(
-        ["notifications/list"],
-        () => api.get<INotification[]>("/notifications").then(r => r.data),
-        { enabled, staleTime: 10_000 }
-    );
+    return useQuery(["notifications/list"], fetchNotifications, { enabled, staleTime: 10_000 });
+}
+
+// Não lidas de um tipo, a partir da mesma lista do sino (as 50 mais recentes).
+// Marcar como lida no sino zera o contador, porque as mutations já invalidam essa lista.
+export function useUnreadCountByType(type: NotificationType, enabled = true) {
+    const { data } = useQuery(["notifications/list"], fetchNotifications, {
+        enabled,
+        staleTime: 10_000,
+        refetchInterval: 30_000,
+    });
+    return data?.filter((n) => n.type === type && !n.is_read).length ?? 0;
 }
 
 export function useMarkAllRead() {
