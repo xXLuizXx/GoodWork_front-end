@@ -68,7 +68,12 @@ export function MyProfile(): JSX.Element {
     const [showNewPwd, setShowNewPwd] = useState(false);
     const [showConfirmPwd, setShowConfirmPwd] = useState(false);
     const { isOpen: isPwdOpen, onOpen: onPwdOpen, onClose: onPwdClose } = useDisclosure();
-    const { handleSubmit, register, setValue, reset } = useForm<IUpdateUser>();
+    const { handleSubmit, register, setValue, reset, formState: { errors } } = useForm<IUpdateUser>();
+
+    // Campos obrigatórios do perfil não podem ficar vazios nem só com espaços
+    const requiredText = (label: string) => ({
+        validate: (value: unknown) => (value ?? "").toString().trim() !== "" || `Informe ${label}.`,
+    });
     const {
         handleSubmit: handleSubmitPassword,
         register: registerPassword,
@@ -346,10 +351,11 @@ export function MyProfile(): JSX.Element {
                     <Text fontSize={{ base: "2xl", md: "4xl" }} fontWeight="bold" color="blue.800" wordBreak="break-word">
                         {user.name}
                     </Text>
-                    <FormControl>
+                    <FormControl isInvalid={isEditing && !!errors.ability}>
                         {isEditing && user.user_type === "individual" ? (
                             <Textarea
-                                {...register("ability")}
+                                {...register("ability", requiredText("suas habilidades"))}
+                                placeholder="Suas habilidades"
                                 bg={inputBg}
                                 borderColor="blue.300"
                                 focusBorderColor="blue.500"
@@ -362,6 +368,7 @@ export function MyProfile(): JSX.Element {
                                     : null}
                             </Text>
                         )}
+                        <FormErrorMessage>{errors.ability?.message}</FormErrorMessage>
                     </FormControl>
                     <Text mt={2} fontSize="sm" color="gray.500">{user.email}</Text>
                 </Box>
@@ -379,11 +386,11 @@ export function MyProfile(): JSX.Element {
                     { label: "Área de Negócio", field: "business_area", isCompany: true },
                 ].map(({ label, field, isIndividual, isCompany }) => (
                     (user.user_type === "individual" && isCompany) || (user.user_type === "company" && isIndividual) ? null :
-                    <FormControl key={field}>
+                    <FormControl key={field} isInvalid={isEditing && !!errors[field as keyof IUpdateUser]}>
                         <FormLabel color="blue.600">{label}</FormLabel>
                         {isEditing ? (
                             <Input
-                                {...register(field as keyof IUpdateUser)}
+                                {...register(field as keyof IUpdateUser, requiredText(label.toLowerCase()))}
                                 defaultValue={user[field as keyof typeof user]}
                                 bg={inputBg}
                                 borderColor="blue.300"
@@ -408,6 +415,7 @@ export function MyProfile(): JSX.Element {
                                 }
                             </Text>
                         )}
+                        <FormErrorMessage>{errors[field as keyof IUpdateUser]?.message as string}</FormErrorMessage>
                     </FormControl>
                 ))}
 

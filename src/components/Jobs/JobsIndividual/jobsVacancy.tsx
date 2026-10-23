@@ -1,6 +1,6 @@
 import { 
   Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, 
-  Flex, Heading, IconButton, Image, Text, VStack, 
+  Flex, Heading, Image, Text, VStack, 
   useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, 
   ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon, 
   Spinner, Grid, useBreakpointValue, HStack,
@@ -8,7 +8,6 @@ import {
   Icon,
   useColorModeValue
 } from "@chakra-ui/react";
-import {BsThreeDotsVertical} from "react-icons/bs";
 import { FiBriefcase } from "react-icons/fi";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
 import { useJobsVacancy } from "@/services/hooks/Jobs/useJobsVacancy";
@@ -328,13 +327,6 @@ export function JobsVacancy({vacancy}: IJobsVacancyProps) {
                                             </Text>
                                         </Box>
                                     </Flex>
-                                    <IconButton
-                                        variant="ghost"
-                                        colorScheme="gray"
-                                        aria-label="See menu"
-                                        icon={<BsThreeDotsVertical size="14"/>}
-                                        size="xs"
-                                    />
                                 </Flex>
                             </CardHeader>
                             

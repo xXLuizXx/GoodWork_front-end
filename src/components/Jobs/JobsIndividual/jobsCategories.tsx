@@ -1,6 +1,6 @@
 import { 
   Avatar, Box, Button, Card, CardBody, CardFooter, CardHeader, 
-  Flex, Heading, IconButton, Image, Text, VStack, 
+  Flex, Heading, Image, Text, VStack, 
   useDisclosure, Modal, ModalBody, ModalCloseButton, ModalContent, 
   ModalFooter, ModalHeader, ModalOverlay, Stack, Alert, AlertIcon,
   Grid,
@@ -11,7 +11,6 @@ import {
   Icon,
   useColorModeValue
 } from "@chakra-ui/react";
-import {BsThreeDotsVertical} from "react-icons/bs";
 import { FiBriefcase } from "react-icons/fi";
 import {GrFormView, GrUserAdd} from "react-icons/gr";
 import { useJobsCategories } from "@/services/hooks/Jobs/useJobsCategories";
@@ -287,13 +286,6 @@ export function JobsCategory({category_id}: IJobsCategoriesProps) {
                                             </Text>
                                         </Box>
                                     </Flex>
-                                    <IconButton
-                                        variant="ghost"
-                                        colorScheme="gray"
-                                        aria-label="See menu"
-                                        icon={<BsThreeDotsVertical size="14"/>}
-                                        size="xs"
-                                    />
                                 </Flex>
                             </CardHeader>
                             
