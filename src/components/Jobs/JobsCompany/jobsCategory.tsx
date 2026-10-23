@@ -47,6 +47,7 @@ export function MyJobsVacancy({category_id}: IJobsCompanyProps) {
     const { updateStatusJob, isLoading } = useUpdateStatusJob();
     const toast = useToast();
     const modalBodyBg = useColorModeValue("gray.50", "gray.700");
+    const filterBg = useColorModeValue("white", "gray.800");
     const [filter, setFilter] = useState("all");
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -153,7 +154,7 @@ export function MyJobsVacancy({category_id}: IJobsCompanyProps) {
                 align="center" 
                 mb="6" 
                 p="4" 
-                bg="white" 
+                bg={filterBg}
                 borderRadius="md" 
                 boxShadow="sm"
                 flexWrap="wrap"

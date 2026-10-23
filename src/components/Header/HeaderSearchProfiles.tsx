@@ -1,4 +1,4 @@
-import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image } from "@chakra-ui/react";
+import { Flex, Input, HStack, VStack, useBreakpointValue, IconButton, Image, useColorModeValue } from "@chakra-ui/react";
 import { RiMenuLine, RiSearchLine } from "react-icons/ri";
 import { GoXCircleFill } from "react-icons/go";
 import { Profile } from "./Profile";
@@ -22,6 +22,9 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
     const [localSearchTerm, setLocalSearchTerm] = useState(searchValue || '');
     const [isSearching, setIsSearching] = useState(false);
     const router = useRouter();
+    const headerBg = useColorModeValue("#0000CD", "gray.900");
+    const searchBg = useColorModeValue("white", "whiteAlpha.200");
+    const searchColor = useColorModeValue("black", "whiteAlpha.900");
     const { onOpen: onOpenSidebar } = useSidebarDrawer();
 
     const handleSearch = async () => {
@@ -73,7 +76,7 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
             mt="4"
             px={{ base: "3", md: "6" }}
             align="center"
-            bgColor="#0000CD"
+            bgColor={headerBg}
             boxShadow="dark-lg"
             borderRadius="full"
         >
@@ -109,11 +112,11 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
                 alignSelf="center"
                 color="gray.50"
                 position="relative"
-                bg="white"
+                bg={searchBg}
                 borderRadius="full"
             >
                 <Input
-                    color="black"
+                    color={searchColor}
                     variant="unstyled"
                     px={{ base: "1", md: "4" }}
                     mr={{ base: "1", md: "2" }}
@@ -177,8 +180,6 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
                     pr="8"
                     py="3"
                     color="gray.900"
-                    borderRightWidth={1}
-                    borderColor="gray.100"
                 >
                 </VStack>
             </Flex>

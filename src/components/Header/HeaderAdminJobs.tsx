@@ -25,6 +25,7 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
     const [typeUser, setTypeUser] = useState("");
     const [localJob, setLocalJob] = useState('');
     const router = useRouter();
+    const headerBg = useColorModeValue("#0000CD", "gray.900");
     const { onOpen: onOpenSidebar } = useSidebarDrawer();
     const isWideVersion = useBreakpointValue({
         base: false,
@@ -82,7 +83,7 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
             mt="4"
             px={{ base: "3", md: "6" }}
             align="center"
-            bgColor="#0000CD"
+            bgColor={headerBg}
             boxShadow="dark-lg"
             borderRadius="full"
         >
@@ -170,8 +171,6 @@ function HeaderAdminJobs({ onSearch, searchValue, onSearchChange, redirectOnSear
                     pr="8"
                     py="3"
                     color="gray.900"
-                    borderRightWidth={1}
-                    borderColor="gray.100"
                 >
                 </VStack>
             </Flex>

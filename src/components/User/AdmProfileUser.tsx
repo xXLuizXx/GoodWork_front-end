@@ -50,6 +50,7 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
     const borderColor = useColorModeValue('gray.200', 'gray.700');
     const textColor = useColorModeValue('gray.600', 'gray.300');
     const headingColor = useColorModeValue('blue.700', 'blue.300');
+    const bannerGradient = useColorModeValue('linear(to-r, blue.500, blue.600)', 'linear(to-r, blue.800, blue.900)');
 
     useEffect(() => {
         setMounted(true);
@@ -113,7 +114,7 @@ export function UserProfileView({ userId }: IUserProfileViewProps) {
             mx="auto"
         >
             <Box 
-                bgGradient="linear(to-r, blue.500, blue.600)"
+                bgGradient={bannerGradient}
                 p={6}
                 position="relative"
             >

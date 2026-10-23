@@ -188,8 +188,6 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
                     pr="8"
                     py="3"
                     color="gray.900"
-                    borderRightWidth={1}
-                    borderColor="gray.100"
                 >
                 </VStack>
             </Flex>

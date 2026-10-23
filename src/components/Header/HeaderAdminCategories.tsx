@@ -25,6 +25,7 @@ function HeaderAdminCategories({ onSearch, searchValue, onSearchChange, redirect
     const [typeUser, setTypeUser] = useState("");
     const [localCategory, setLocalCategory] = useState('');
     const router = useRouter();
+    const headerBg = useColorModeValue("#0000CD", "gray.900");
     const { onOpen: onOpenSidebar } = useSidebarDrawer();
     const isWideVersion = useBreakpointValue({
         base: false,
@@ -88,7 +89,7 @@ function HeaderAdminCategories({ onSearch, searchValue, onSearchChange, redirect
             mt="4"
             px={{ base: "3", md: "6" }}
             align="center"
-            bgColor="#0000CD"
+            bgColor={headerBg}
             boxShadow="dark-lg"
             borderRadius="full"
         >
@@ -176,8 +177,6 @@ function HeaderAdminCategories({ onSearch, searchValue, onSearchChange, redirect
                     pr="8"
                     py="3"
                     color="gray.900"
-                    borderRightWidth={1}
-                    borderColor="gray.100"
                 >
                 </VStack>
             </Flex>
