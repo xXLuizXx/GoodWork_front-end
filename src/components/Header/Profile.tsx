@@ -43,13 +43,17 @@ function Profile({ showProfileData = true }: IProfileProps): JSX.Element {
             <PopoverContent bg={popoverBg} borderColor={popoverBorder} maxW={["100%", "290px"]}>
                 <PopoverHeader pt={4} pr={8} fontWeight="bold" border="0">
                     <Stack direction={["column", "row"]} spacing={["2", "4"]} minW={0}>
-                        <Avatar
-                            border="1px"
-                            size="md"
-                            src={user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${user?.avatar}` : "../../../Img/icons/avatarLogin.png"}
-                            name={user?.name}
-                            flexShrink={0}
-                        />
+                        <Link href="/users/my-profile" aria-label="Ir para o meu perfil" flexShrink={0}>
+                            <Avatar
+                                border="1px"
+                                size="md"
+                                src={user?.avatar ? `${process.env.NEXT_PUBLIC_API_URL}/avatars/${user?.avatar}` : "../../../Img/icons/avatarLogin.png"}
+                                name={user?.name}
+                                cursor="pointer"
+                                transition="transform 0.2s"
+                                _hover={{ transform: "scale(1.05)" }}
+                            />
+                        </Link>
                         {/* minW={0} permite que o texto encolha; nomes/e-mails longos são cortados com "…" */}
                         <Flex flexDirection="column" justifyContent="center" ml={["0", "2"]} mt={["2", "0"]} minW={0}>
                             <Text color="white" fontWeight="bold" fontSize="sm" noOfLines={2} title={user?.name}>{user?.name}</Text>

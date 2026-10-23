@@ -30,11 +30,23 @@ export function ApplicationCurriculumField({
     <>
       <Alert status="info" borderRadius="md">
         <AlertIcon />
-        <Text fontSize="sm">
-          {profileCurriculum
-            ? "Você pode usar o currículo do seu perfil ou enviar outro PDF só para esta vaga."
-            : "Para concorrer a esta vaga, envie seu currículo em formato PDF."}
-        </Text>
+        {profileCurriculum ? (
+          <Text fontSize="sm">
+            Você pode usar o currículo do seu perfil ou enviar outro PDF só para esta vaga.
+          </Text>
+        ) : (
+          <Box fontSize="sm">
+            <Text>Para concorrer a esta vaga, envie seu currículo em formato PDF.</Text>
+            {/* Nova aba: o candidato não perde a candidatura que está fazendo */}
+            <Text mt={1}>
+              <strong>Dica:</strong> salve seu currículo no seu{" "}
+              <Link href="/users/my-profile" isExternal color="blue.500" fontWeight="semibold">
+                perfil
+              </Link>{" "}
+              para usá-lo nas próximas candidaturas sem precisar anexar de novo.
+            </Text>
+          </Box>
+        )}
       </Alert>
 
       {profileCurriculum && (
