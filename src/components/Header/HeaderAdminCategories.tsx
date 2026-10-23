@@ -6,6 +6,7 @@ import { parseCookies } from "nookies";
 import decode from "jwt-decode";
 import { useRouter } from "next/router";
 import { useSidebarDrawer } from "@/contexts/SidebarDrawerContext";
+import { NotificationBell } from "@/components/Notifications/NotificationBell";
 
 interface DecodedToken {
     isAdmin: boolean;
@@ -162,6 +163,7 @@ function HeaderAdminCategories({ onSearch, searchValue, onSearchChange, redirect
                     borderRightWidth={1}
                     borderColor="gray.100"
                 >
+                    <NotificationBell enabled />
                 </HStack>
                 <Flex align="center">
                     <Profile showProfileData={isWideVersion} />

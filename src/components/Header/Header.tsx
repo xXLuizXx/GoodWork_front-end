@@ -170,9 +170,7 @@ function Header({ onSearch, searchValue, onSearchChange }: HeaderProps): JSX.Ele
                     borderRightWidth={1}
                     borderColor="gray.100"
                 >
-                    {!admin && (typeUser === "individual" || typeUser === "company") && (
-                        <NotificationBell enabled />
-                    )}
+                    {typeUser && <NotificationBell enabled />}
                 </HStack>
                 <Flex align="center">
                     <Profile showProfileData={isWideVersion} />

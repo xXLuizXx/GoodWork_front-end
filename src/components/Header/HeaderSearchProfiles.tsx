@@ -5,6 +5,7 @@ import { Profile } from "./Profile";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSidebarDrawer } from "@/contexts/SidebarDrawerContext";
+import { NotificationBell } from "@/components/Notifications/NotificationBell";
 
 interface IProfileProps {
     showProfileData: boolean;
@@ -165,6 +166,7 @@ function HeaderSearchProfiles({ searchValue, id, onSearch, onClearSearch, onSear
                     borderRightWidth={1}
                     borderColor="gray.100"
                 >
+                    <NotificationBell enabled />
                 </HStack>
                 <Flex align="center">
                     <Profile showProfileData={isWideVersion} />

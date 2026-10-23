@@ -26,6 +26,9 @@ import {
     FiUserPlus,
     FiCalendar,
     FiAward,
+    FiBriefcase,
+    FiTag,
+    FiUser,
 } from "react-icons/fi";
 import { useRouter } from "next/router";
 import {
@@ -45,6 +48,9 @@ const typeConfig: Record<NotificationType, { icon: any; color: string; label: st
     interview_cancelled:    { icon: FiCalendar,    color: "red.400",    label: "Entrevista cancelada" },
     interview_rescheduled:  { icon: FiCalendar,    color: "orange.400", label: "Entrevista reagendada" },
     hired:                  { icon: FiAward,       color: "yellow.400", label: "Contratado!" },
+    job_pending_validation:      { icon: FiBriefcase, color: "purple.400", label: "Vaga para aprovar" },
+    category_pending_validation: { icon: FiTag,       color: "purple.400", label: "Categoria para aprovar" },
+    user_registered:             { icon: FiUser,      color: "teal.400",   label: "Novo usuário" },
 };
 
 function formatDate(dateStr: string) {
@@ -76,6 +82,12 @@ function NotificationItem({ notification, onClose }: { notification: INotificati
         } else if (notification.type === "application_received" && notification.resource_id) {
             // Nova candidatura recebida: abre o kanban da vaga
             router.push(`/applications?id=${notification.resource_id}`);
+        } else if (notification.type === "job_pending_validation") {
+            router.push("/jobs/jobsNotValidated");
+        } else if (notification.type === "category_pending_validation") {
+            router.push("/categories/categoriesNotValidated");
+        } else if (notification.type === "user_registered" && notification.resource_id) {
+            router.push(`/profile?user=${notification.resource_id}`);
         } else if (notification.resource_type === "application") {
             router.push("/applications/my-applications");
         }

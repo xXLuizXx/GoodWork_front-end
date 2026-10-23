@@ -8,7 +8,7 @@ export interface INotification {
     title: string;
     body: string;
     resource_id: string | null;
-    resource_type: "application" | "interview" | "job" | null;
+    resource_type: "application" | "interview" | "job" | "category" | "user" | null;
     is_read: boolean;
     read_at: string | null;
     created_at: string;
@@ -21,7 +21,11 @@ export type NotificationType =
     | "interview_scheduled"
     | "interview_cancelled"
     | "interview_rescheduled"
-    | "hired";
+    | "hired"
+    // Enviadas aos admins
+    | "job_pending_validation"
+    | "category_pending_validation"
+    | "user_registered";
 
 export function useUnreadCount(enabled = true) {
     return useQuery(
